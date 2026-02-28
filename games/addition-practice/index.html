@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>加法练习</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .question-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+    }
+
+    .question {
+      margin: 0 0 12px;
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    .answer-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    input[type="number"] {
+      flex: 1;
+      min-width: 120px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 1rem;
+      color: var(--text);
+      background: #ffffff;
+    }
+
+    input[type="number"]:focus {
+      outline: 2px solid rgba(10, 125, 140, 0.25);
+      border-color: var(--primary);
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.06s ease, opacity 0.2s ease;
+      touch-action: manipulation;
+    }
+
+    button:active { transform: scale(0.98); }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: var(--primary-dark); }
+
+    .actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-secondary {
+      background: #eaf4fa;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .message {
+      margin-top: 12px;
+      min-height: 1.4em;
+      font-weight: 600;
+    }
+
+    .message.ok { color: var(--ok); }
+    .message.bad { color: var(--bad); }
+
+    .hint {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (min-width: 640px) {
+      .app { padding: 24px; }
+      .question { font-size: 2.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="加法练习游戏">
+    <h1>加法练习</h1>
+    <p class="subtitle">随机生成加法题，输入答案后点击“提交答案”。</p>
+
+    <section class="stats" aria-label="分数统计">
+      <div class="stat">
+        <span class="label">总题数</span>
+        <span id="total" class="value">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">答对</span>
+        <span id="correct" class="value">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">得分</span>
+        <span id="score" class="value">0</span>
+      </div>
+    </section>
+
+    <section class="question-box" aria-live="polite">
+      <p id="question" class="question">0 + 0 = ?</p>
+      <div class="answer-row">
+        <input id="answer" type="number" inputmode="numeric" autocomplete="off" placeholder="请输入答案" aria-label="答案输入框">
+        <button id="checkBtn" class="btn-primary" type="button">提交答案</button>
+      </div>
+      <div id="message" class="message"></div>
+      <p class="hint">提示：可以按回车快速提交。</p>
+      <div class="actions">
+        <button id="nextBtn" class="btn-secondary" type="button">下一题</button>
+        <button id="resetBtn" class="btn-secondary" type="button">重置</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const questionEl = document.getElementById('question');
+      const answerInput = document.getElementById('answer');
+      const messageEl = document.getElementById('message');
+      const totalEl = document.getElementById('total');
+      const correctEl = document.getElementById('correct');
+      const scoreEl = document.getElementById('score');
+      const checkBtn = document.getElementById('checkBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      let left = 0;
+      let right = 0;
+      let total = 0;
+      let correct = 0;
+      let score = 0;
+      let answeredCurrent = false;
+
+      function randomInt(max) {
+        return Math.floor(Math.random() * (max + 1));
+      }
+
+      function nextQuestion() {
+        left = randomInt(20);
+        right = randomInt(20);
+        answeredCurrent = false;
+        questionEl.textContent = left + ' + ' + right + ' = ?';
+        answerInput.value = '';
+        messageEl.textContent = '';
+        messageEl.className = 'message';
+        answerInput.focus();
+      }
+
+      function updateStats() {
+        totalEl.textContent = String(total);
+        correctEl.textContent = String(correct);
+        scoreEl.textContent = String(score);
+      }
+
+      function checkAnswer() {
+        if (answeredCurrent) {
+          messageEl.textContent = '本题已作答，请点击“下一题”。';
+          messageEl.className = 'message';
+          return;
+        }
+
+        const raw = answerInput.value.trim();
+        if (raw === '') {
+          messageEl.textContent = '请先输入答案。';
+          messageEl.className = 'message bad';
+          return;
+        }
+
+        const userAnswer = Number(raw);
+        const expected = left + right;
+        total += 1;
+        answeredCurrent = true;
+
+        if (userAnswer === expected) {
+          correct += 1;
+          score += 10;
+          messageEl.textContent = '回答正确，加 10 分！';
+          messageEl.className = 'message ok';
+        } else {
+          score = Math.max(0, score - 5);
+          messageEl.textContent = '回答错误，正确答案是 ' + expected + '。';
+          messageEl.className = 'message bad';
+        }
+
+        updateStats();
+      }
+
+      function resetGame() {
+        total = 0;
+        correct = 0;
+        score = 0;
+        updateStats();
+        nextQuestion();
+      }
+
+      checkBtn.addEventListener('click', checkAnswer);
+      nextBtn.addEventListener('click', nextQuestion);
+      resetBtn.addEventListener('click', resetGame);
+      answerInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          checkAnswer();
+        }
+      });
+
+      updateStats();
+      nextQuestion();
+    })();
+  </script>
+</body>
+</html>

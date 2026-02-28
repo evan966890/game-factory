@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "name": "加法练习",
+    "path": "games/addition-practice/index.html",
+    "category": "education",
+    "createdAt": "2026-02-28T17:24:30Z"
+  }
+]
