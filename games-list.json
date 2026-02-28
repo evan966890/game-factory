@@ -4,5 +4,11 @@
     "path": "games/addition-practice/index.html",
     "category": "education",
     "createdAt": "2026-02-28T17:24:30Z"
+  },
+  {
+    "name": "减法练习",
+    "path": "games/subtraction-practice/index.html",
+    "category": "education",
+    "createdAt": "2026-02-28T18:23:21Z"
   }
 ]
