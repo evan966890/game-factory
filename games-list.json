@@ -330,5 +330,11 @@
     "path": "games/neon-survivor/index.html",
     "category": "动作生存",
     "createdAt": "2026-03-01T18:19:07.345361Z"
+  },
+  {
+    "name": "荒原车队：补给线",
+    "path": "games/wasteland-convoy/index.html",
+    "category": "策略经营",
+    "createdAt": "2026-03-01T18:27:07.601513Z"
   }
 ]

@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <title>荒原车队：补给线</title>
+  <style>
+    :root {
+      --bg: #111317;
+      --bg-2: #1a1f28;
+      --panel: #1d2430;
+      --panel-2: #232d3b;
+      --line: #3a4659;
+      --text: #eef2f7;
+      --muted: #9da9bb;
+      --ok: #5be39e;
+      --warn: #ffd479;
+      --bad: #ff8892;
+      --accent: #88b7ff;
+      --card: #2a3443;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 520px at 8% -20%, #33425d 0%, transparent 55%),
+        radial-gradient(900px 480px at 95% 120%, #253245 0%, transparent 52%),
+        linear-gradient(180deg, #111317, #0c0f14 65%);
+      display: flex;
+      justify-content: center;
+      padding: 14px;
+    }
+
+    .app {
+      width: min(980px, 100%);
+      background: linear-gradient(180deg, rgba(26,31,40,.94), rgba(19,24,32,.96));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.12rem, 3.6vw, 1.58rem);
+      letter-spacing: .4px;
+    }
+
+    .sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: .94rem;
+      line-height: 1.45;
+    }
+
+    .hud {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .stat {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+      min-height: 58px;
+    }
+
+    .k {
+      color: var(--muted);
+      font-size: .76rem;
+      letter-spacing: .3px;
+    }
+
+    .v {
+      margin-top: 4px;
+      font-size: 1.03rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .top-row {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #304056;
+      color: var(--text);
+      font-size: .94rem;
+      font-weight: 800;
+      padding: 10px 13px;
+      cursor: pointer;
+      transition: .18s ease;
+    }
+
+    button:hover { filter: brightness(1.08); }
+    button:active { transform: translateY(1px); }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+
+    .ghost { background: #29364b; }
+    .danger { background: #5a3240; border-color: #7b4658; }
+
+    .tag {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: .86rem;
+      border: 1px dashed #4e5e77;
+      border-radius: 999px;
+      padding: 3px 10px;
+      white-space: nowrap;
+    }
+
+    .log {
+      margin-top: 10px;
+      background: #1b2330;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      min-height: 66px;
+      line-height: 1.5;
+      font-size: .93rem;
+      color: #d5e0f2;
+    }
+
+    .cards {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, #2a3546, #222c3a);
+      border: 1px solid #4a5871;
+      border-radius: 14px;
+      padding: 12px;
+      text-align: left;
+      min-height: 192px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      cursor: pointer;
+      transition: transform .12s ease, border-color .2s ease, background .2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: #7fa5e6;
+      background: linear-gradient(180deg, #30405a, #273448);
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .risk {
+      font-size: .75rem;
+      border-radius: 999px;
+      padding: 2px 8px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .risk.low { color: #8ff8c0; border-color: #3f8f67; background: rgba(91,227,158,.12); }
+    .risk.mid { color: #ffe7a5; border-color: #95763c; background: rgba(255,212,121,.12); }
+    .risk.high { color: #ffb3ba; border-color: #9c4a55; background: rgba(255,136,146,.12); }
+
+    .desc {
+      color: #cfd8e7;
+      font-size: .9rem;
+      line-height: 1.45;
+      flex: 1;
+    }
+
+    .effects {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4px;
+      font-size: .84rem;
+      color: #c2d0e7;
+    }
+
+    .effects b {
+      font-weight: 800;
+      color: #dbe8ff;
+      letter-spacing: .2px;
+    }
+
+    .good { color: var(--ok); font-weight: 700; }
+    .warn { color: var(--warn); font-weight: 700; }
+    .bad { color: var(--bad); font-weight: 700; }
+
+    .meter-wrap {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .meter {
+      background: #1b2433;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px;
+    }
+
+    .meter label {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: .8rem;
+      margin-bottom: 6px;
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #111927;
+      border: 1px solid #32435c;
+      overflow: hidden;
+    }
+
+    .bar > i {
+      display: block;
+      height: 100%;
+      width: 50%;
+      background: linear-gradient(90deg, #8bd0ff, #6ea2ff);
+      transition: width .25s ease;
+    }
+
+    .end {
+      margin-top: 10px;
+      background: #1a2332;
+      border: 1px dashed #4e6388;
+      border-radius: 12px;
+      padding: 10px;
+      font-size: .93rem;
+      line-height: 1.5;
+      display: none;
+    }
+
+    .end.show { display: block; }
+
+    @media (max-width: 900px) {
+      .hud { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .cards { grid-template-columns: 1fr; }
+      .meter-wrap { grid-template-columns: 1fr; }
+      .tag { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>🛻 荒原车队：补给线</h1>
+    <p class="sub">轻量化策略原型：你是车队指挥官，在 12 天内把补给送到终点城。每天 3 条路线二选一，平衡燃料/食物/弹药，扛住突袭并完成补给任务。</p>
+
+    <section class="hud" aria-live="polite">
+      <article class="stat"><div class="k">天数</div><div class="v" id="day">1 / 12</div></article>
+      <article class="stat"><div class="k">车队耐久</div><div class="v" id="hp">100</div></article>
+      <article class="stat"><div class="k">燃料</div><div class="v" id="fuel">80</div></article>
+      <article class="stat"><div class="k">食物</div><div class="v" id="food">70</div></article>
+      <article class="stat"><div class="k">弹药</div><div class="v" id="ammo">55</div></article>
+      <article class="stat"><div class="k">零件</div><div class="v" id="scrap">20</div></article>
+      <article class="stat"><div class="k">士气</div><div class="v" id="morale">60</div></article>
+      <article class="stat"><div class="k">威胁值</div><div class="v" id="threat">30</div></article>
+    </section>
+
+    <div class="top-row">
+      <button id="nextDayBtn">生成当日路线</button>
+      <button id="restartBtn" class="danger">重开战役</button>
+      <div class="tag">目标：12 天存活并保持车队耐久 > 0</div>
+    </div>
+
+    <section class="log" id="log">行动日志：点击“生成当日路线”开始第 1 天。</section>
+
+    <section class="cards" id="cards"></section>
+
+    <section class="meter-wrap">
+      <article class="meter">
+        <label><span>任务完成度</span><span id="progressText">0%</span></label>
+        <div class="bar"><i id="progressBar" style="width:0%"></i></div>
+      </article>
+      <article class="meter">
+        <label><span>综合战力</span><span id="powerText">0</span></label>
+        <div class="bar"><i id="powerBar" style="width:0%"></i></div>
+      </article>
+    </section>
+
+    <section class="end" id="end"></section>
+  </main>
+
+  <script>
+    (() => {
+      const MAX_DAY = 12;
+
+      const E = {
+        day: document.getElementById('day'),
+        hp: document.getElementById('hp'),
+        fuel: document.getElementById('fuel'),
+        food: document.getElementById('food'),
+        ammo: document.getElementById('ammo'),
+        scrap: document.getElementById('scrap'),
+        morale: document.getElementById('morale'),
+        threat: document.getElementById('threat'),
+        cards: document.getElementById('cards'),
+        log: document.getElementById('log'),
+        end: document.getElementById('end'),
+        nextDayBtn: document.getElementById('nextDayBtn'),
+        restartBtn: document.getElementById('restartBtn'),
+        progressText: document.getElementById('progressText'),
+        progressBar: document.getElementById('progressBar'),
+        powerText: document.getElementById('powerText'),
+        powerBar: document.getElementById('powerBar')
+      };
+
+      const state = {
+        day: 1,
+        hp: 100,
+        fuel: 80,
+        food: 70,
+        ammo: 55,
+        scrap: 20,
+        morale: 60,
+        threat: 30,
+        score: 0,
+        ended: false,
+        generatedToday: false,
+        cards: [],
+        perks: {
+          combat: 1,
+          scav: 1,
+          consumption: 1
+        }
+      };
+
+      const ROUTES = [
+        {
+          id: 'safe',
+          name: '旧高速（绕行）',
+          desc: '路况稳定，风险低，但要多耗一点燃料。',
+          risk: 'low',
+          base: { fuel: -14, food: -8, ammo: -2, scrap: +4, morale: +4, threat: -6 },
+          combatChance: 0.08,
+          tradeChance: 0.22
+        },
+        {
+          id: 'ruin',
+          name: '废墟区搜刮',
+          desc: '资源密集但会惊动游匪，收益与风险并存。',
+          risk: 'mid',
+          base: { fuel: -10, food: -7, ammo: -5, scrap: +14, morale: -2, threat: +8 },
+          combatChance: 0.35,
+          tradeChance: 0.1
+        },
+        {
+          id: 'village',
+          name: '边境集镇补给',
+          desc: '可与商队交易，能缓解食物与弹药压力。',
+          risk: 'low',
+          base: { fuel: -9, food: +8, ammo: +6, scrap: -5, morale: +3, threat: -3 },
+          combatChance: 0.12,
+          tradeChance: 0.45
+        },
+        {
+          id: 'canyon',
+          name: '峡谷近道冲刺',
+          desc: '距离短更省燃料，但极易遭伏击。',
+          risk: 'high',
+          base: { fuel: -6, food: -9, ammo: -7, scrap: +8, morale: -4, threat: +12 },
+          combatChance: 0.58,
+          tradeChance: 0.05
+        },
+        {
+          id: 'storm',
+          name: '沙暴边缘',
+          desc: '能甩开追兵，但会磨损车辆，补给效率下降。',
+          risk: 'mid',
+          base: { fuel: -12, food: -10, ammo: -4, scrap: +10, morale: -5, threat: -7 },
+          combatChance: 0.22,
+          tradeChance: 0.08
+        },
+        {
+          id: 'checkpoint',
+          name: '前哨修整站',
+          desc: '可维修车队并短暂恢复秩序，代价是零件。',
+          risk: 'low',
+          base: { fuel: -8, food: -6, ammo: -2, scrap: -10, morale: +7, threat: -8, hp: +12 },
+          combatChance: 0.06,
+          tradeChance: 0.28
+        },
+        {
+          id: 'convoy',
+          name: '护送民车队',
+          desc: '完成护送可换高额资源，失败会大幅掉士气。',
+          risk: 'high',
+          base: { fuel: -12, food: -9, ammo: -8, scrap: +16, morale: +2, threat: +10 },
+          combatChance: 0.52,
+          tradeChance: 0.18
+        }
+      ];
+
+      const PERKS = [
+        {
+          id: 'armory',
+          name: '战术军械库',
+          desc: '综合战力 +15%，且战斗后额外获得弹药。',
+          apply() {
+            state.perks.combat *= 1.15;
+            state.ammo += 8;
+          }
+        },
+        {
+          id: 'recycle',
+          name: '拆解工坊',
+          desc: '搜刮收益 +20%，每日自动获得 +3 零件。',
+          apply() {
+            state.perks.scav *= 1.2;
+            state.scrap += 3;
+          }
+        },
+        {
+          id: 'ration',
+          name: '配给制度',
+          desc: '每日食物消耗 -20%，士气上限更容易维持。',
+          apply() {
+            state.perks.consumption *= 0.8;
+            state.morale += 4;
+          }
+        }
+      ];
+
+      function clamp(v, min, max) {
+        return Math.max(min, Math.min(max, v));
+      }
+
+      function rand(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function pick(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+
+      function power() {
+        const base =
+          state.ammo * 0.9 +
+          state.morale * 0.7 +
+          state.scrap * 0.35 +
+          state.hp * 0.28;
+        return Math.round(base * state.perks.combat);
+      }
+
+      function showLog(text, level = 'normal') {
+        const cls = level === 'good' ? 'good' : level === 'bad' ? 'bad' : level === 'warn' ? 'warn' : '';
+        E.log.innerHTML = cls ? `<span class="${cls}">${text}</span>` : text;
+      }
+
+      function syncHUD() {
+        E.day.textContent = `${Math.min(state.day, MAX_DAY)} / ${MAX_DAY}`;
+        E.hp.textContent = state.hp;
+        E.fuel.textContent = state.fuel;
+        E.food.textContent = state.food;
+        E.ammo.textContent = state.ammo;
+        E.scrap.textContent = state.scrap;
+        E.morale.textContent = state.morale;
+        E.threat.textContent = state.threat;
+
+        const progress = ((state.day - 1) / MAX_DAY) * 100;
+        E.progressText.textContent = `${Math.round(progress)}%`;
+        E.progressBar.style.width = `${progress}%`;
+
+        const p = power();
+        E.powerText.textContent = String(p);
+        E.powerBar.style.width = `${clamp((p / 220) * 100, 5, 100)}%`;
+
+        E.nextDayBtn.disabled = state.ended || state.generatedToday;
+      }
+
+      function applyDelta(delta) {
+        state.fuel += Math.round((delta.fuel || 0) * state.perks.consumption);
+        state.food += Math.round((delta.food || 0) * state.perks.consumption);
+        state.ammo += delta.ammo || 0;
+
+        const scrapDelta = delta.scrap || 0;
+        state.scrap += scrapDelta > 0 ? Math.round(scrapDelta * state.perks.scav) : scrapDelta;
+
+        state.morale += delta.morale || 0;
+        state.threat += delta.threat || 0;
+        state.hp += delta.hp || 0;
+      }
+
+      function normalizeState() {
+        state.hp = clamp(state.hp, 0, 120);
+        state.fuel = clamp(state.fuel, 0, 140);
+        state.food = clamp(state.food, 0, 140);
+        state.ammo = clamp(state.ammo, 0, 160);
+        state.scrap = clamp(state.scrap, 0, 180);
+        state.morale = clamp(state.morale, 0, 120);
+        state.threat = clamp(state.threat, 0, 140);
+      }
+
+      function routeEffectPreview(route) {
+        const d = route.base;
+        const fmt = (n) => (n >= 0 ? `+${n}` : String(n));
+        return [
+          `<b>基础变化</b>`,
+          `燃料 ${fmt(d.fuel || 0)} ｜ 食物 ${fmt(d.food || 0)} ｜ 弹药 ${fmt(d.ammo || 0)}`,
+          `零件 ${fmt(d.scrap || 0)} ｜ 士气 ${fmt(d.morale || 0)} ｜ 威胁 ${fmt(d.threat || 0)}`
+        ].join('<br>');
+      }
+
+      function cardRiskClass(risk) {
+        return risk === 'high' ? 'high' : risk === 'mid' ? 'mid' : 'low';
+      }
+
+      function generateCards() {
+        const pool = [...ROUTES];
+        const out = [];
+        while (out.length < 3 && pool.length) {
+          const idx = rand(0, pool.length - 1);
+          out.push(pool.splice(idx, 1)[0]);
+        }
+        state.cards = out;
+        state.generatedToday = true;
+        renderCards();
+      }
+
+      function renderCards() {
+        E.cards.innerHTML = '';
+
+        state.cards.forEach((route) => {
+          const card = document.createElement('article');
+          card.className = 'card';
+
+          const riskText = route.risk === 'high' ? '高风险' : route.risk === 'mid' ? '中风险' : '低风险';
+          card.innerHTML = `
+            <h3>
+              <span>${route.name}</span>
+              <span class="risk ${cardRiskClass(route.risk)}">${riskText}</span>
+            </h3>
+            <div class="desc">${route.desc}</div>
+            <div class="effects">${routeEffectPreview(route)}</div>
+          `;
+
+          card.addEventListener('click', () => {
+            if (state.ended) return;
+            runRoute(route);
+          });
+
+          E.cards.appendChild(card);
+        });
+      }
+
+      function battle(route) {
+        const enemyBase = 58 + state.day * 10 + state.threat * 0.5;
+        const variance = rand(-18, 22);
+        const enemyPower = Math.round(enemyBase + variance);
+
+        const ourPower = power() + rand(-10, 18);
+        const win = ourPower >= enemyPower;
+
+        if (win) {
+          const gainScrap = rand(6, 14);
+          const gainMorale = rand(3, 8);
+          state.scrap += Math.round(gainScrap * state.perks.scav);
+          state.morale += gainMorale;
+          state.threat += 4;
+          state.score += 90 + state.day * 16;
+          return `遭遇伏击：<span class="good">击退敌军</span>（我方战力 ${ourPower} vs 敌方 ${enemyPower}）`;
+        }
+
+        const lossHp = rand(10, 22);
+        const lossAmmo = rand(8, 16);
+        const lossMorale = rand(6, 12);
+        state.hp -= lossHp;
+        state.ammo -= lossAmmo;
+        state.morale -= lossMorale;
+        state.threat += 8;
+        state.score += 20;
+        return `遭遇伏击：<span class="bad">车队受损</span>（我方战力 ${ourPower} vs 敌方 ${enemyPower}，耐久 -${lossHp}）`;
+      }
+
+      function maybeTrade(route) {
+        const roll = Math.random();
+        if (roll > route.tradeChance) return null;
+
+        if (state.scrap >= 8) {
+          state.scrap -= 8;
+          state.food += 10;
+          state.ammo += 7;
+          state.morale += 2;
+          return '在路边黑市完成补给交易：<span class="good">零件 -8，食物 +10，弹药 +7</span>';
+        }
+
+        state.food += 4;
+        state.morale += 2;
+        return '遇到流民营地，互换物资：<span class="good">食物 +4，士气 +2</span>';
+      }
+
+      function upkeep() {
+        const foodUse = Math.round((7 + state.day) * state.perks.consumption);
+        const fuelUse = Math.round((4 + Math.max(0, state.threat - 20) * 0.03) * state.perks.consumption);
+
+        state.food -= foodUse;
+        state.fuel -= fuelUse;
+
+        let notes = [`日常消耗：食物 -${foodUse}，燃料 -${fuelUse}`];
+
+        if (state.food <= 0) {
+          state.morale -= 10;
+          state.hp -= 8;
+          notes.push('<span class="bad">食物见底：士气 -10，耐久 -8</span>');
+        }
+
+        if (state.fuel <= 0) {
+          state.hp -= 12;
+          state.morale -= 6;
+          notes.push('<span class="bad">燃料见底：耐久 -12，士气 -6</span>');
+        }
+
+        if (state.morale >= 95) {
+          state.score += 35;
+          notes.push('<span class="good">士气高涨：额外得分 +35</span>');
+        }
+
+        if (state.threat >= 95) {
+          state.hp -= 6;
+          notes.push('<span class="warn">威胁过高：遭到骚扰，耐久 -6</span>');
+        }
+
+        return notes.join('<br>');
+      }
+
+      function maybePerk() {
+        if (state.day !== 4 && state.day !== 8) return null;
+
+        const options = [...PERKS].sort(() => Math.random() - 0.5).slice(0, 2);
+        const chosen = options[0];
+        chosen.apply();
+        state.score += 45;
+        return `阶段强化已解锁：<span class="good">${chosen.name}</span>（${chosen.desc}）`;
+      }
+
+      function runRoute(route) {
+        if (!state.generatedToday || state.ended) return;
+
+        applyDelta(route.base);
+        let lines = [`第 ${state.day} 天选择路线：<b>${route.name}</b>`];
+
+        if (Math.random() < route.combatChance + state.threat * 0.0025) {
+          lines.push(battle(route));
+        } else {
+          lines.push('路段平稳通过，未发生正面交火。');
+          state.score += 40 + state.day * 8;
+        }
+
+        const tradeInfo = maybeTrade(route);
+        if (tradeInfo) lines.push(tradeInfo);
+
+        lines.push(upkeep());
+
+        const perkInfo = maybePerk();
+        if (perkInfo) lines.push(perkInfo);
+
+        normalizeState();
+
+        state.generatedToday = false;
+        state.cards = [];
+        E.cards.innerHTML = '';
+
+        if (isFailed()) {
+          state.ended = true;
+          showLog(lines.join('<br>'), 'bad');
+          showEnd(false);
+          syncHUD();
+          return;
+        }
+
+        if (state.day >= MAX_DAY) {
+          state.ended = true;
+          showLog(lines.join('<br>'), 'good');
+          showEnd(true);
+          syncHUD();
+          return;
+        }
+
+        state.day += 1;
+        showLog(lines.join('<br>'), 'normal');
+        syncHUD();
+      }
+
+      function isFailed() {
+        return state.hp <= 0 || state.fuel <= 0 || state.food <= 0;
+      }
+
+      function showEnd(win) {
+        const survival = ((state.day - 1) / MAX_DAY * 100).toFixed(0);
+        const rating = win
+          ? state.hp > 60 && state.morale > 70 ? 'S' : state.hp > 35 ? 'A' : 'B'
+          : 'D';
+
+        E.end.classList.add('show');
+        E.end.innerHTML = win
+          ? `
+            <b class="good">任务完成：车队成功抵达终点城。</b><br>
+            完成度：${survival}% ｜ 评级：<b>${rating}</b> ｜ 总分：<b>${Math.round(state.score)}</b><br>
+            结算：耐久 ${state.hp} / 燃料 ${state.fuel} / 食物 ${state.food} / 士气 ${state.morale}
+          `
+          : `
+            <b class="bad">任务失败：补给线中断。</b><br>
+            失败日：第 ${state.day} 天 ｜ 评级：<b>${rating}</b> ｜ 总分：<b>${Math.round(state.score)}</b><br>
+            建议：优先保燃料和食物，威胁过高时多走低风险路线。
+          `;
+
+        E.nextDayBtn.disabled = true;
+      }
+
+      function reset() {
+        state.day = 1;
+        state.hp = 100;
+        state.fuel = 80;
+        state.food = 70;
+        state.ammo = 55;
+        state.scrap = 20;
+        state.morale = 60;
+        state.threat = 30;
+        state.score = 0;
+        state.ended = false;
+        state.generatedToday = false;
+        state.cards = [];
+        state.perks = { combat: 1, scav: 1, consumption: 1 };
+
+        E.end.classList.remove('show');
+        E.cards.innerHTML = '';
+        showLog('行动日志：点击“生成当日路线”开始第 1 天。');
+        syncHUD();
+      }
+
+      E.nextDayBtn.addEventListener('click', () => {
+        if (state.ended || state.generatedToday) return;
+        generateCards();
+        showLog(`第 ${state.day} 天可选路线已生成：请在三条路线中选择一条执行。`, 'warn');
+        syncHUD();
+      });
+
+      E.restartBtn.addEventListener('click', reset);
+
+      reset();
+    })();
+  </script>
+</body>
+</html>
