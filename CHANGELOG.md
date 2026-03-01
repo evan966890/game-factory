@@ -57,3 +57,6 @@
 - 新增教育游戏 `重力落体实验室`，文件路径：`games/gravity-drop/index.html`。
 - 游戏功能包含：自由落体科学判断题（同高下落结论）、落地时间估算题（基于 g≈9.8m/s²）、即时反馈、得分与准确率统计、下一题与重置。
 - 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。
+- 新增教育游戏 `词语分类挑战`，文件路径：`games/word-category-sort/index.html`。
+- 游戏功能包含：词语类别快速判断（动物/植物/食物/交通工具）、连对加分机制、即时反馈、得分与准确率统计、下一题与重置。
+- 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。

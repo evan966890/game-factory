@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>词语分类挑战</title>
+  <style>
+    :root {
+      --bg: #f3f9ff;
+      --card: #ffffff;
+      --text: #1b2b3a;
+      --muted: #65788b;
+      --primary: #1565c0;
+      --ok: #1f9d55;
+      --bad: #d64545;
+      --border: #dce8f4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #ebf5ff 0%, #f8fbff 100%);
+      color: var(--text);
+      padding: 14px;
+    }
+    .wrap { max-width: 860px; margin: 0 auto; }
+    h1 { margin: 4px 0 8px; font-size: 1.4rem; }
+    .desc { margin: 0 0 12px; color: var(--muted); font-size: .95rem; }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 6px 18px rgba(21, 101, 192, .08);
+      margin-bottom: 12px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .stat { background: #f7fbff; border: 1px solid var(--border); border-radius: 10px; padding: 8px; text-align: center; }
+    .stat b { display: block; font-size: 1.1rem; }
+    .question { font-size: 1.1rem; margin: 8px 0 2px; }
+    .word {
+      margin: 6px 0 12px;
+      font-size: 2rem;
+      font-weight: 800;
+      text-align: center;
+      color: var(--primary);
+      letter-spacing: .08em;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    button {
+      width: 100%;
+      border: 1px solid #bcd4ea;
+      border-radius: 10px;
+      background: #fff;
+      padding: 12px 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #234;
+      min-height: 48px;
+      cursor: pointer;
+    }
+    button:active { transform: scale(.98); }
+    .actions { display: flex; gap: 10px; margin-top: 12px; }
+    .actions button { background: #eef6ff; }
+    .actions .primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .feedback { min-height: 1.5em; margin-top: 10px; font-weight: 700; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    @media (max-width: 520px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+      .options { grid-template-columns: 1fr; }
+      .word { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>🧠 词语分类挑战</h1>
+    <p class="desc">看到词语后，快速选择它所属的类别（动物、植物、食物、交通工具）。适合小学语文基础训练。</p>
+
+    <section class="panel">
+      <div class="stats">
+        <div class="stat"><span>题号</span><b id="round">1</b></div>
+        <div class="stat"><span>得分</span><b id="score">0</b></div>
+        <div class="stat"><span>连对</span><b id="streak">0</b></div>
+        <div class="stat"><span>准确率</span><b id="acc">0%</b></div>
+      </div>
+
+      <p class="question">这个词语属于哪个类别？</p>
+      <div id="word" class="word">—</div>
+
+      <div id="options" class="options"></div>
+      <p id="feedback" class="feedback"></p>
+
+      <div class="actions">
+        <button id="nextBtn" class="primary" type="button">下一题</button>
+        <button id="resetBtn" type="button">重置</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const categories = ['动物', '植物', '食物', '交通工具'];
+      const pool = [
+        { word: '熊猫', cat: '动物' },
+        { word: '海豚', cat: '动物' },
+        { word: '骆驼', cat: '动物' },
+        { word: '玫瑰', cat: '植物' },
+        { word: '松树', cat: '植物' },
+        { word: '向日葵', cat: '植物' },
+        { word: '馒头', cat: '食物' },
+        { word: '豆腐', cat: '食物' },
+        { word: '苹果', cat: '食物' },
+        { word: '高铁', cat: '交通工具' },
+        { word: '轮船', cat: '交通工具' },
+        { word: '地铁', cat: '交通工具' }
+      ];
+
+      const el = {
+        round: document.getElementById('round'),
+        score: document.getElementById('score'),
+        streak: document.getElementById('streak'),
+        acc: document.getElementById('acc'),
+        word: document.getElementById('word'),
+        options: document.getElementById('options'),
+        feedback: document.getElementById('feedback'),
+        nextBtn: document.getElementById('nextBtn'),
+        resetBtn: document.getElementById('resetBtn')
+      };
+
+      let state = {
+        round: 1,
+        score: 0,
+        correct: 0,
+        total: 0,
+        streak: 0,
+        current: null,
+        answered: false
+      };
+
+      function pickQuestion() {
+        state.current = pool[Math.floor(Math.random() * pool.length)];
+        state.answered = false;
+        el.word.textContent = state.current.word;
+        el.feedback.textContent = '';
+        el.feedback.className = 'feedback';
+        renderOptions();
+        renderStats();
+      }
+
+      function renderOptions() {
+        el.options.innerHTML = '';
+        categories.forEach((cat) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.textContent = cat;
+          btn.addEventListener('click', () => answer(cat));
+          el.options.appendChild(btn);
+        });
+      }
+
+      function answer(choice) {
+        if (state.answered) return;
+        state.answered = true;
+        state.total += 1;
+        const ok = choice === state.current.cat;
+
+        if (ok) {
+          state.correct += 1;
+          state.streak += 1;
+          state.score += state.streak >= 3 ? 15 : 10;
+          el.feedback.textContent = `✅ 正确！“${state.current.word}”属于${state.current.cat}`;
+          el.feedback.className = 'feedback ok';
+        } else {
+          state.streak = 0;
+          state.score = Math.max(0, state.score - 5);
+          el.feedback.textContent = `❌ 不对哦，正确答案是：${state.current.cat}`;
+          el.feedback.className = 'feedback bad';
+        }
+        renderStats();
+      }
+
+      function renderStats() {
+        el.round.textContent = state.round;
+        el.score.textContent = state.score;
+        el.streak.textContent = state.streak;
+        const acc = state.total === 0 ? 0 : Math.round((state.correct / state.total) * 100);
+        el.acc.textContent = `${acc}%`;
+      }
+
+      function next() {
+        state.round += 1;
+        pickQuestion();
+      }
+
+      function reset() {
+        state = {
+          round: 1,
+          score: 0,
+          correct: 0,
+          total: 0,
+          streak: 0,
+          current: null,
+          answered: false
+        };
+        pickQuestion();
+      }
+
+      el.nextBtn.addEventListener('click', next);
+      el.resetBtn.addEventListener('click', reset);
+
+      pickQuestion();
+    })();
+  </script>
+</body>
+</html>
