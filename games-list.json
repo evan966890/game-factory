@@ -318,5 +318,17 @@
     "path": "games/alien-fireline/index.html",
     "category": "策略生存",
     "createdAt": "2026-03-01T18:09:11.611473Z"
+  },
+  {
+    "name": "集合速判：Venn 挑战",
+    "path": "games/set-theory-venn-challenge/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-01T18:18:47Z"
+  },
+  {
+    "name": "霓虹幸存者：夜城突围",
+    "path": "games/neon-survivor/index.html",
+    "category": "动作生存",
+    "createdAt": "2026-03-01T18:19:07.345361Z"
   }
 ]

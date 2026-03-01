@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>集合速判：Venn 挑战</title>
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --text:#e5e7eb; --ok:#10b981; --bad:#ef4444; --accent:#38bdf8; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Noto Sans CJK SC",sans-serif;background:linear-gradient(160deg,#0b1023,#111827 45%,#0f172a);color:var(--text);min-height:100vh}
+    .wrap{max-width:820px;margin:0 auto;padding:16px 14px 26px}
+    h1{font-size:1.3rem;margin:8px 0 10px}
+    .sub{opacity:.86;font-size:.95rem;line-height:1.4}
+    .grid{display:grid;gap:12px}
+    .card{background:rgba(17,24,39,.94);border:1px solid #334155;border-radius:14px;padding:12px}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+    .stats div{background:#0b1220;border:1px solid #243244;border-radius:10px;padding:8px 6px}
+    .stats b{display:block;font-size:1.1rem;color:#f8fafc}
+    .question{font-size:1.05rem;line-height:1.5}
+    .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    button{background:#1f2937;color:#f8fafc;border:1px solid #334155;border-radius:10px;padding:11px;font-size:1rem}
+    button:active{transform:scale(.99)}
+    button.primary{background:linear-gradient(120deg,#0284c7,#0ea5e9);border:none}
+    .hint{font-size:.92rem;opacity:.9;margin-top:10px}
+    .log{font-size:.95rem;line-height:1.45;max-height:190px;overflow:auto;padding-right:2px}
+    .good{color:var(--ok)} .bad{color:var(--bad)}
+    .final{font-size:1rem;line-height:1.6}
+    @media (max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}.opts{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>集合速判：Venn 挑战</h1>
+    <p class="sub">目标：在 75 秒内判断元素落在 A、B、A∩B、A∪B 还是补集。每题即时反馈，连击可加分。可无限重开挑战。</p>
+
+    <section class="grid">
+      <div class="card stats">
+        <div><span>剩余时间</span><b id="time">75</b></div>
+        <div><span>得分</span><b id="score">0</b></div>
+        <div><span>连击</span><b id="combo">0</b></div>
+        <div><span>题号</span><b id="round">0</b></div>
+      </div>
+
+      <div class="card" id="playCard">
+        <div class="question" id="q">点击“开始挑战”</div>
+        <div class="opts" id="opts">
+          <button data-a="A">只属于 A</button>
+          <button data-a="B">只属于 B</button>
+          <button data-a="AB">属于 A ∩ B</button>
+          <button data-a="U">在 A ∪ B 外（补集）</button>
+        </div>
+        <p class="hint" id="feedback">规则：A={2,3,5,7,11...} 中等定义会动态变化，保持专注。</p>
+      </div>
+
+      <div class="card">
+        <button class="primary" id="start">开始挑战</button>
+        <p class="hint">每轮定义会变化：质数/倍数/区间/奇偶，考验快速逻辑判断。</p>
+      </div>
+
+      <div class="card">
+        <strong>本轮记录</strong>
+        <div class="log" id="log"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function(){
+      const timeEl = document.getElementById('time');
+      const scoreEl = document.getElementById('score');
+      const comboEl = document.getElementById('combo');
+      const roundEl = document.getElementById('round');
+      const qEl = document.getElementById('q');
+      const fbEl = document.getElementById('feedback');
+      const logEl = document.getElementById('log');
+      const startBtn = document.getElementById('start');
+      const optWrap = document.getElementById('opts');
+
+      const state = { t:75, score:0, combo:0, round:0, timer:null, active:false, q:null };
+
+      const rnd = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+      const isPrime = n=>{ if(n<2) return false; for(let i=2;i*i<=n;i++) if(n%i===0) return false; return true; };
+
+      function makeRule(){
+        const templates = [
+          {
+            name:'质数 vs 3的倍数',
+            A:n=>isPrime(n),
+            B:n=>n%3===0,
+            txt:'A=质数，B=3 的倍数'
+          },
+          {
+            name:'偶数 vs 5的倍数',
+            A:n=>n%2===0,
+            B:n=>n%5===0,
+            txt:'A=偶数，B=5 的倍数'
+          },
+          {
+            name:'区间交叠',
+            A:n=>n>=10&&n<=40,
+            B:n=>n>=25&&n<=55,
+            txt:'A=[10,40]，B=[25,55]'
+          },
+          {
+            name:'4的倍数 vs 两位数',
+            A:n=>n%4===0,
+            B:n=>n>=10&&n<=99,
+            txt:'A=4 的倍数，B=两位数'
+          },
+          {
+            name:'奇数 vs 完全平方数',
+            A:n=>n%2===1,
+            B:n=>Number.isInteger(Math.sqrt(n)),
+            txt:'A=奇数，B=完全平方数'
+          }
+        ];
+        return templates[rnd(0,templates.length-1)];
+      }
+
+      function classify(n, rule){
+        const a = rule.A(n), b = rule.B(n);
+        if(a&&b) return 'AB';
+        if(a) return 'A';
+        if(b) return 'B';
+        return 'U';
+      }
+
+      function nextQ(){
+        const rule = makeRule();
+        const n = rnd(1,120);
+        state.q = { n, rule, ans: classify(n, rule) };
+        state.round += 1;
+        roundEl.textContent = state.round;
+        qEl.innerHTML = `元素 <strong>${n}</strong> 的分类？<br><small style="opacity:.88">当前定义：${rule.txt}</small>`;
+        fbEl.textContent = '请选择最准确的位置';
+      }
+
+      function pushLog(html){
+        const p = document.createElement('p');
+        p.innerHTML = html;
+        logEl.prepend(p);
+        while(logEl.children.length>12) logEl.removeChild(logEl.lastChild);
+      }
+
+      function onAnswer(sel){
+        if(!state.active || !state.q) return;
+        const ok = sel === state.q.ans;
+        if(ok){
+          state.combo += 1;
+          const add = 10 + Math.min(state.combo,8)*2;
+          state.score += add;
+          fbEl.innerHTML = `<span class="good">✅ 正确 +${add} 分（连击 x${state.combo}）</span>`;
+          pushLog(`<span class="good">第${state.round}题 ✔</span> ${state.q.n} / ${state.q.rule.txt}`);
+        }else{
+          state.combo = 0;
+          state.score = Math.max(0, state.score-6);
+          fbEl.innerHTML = `<span class="bad">❌ 错误，正确答案：${label(state.q.ans)}（-6 分）</span>`;
+          pushLog(`<span class="bad">第${state.round}题 ✘</span> ${state.q.n}，应为 ${label(state.q.ans)}`);
+        }
+        scoreEl.textContent = state.score;
+        comboEl.textContent = state.combo;
+        nextQ();
+      }
+
+      function label(x){
+        return ({A:'只属于 A',B:'只属于 B',AB:'A ∩ B',U:'补集'}[x]);
+      }
+
+      function endGame(){
+        state.active=false;
+        clearInterval(state.timer);
+        qEl.innerHTML = `<div class="final">⏱️ 挑战结束！<br>总得分：<strong>${state.score}</strong><br>完成题数：<strong>${state.round}</strong><br>最高连击：<strong>${state.combo}</strong><br><small>点击“开始挑战”可再次挑战。</small></div>`;
+        fbEl.textContent = '复盘建议：把易错定义（如区间交叠）口头复述一遍，再开一局。';
+      }
+
+      function start(){
+        clearInterval(state.timer);
+        Object.assign(state,{t:75,score:0,combo:0,round:0,active:true,q:null});
+        timeEl.textContent = state.t;
+        scoreEl.textContent = 0;
+        comboEl.textContent = 0;
+        roundEl.textContent = 0;
+        logEl.innerHTML='';
+        nextQ();
+        state.timer = setInterval(()=>{
+          state.t -= 1;
+          timeEl.textContent = state.t;
+          if(state.t<=0) endGame();
+        },1000);
+      }
+
+      optWrap.addEventListener('click', e=>{
+        const b = e.target.closest('button[data-a]');
+        if(!b) return;
+        onAnswer(b.dataset.a);
+      });
+
+      startBtn.addEventListener('click', start);
+    })();
+  </script>
+</body>
+</html>
