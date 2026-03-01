@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>四则速算风暴</title>
+  <style>
+    :root { --bg:#0b1220; --card:#121a2b; --accent:#34d399; --text:#e5e7eb; --muted:#94a3b8; --warn:#f59e0b; }
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#091021,#101a31);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+    .card{width:min(680px,100%);background:var(--card);border:1px solid #25314a;border-radius:18px;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+    .hidden{display:none}
+    h1,h2{margin:.2em 0 .5em} p{color:var(--muted);line-height:1.5}
+    .btn{border:none;border-radius:12px;padding:12px 16px;font-size:16px;font-weight:700;cursor:pointer}
+    .btn-main{background:var(--accent);color:#04251a}.btn-sub{background:#23304b;color:var(--text)}
+    .hud{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+    .pill{background:#1a243a;padding:10px;border-radius:10px;text-align:center}.pill b{font-size:18px;display:block}
+    .qbox{font-size:34px;text-align:center;font-weight:800;letter-spacing:.5px;margin:14px 0 12px}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    input{flex:1;min-width:150px;background:#0d1528;color:var(--text);border:1px solid #2d3b59;border-radius:12px;padding:12px;font-size:20px}
+    .feedback{min-height:24px;margin-top:8px;font-weight:700}
+    .ok{color:#22c55e}.bad{color:#f97316}
+    .keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+    .key{padding:10px;border-radius:10px;background:#25314a;color:#e2e8f0;border:none;font-size:18px;font-weight:700}
+    .key.action{background:#334155}
+    @media (max-width:520px){ .qbox{font-size:28px} .hud{grid-template-columns:1fr 1fr} }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <section id="start">
+      <h1>四则速算风暴（小学三年级）</h1>
+      <p>60 秒内尽可能多答对四则运算题。连续答对会触发 <b>连对加分</b>！支持键盘输入（回车提交）和点击数字按钮。</p>
+      <button class="btn btn-main" id="startBtn">开始挑战</button>
+    </section>
+
+    <section id="game" class="hidden">
+      <div class="hud">
+        <div class="pill">剩余时间<b id="time">60</b></div>
+        <div class="pill">得分<b id="score">0</b></div>
+        <div class="pill">连对<b id="streak">0</b></div>
+      </div>
+      <div class="qbox" id="question">8 + 6 = ?</div>
+      <div class="row">
+        <input id="answer" inputmode="numeric" autocomplete="off" placeholder="输入答案" />
+        <button class="btn btn-main" id="submitBtn">提交</button>
+        <button class="btn btn-sub" id="clearBtn">清空</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="keys" id="keys"></div>
+    </section>
+
+    <section id="end" class="hidden">
+      <h2>挑战结束</h2>
+      <p>最终得分：<b id="finalScore">0</b></p>
+      <p>答对题数：<b id="correctCount">0</b>，最高连对：<b id="bestStreak">0</b></p>
+      <button class="btn btn-main" id="restartBtn">再来一局</button>
+    </section>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const startEl = $('start'), gameEl = $('game'), endEl = $('end');
+    const timeEl = $('time'), scoreEl = $('score'), streakEl = $('streak');
+    const qEl = $('question'), ansEl = $('answer'), fbEl = $('feedback');
+    const finalScoreEl = $('finalScore'), correctCountEl = $('correctCount'), bestStreakEl = $('bestStreak');
+
+    let t = 60, score = 0, streak = 0, bestStreak = 0, correct = 0;
+    let timer = null, current = { text:'', value:0 };
+
+    function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+    function genQ(){
+      const ops = ['+','-','*','/'];
+      const op = ops[rand(0,3)];
+      let a,b,val;
+      if(op === '+'){ a=rand(2,60); b=rand(2,40); val=a+b; }
+      else if(op === '-') { a=rand(10,99); b=rand(1,a); val=a-b; }
+      else if(op === '*') { a=rand(2,9); b=rand(2,9); val=a*b; }
+      else { b=rand(2,9); val=rand(2,9); a=b*val; }
+      current = { text: `${a} ${op==='*'?'×':op==='/'?'÷':op} ${b} = ?`, value: val };
+      qEl.textContent = current.text;
+      ansEl.value = '';
+      ansEl.focus();
+    }
+
+    function setFeedback(text, ok){ fbEl.textContent = text; fbEl.className = 'feedback ' + (ok ? 'ok':'bad'); }
+
+    function submit(){
+      const val = Number(ansEl.value.trim());
+      if(!Number.isFinite(val)){ setFeedback('请输入数字答案', false); return; }
+      if(val === current.value){
+        streak += 1; correct += 1; bestStreak = Math.max(bestStreak, streak);
+        const gain = 10 + Math.max(0, streak - 1) * 2;
+        score += gain;
+        setFeedback(`✅ 正确！+${gain} 分`, true);
+      } else {
+        streak = 0;
+        setFeedback(`❌ 错了，正确答案是 ${current.value}`, false);
+      }
+      scoreEl.textContent = score;
+      streakEl.textContent = streak;
+      setTimeout(genQ, 260);
+    }
+
+    function startGame(){
+      t=60; score=0; streak=0; bestStreak=0; correct=0;
+      timeEl.textContent=t; scoreEl.textContent=score; streakEl.textContent=streak; fbEl.textContent='';
+      startEl.classList.add('hidden'); endEl.classList.add('hidden'); gameEl.classList.remove('hidden');
+      genQ();
+      clearInterval(timer);
+      timer = setInterval(() => {
+        t -= 1; timeEl.textContent = t;
+        if(t <= 0){ clearInterval(timer); finish(); }
+      }, 1000);
+    }
+
+    function finish(){
+      gameEl.classList.add('hidden'); endEl.classList.remove('hidden');
+      finalScoreEl.textContent = score;
+      correctCountEl.textContent = correct;
+      bestStreakEl.textContent = bestStreak;
+    }
+
+    function createPad(){
+      const keys = ['7','8','9','4','5','6','1','2','3','0','←','提交'];
+      const box = $('keys');
+      box.innerHTML = '';
+      keys.forEach(k => {
+        const b = document.createElement('button');
+        b.className = 'key' + (k==='提交'||k==='←' ? ' action':'');
+        b.textContent = k;
+        b.onclick = () => {
+          if(k==='提交') submit();
+          else if(k==='←') ansEl.value = ansEl.value.slice(0,-1);
+          else ansEl.value += k;
+          ansEl.focus();
+        };
+        box.appendChild(b);
+      });
+    }
+
+    $('startBtn').onclick = startGame;
+    $('restartBtn').onclick = startGame;
+    $('submitBtn').onclick = submit;
+    $('clearBtn').onclick = () => { ansEl.value=''; ansEl.focus(); };
+    ansEl.addEventListener('keydown', e => { if(e.key === 'Enter') submit(); });
+    createPad();
+  </script>
+</body>
+</html>

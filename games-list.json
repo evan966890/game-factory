@@ -396,5 +396,11 @@
     "path": "games/fraction-balance/index.html",
     "category": "数学",
     "createdAt": "2026-03-01T21:18:58.397454Z"
+  },
+  {
+    "name": "四则速算风暴",
+    "path": "games/arithmetic-speedstorm-grade3/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T05:39:12.298836+08:00"
   }
 ]
