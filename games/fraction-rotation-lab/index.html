@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>分数旋转迷阵</title>
+  <style>
+    :root { --bg:#0f1220; --card:#1a1f35; --text:#eaf0ff; --muted:#9fb0d9; --ok:#3ddc97; --warn:#ffd166; --bad:#ff6b6b; --accent:#7aa2ff; }
+    *{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#0b1022,#111933);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Noto Sans CJK SC",sans-serif}
+    .wrap{max-width:900px;margin:0 auto;padding:14px}
+    .card{background:var(--card);border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.28);margin-bottom:12px}
+    h1{font-size:22px;margin:4px 0 6px} .sub{color:var(--muted);font-size:14px}
+    .top{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}.chip{padding:6px 10px;border-radius:999px;background:#12172a;color:var(--muted);font-size:13px}
+    .goal{color:var(--warn);font-weight:700}
+    .board{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;touch-action:manipulation}
+    .cell{aspect-ratio:1;border-radius:8px;background:#242b47;display:flex;align-items:center;justify-content:center;font-weight:700;user-select:none}
+    .blocked{background:#0c0f1a;color:#465074}
+    .filled{background:#4f6ed8}
+    .ghost{outline:2px dashed #7aa2ff;outline-offset:-2px}
+    .pieces{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .piece{padding:10px;border-radius:10px;background:#12172a;border:1px solid transparent;min-height:68px}
+    .piece.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(122,162,255,.22)}
+    .mini{display:grid;grid-template-columns:repeat(4,12px);gap:3px;justify-content:center;margin-top:6px}
+    .dot{width:12px;height:12px;border-radius:3px;background:#263056}.dot.on{background:#9db7ff}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    button{border:0;border-radius:10px;background:var(--accent);color:white;padding:10px 12px;font-weight:700}
+    button.secondary{background:#2a3358;color:#d2ddff}
+    .ok{color:var(--ok)} .bad{color:var(--bad)}
+    .msg{min-height:24px;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>分数旋转迷阵</h1>
+      <div class="sub">选择拼块并旋转，放到棋盘上。覆盖格数必须 <b>恰好等于目标分数</b>，且不能碰黑色障碍。</div>
+    </div>
+
+    <div class="card top">
+      <div class="chips">
+        <div class="chip">关卡：<span id="level">1</span>/5</div>
+        <div class="chip">已覆盖：<span id="filled">0</span>/<span id="total">0</span></div>
+        <div class="chip goal">目标：<span id="goal">0/1</span></div>
+      </div>
+      <div class="row">
+        <button id="rotate">旋转 90°</button>
+        <button id="undo" class="secondary">撤销</button>
+        <button id="reset" class="secondary">重置</button>
+      </div>
+    </div>
+
+    <div class="card"><div id="board" class="board"></div></div>
+
+    <div class="card">
+      <div class="sub">可用拼块（点选其一后，再点棋盘放置）</div>
+      <div id="pieces" class="pieces"></div>
+      <div class="msg" id="msg"></div>
+      <div class="row">
+        <button id="next" style="display:none">下一关</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const levels = [
+  { blocked:[2,3,14,20,33], target:[11,36], pieces:[[[0,0],[1,0],[0,1]], [[0,0],[1,0],[2,0]], [[0,0],[0,1]], [[0,0],[1,0],[1,1]], [[0,0],[0,1],[0,2]]] },
+  { blocked:[0,5,9,17,29,35], target:[5,18], pieces:[[[0,0],[1,0],[2,0]], [[0,0],[0,1],[1,1]], [[0,0],[1,0]], [[0,0],[1,0],[2,0],[1,1]]] },
+  { blocked:[1,4,6,13,22,24,31,34], target:[7,14], pieces:[[[0,0],[1,0],[1,1]], [[0,0],[1,0],[2,0],[0,1]], [[0,0],[0,1],[0,2]], [[0,0],[1,0],[2,0]], [[0,0],[1,0]]] },
+  { blocked:[7,8,10,19,21,26,30,32], target:[2,7], pieces:[[[0,0],[1,0],[2,0],[3,0]], [[0,0],[0,1],[1,1]], [[0,0],[1,0],[0,1]], [[0,0],[0,1]]] },
+  { blocked:[0,2,5,7,11,18,23,28,30,35], target:[13,26], pieces:[[[0,0],[1,0],[2,0],[1,1]], [[0,0],[0,1],[1,1],[2,1]], [[0,0],[1,0],[1,1]], [[0,0],[1,0],[2,0]], [[0,0],[0,1],[0,2]], [[0,0],[1,0]]] }
+];
+
+const size=6;
+let lv=0, board=[], selected=0, rot=0, history=[];
+const $=s=>document.querySelector(s);
+
+function rotateCells(cells, r){
+  let out = cells.map(c=>[c[0],c[1]]);
+  for(let i=0;i<r;i++) out = out.map(([x,y])=>[y,-x]);
+  const minX=Math.min(...out.map(c=>c[0])), minY=Math.min(...out.map(c=>c[1]));
+  return out.map(([x,y])=>[x-minX,y-minY]);
+}
+function idx(x,y){return y*size+x}
+function xy(i){return [i%size,Math.floor(i/size)]}
+function gcd(a,b){return b?gcd(b,a%b):a}
+function frac(n,d){const g=gcd(n,d);return `${n/g}/${d/g}`}
+
+function init(){
+  board = Array(size*size).fill(0);
+  levels[lv].blocked.forEach(i=>board[i]=-1);
+  selected=0; rot=0; history=[];
+  render();
+}
+
+function render(){
+  const L=levels[lv];
+  $("#level").textContent=lv+1;
+  const total = size*size - L.blocked.length;
+  const filled = board.filter(v=>v===1).length;
+  $("#filled").textContent=filled;
+  $("#total").textContent=total;
+  $("#goal").textContent=frac(...L.target);
+
+  const b=$("#board"); b.innerHTML="";
+  for(let i=0;i<size*size;i++){
+    const d=document.createElement("div"); d.className="cell";
+    if(board[i]===-1) d.classList.add("blocked");
+    if(board[i]===1) d.classList.add("filled");
+    d.addEventListener("click",()=>placeAt(i));
+    b.appendChild(d);
+  }
+
+  const p=$("#pieces"); p.innerHTML="";
+  L.pieces.forEach((pc,i)=>{
+    const el=document.createElement("div"); el.className="piece"+(i===selected?" active":"");
+    el.innerHTML=`<div>拼块 ${i+1}（${pc.length}格）</div>`;
+    const mini=document.createElement("div"); mini.className="mini";
+    const shape=rotateCells(pc, i===selected?rot:0);
+    for(let y=0;y<4;y++) for(let x=0;x<4;x++){
+      const dot=document.createElement("div"); dot.className="dot";
+      if(shape.some(c=>c[0]===x && c[1]===y)) dot.classList.add("on");
+      mini.appendChild(dot);
+    }
+    el.appendChild(mini);
+    el.addEventListener("click",()=>{selected=i;rot=0;render();msg('已选择拼块 '+(i+1));});
+    p.appendChild(el);
+  });
+
+  const goalCount=Math.round(total*L.target[0]/L.target[1]);
+  if(filled===goalCount){
+    if(checkNoConflict()){
+      msg('过关！覆盖恰好达到目标分数。', true);
+      $("#next").style.display = lv<levels.length-1 ? 'inline-block':'none';
+      if(lv===levels.length-1) msg('恭喜通关全部关卡！', true);
+    }
+  } else {
+    const diff=goalCount-filled;
+    msg(diff>0?`还差 ${diff} 格达到目标。`:`超出目标 ${-diff} 格，建议撤销。`, diff>=0);
+    $("#next").style.display = 'none';
+  }
+}
+
+function msg(t,good=false){ const m=$("#msg"); m.textContent=t; m.className='msg '+(good?'ok':'bad'); }
+function checkNoConflict(){ return true; }
+
+function placeAt(i){
+  if(board[i]===-1){ msg('障碍格不可放置。'); return; }
+  const [sx,sy]=xy(i), shape=rotateCells(levels[lv].pieces[selected],rot);
+  const cells=[];
+  for(const [dx,dy] of shape){
+    const x=sx+dx, y=sy+dy;
+    if(x<0||y<0||x>=size||y>=size){ msg('越界了，换个位置。'); return; }
+    const k=idx(x,y);
+    if(board[k]!==0){ msg('与已有格或障碍冲突。'); return; }
+    cells.push(k);
+  }
+  cells.forEach(k=>board[k]=1);
+  history.push(cells);
+  render();
+}
+
+$("#rotate").onclick=()=>{ rot=(rot+1)%4; render(); };
+$("#undo").onclick=()=>{ const last=history.pop(); if(!last){msg('没有可撤销步骤。');return;} last.forEach(k=>board[k]=0); render(); };
+$("#reset").onclick=()=>init();
+$("#next").onclick=()=>{ if(lv<levels.length-1){ lv++; init(); msg('进入下一关！', true);} };
+
+init();
+</script>
+</body>
+</html>

@@ -228,5 +228,11 @@
     "path": "games/vector-vault/index.html",
     "category": "education",
     "createdAt": "2026-03-01T13:31:36Z"
+  },
+  {
+    "name": "分数旋转迷阵",
+    "path": "games/fraction-rotation-lab/index.html",
+    "category": "数学+空间逻辑",
+    "createdAt": "2026-03-01T13:51:33.160543Z"
   }
 ]
