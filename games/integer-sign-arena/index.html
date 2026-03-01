@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>整数正负号竞技场</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #131c30;
+      --text: #eaf2ff;
+      --ok: #39d98a;
+      --bad: #ff6b6b;
+      --accent: #6ea8fe;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top, #182544, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(680px, 100%);
+      background: rgba(19, 28, 48, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    }
+    h1 { font-size: clamp(1.35rem, 2.4vw, 1.8rem); margin: 0 0 8px; }
+    .sub { opacity: .85; margin: 0 0 14px; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .card {
+      background: #0f1728;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,.07);
+    }
+    .label { opacity: .75; font-size: .88rem; }
+    .value { font-weight: 700; font-size: 1.25rem; margin-top: 4px; }
+    .question {
+      margin-top: 6px;
+      background: #0f1728;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.07);
+      padding: 20px 14px;
+      text-align: center;
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      font-weight: 700;
+      letter-spacing: 1px;
+      min-height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .choices {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    button {
+      border: 0;
+      border-radius: 12px;
+      background: #1f2d4d;
+      color: var(--text);
+      font-size: 1.05rem;
+      padding: 13px 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .05s ease, background .15s ease;
+    }
+    button:active { transform: translateY(1px) scale(.99); }
+    button:hover { background: #27375e; }
+    .pos { color: var(--ok); }
+    .neg { color: var(--bad); }
+    .zero { color: #ffd166; }
+    .feedback {
+      min-height: 26px;
+      margin-top: 12px;
+      text-align: center;
+      font-weight: 700;
+    }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .controls {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .secondary {
+      background: #1a253f;
+      border: 1px solid rgba(255,255,255,.12);
+      font-size: .95rem;
+      padding: 10px 14px;
+    }
+    @media (max-width: 520px) {
+      .choices { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stats .card:last-child { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>整数正负号竞技场</h1>
+    <p class="sub">判断算式结果是 <span class="pos">正数</span>、<span class="neg">负数</span> 还是 <span class="zero">零</span>。30 秒冲分！</p>
+
+    <section class="stats">
+      <div class="card"><div class="label">剩余时间</div><div class="value" id="time">30</div></div>
+      <div class="card"><div class="label">得分</div><div class="value" id="score">0</div></div>
+      <div class="card"><div class="label">题号</div><div class="value" id="round">0</div></div>
+    </section>
+
+    <div class="question" id="question">点击“开始挑战”</div>
+
+    <div class="choices">
+      <button data-choice="positive">正数 (+)</button>
+      <button data-choice="negative">负数 (-)</button>
+      <button data-choice="zero">零 (0)</button>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="controls">
+      <button class="secondary" id="startBtn">开始挑战</button>
+      <button class="secondary" id="restartBtn">重新开始</button>
+    </div>
+  </main>
+
+  <script>
+    const timeEl = document.getElementById('time');
+    const scoreEl = document.getElementById('score');
+    const roundEl = document.getElementById('round');
+    const questionEl = document.getElementById('question');
+    const feedbackEl = document.getElementById('feedback');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const choiceBtns = [...document.querySelectorAll('[data-choice]')];
+
+    let score = 0;
+    let round = 0;
+    let remain = 30;
+    let timer = null;
+    let currentAnswer = null;
+    let running = false;
+
+    const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+    function exprValue() {
+      const a = rand(-20, 20);
+      const b = rand(-20, 20);
+      const c = rand(-12, 12);
+      const op1 = Math.random() < 0.5 ? '+' : '-';
+      const op2 = Math.random() < 0.5 ? '+' : '-';
+      const val1 = op1 === '+' ? a + b : a - b;
+      const val2 = op2 === '+' ? val1 + c : val1 - c;
+      const text = `(${a} ${op1} ${b}) ${op2} ${c}`;
+      return { text, value: val2 };
+    }
+
+    function signOf(n) {
+      if (n > 0) return 'positive';
+      if (n < 0) return 'negative';
+      return 'zero';
+    }
+
+    function nextQuestion() {
+      const q = exprValue();
+      round += 1;
+      currentAnswer = signOf(q.value);
+      questionEl.textContent = q.text;
+      roundEl.textContent = round;
+      feedbackEl.textContent = '';
+      feedbackEl.className = 'feedback';
+    }
+
+    function updateUI() {
+      timeEl.textContent = remain;
+      scoreEl.textContent = score;
+      roundEl.textContent = round;
+      choiceBtns.forEach(btn => btn.disabled = !running);
+      startBtn.disabled = running;
+    }
+
+    function endGame() {
+      running = false;
+      clearInterval(timer);
+      timer = null;
+      questionEl.textContent = `时间到！最终得分：${score}`;
+      feedbackEl.textContent = '点“重新开始”再来一局';
+      feedbackEl.className = 'feedback';
+      updateUI();
+    }
+
+    function startGame() {
+      score = 0;
+      round = 0;
+      remain = 30;
+      running = true;
+      nextQuestion();
+      updateUI();
+      timer = setInterval(() => {
+        remain -= 1;
+        if (remain <= 0) {
+          remain = 0;
+          endGame();
+        }
+        updateUI();
+      }, 1000);
+    }
+
+    function answer(choice) {
+      if (!running) return;
+      if (choice === currentAnswer) {
+        score += 10;
+        feedbackEl.textContent = '✅ 正确！+10';
+        feedbackEl.className = 'feedback ok';
+      } else {
+        score = Math.max(0, score - 5);
+        feedbackEl.textContent = '❌ 错误！-5';
+        feedbackEl.className = 'feedback bad';
+      }
+      updateUI();
+      nextQuestion();
+    }
+
+    choiceBtns.forEach(btn => btn.addEventListener('click', () => answer(btn.dataset.choice)));
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', () => {
+      if (timer) clearInterval(timer);
+      startGame();
+    });
+
+    updateUI();
+  </script>
+</body>
+</html>

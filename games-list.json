@@ -432,5 +432,11 @@
     "path": "games/ratio-mixer-lab/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T07:19:19.291268+08:00"
+  },
+  {
+    "name": "整数正负号竞技场",
+    "path": "games/integer-sign-arena/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T23:39:02.231879Z"
   }
 ]
