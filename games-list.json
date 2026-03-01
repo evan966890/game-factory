@@ -342,5 +342,11 @@
     "path": "games/sequence-reasoning-sprint/index.html",
     "category": "数学+逻辑",
     "createdAt": "2026-03-01T18:39:18.739830Z"
+  },
+  {
+    "name": "分数平衡实验室",
+    "path": "games/fraction-balance-lab/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T18:59:06Z"
   }
 ]
