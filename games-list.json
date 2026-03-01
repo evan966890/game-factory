@@ -402,5 +402,11 @@
     "path": "games/arithmetic-speedstorm-grade3/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T05:39:12.298836+08:00"
+  },
+  {
+    "name": "分数数轴冲刺",
+    "path": "games/fraction-number-line-dash/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T21:59:03Z"
   }
 ]

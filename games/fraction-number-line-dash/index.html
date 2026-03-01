@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>分数数轴冲刺</title>
+  <style>
+    :root { --bg:#f5f7ff; --card:#ffffff; --ink:#1d2740; --accent:#5b7cfa; --ok:#12b76a; --bad:#ef4444; }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Noto Sans CJK SC",sans-serif;background:linear-gradient(180deg,#e9efff, #f8fbff 45%, #f1f6ff);color:var(--ink)}
+    .app{max-width:720px;margin:0 auto;min-height:100dvh;padding:16px;display:flex;flex-direction:column;gap:14px}
+    .card{background:var(--card);border-radius:16px;padding:14px;box-shadow:0 8px 24px rgba(47,85,212,.12)}
+    h1{margin:0;font-size:1.35rem}.sub{font-size:.92rem;opacity:.78}
+    .row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .pill{padding:8px 10px;border-radius:999px;background:#eef3ff;font-weight:600;font-size:.9rem}
+    .target{font-size:2rem;font-weight:800;text-align:center;margin:8px 0}
+    .line-wrap{position:relative;padding:24px 10px 10px}
+    .line{height:8px;background:#d6e1ff;border-radius:99px;position:relative}
+    .tick{position:absolute;top:-12px;width:2px;height:24px;background:#9db2ff}
+    .tick-label{position:absolute;top:14px;transform:translateX(-50%);font-size:.8rem;opacity:.8}
+    .pin{position:absolute;top:-9px;width:24px;height:24px;border-radius:50%;background:var(--accent);box-shadow:0 4px 10px rgba(52,89,230,.35);transform:translateX(-50%);transition:left .18s ease}
+    .slider{width:100%;margin-top:24px}
+    .btn{border:0;background:var(--accent);color:#fff;font-weight:700;padding:12px 14px;border-radius:12px;width:100%;font-size:1rem}
+    .btn:active{transform:scale(.99)}
+    .feedback{min-height:24px;text-align:center;font-weight:700}
+    .ok{color:var(--ok)} .bad{color:var(--bad)}
+    .small{font-size:.86rem;opacity:.75;text-align:center}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <h1>分数数轴冲刺</h1>
+      <div class="sub">把分数放到 0~1 的正确位置，10 题结束看你有多准！</div>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <div class="pill">题目：<span id="qIndex">1</span>/10</div>
+        <div class="pill">得分：<span id="score">0</span></div>
+        <div class="pill">连击：<span id="streak">0</span></div>
+      </div>
+      <div class="target" id="fraction">1/2</div>
+
+      <div class="line-wrap">
+        <div class="line" id="line">
+          <div class="tick" style="left:0%"></div><div class="tick" style="left:25%"></div><div class="tick" style="left:50%"></div><div class="tick" style="left:75%"></div><div class="tick" style="left:100%"></div>
+          <div class="tick-label" style="left:0%">0</div><div class="tick-label" style="left:25%">1/4</div><div class="tick-label" style="left:50%">1/2</div><div class="tick-label" style="left:75%">3/4</div><div class="tick-label" style="left:100%">1</div>
+          <div class="pin" id="pin" style="left:50%"></div>
+        </div>
+      </div>
+
+      <input class="slider" id="slider" type="range" min="0" max="100" value="50" aria-label="选择数轴位置" />
+      <button class="btn" id="submitBtn">确认位置</button>
+      <div class="feedback" id="feedback"></div>
+      <div class="small">误差 ≤ 5% 算完美命中，≤ 10% 算正确。</div>
+    </section>
+  </main>
+
+  <script>
+    const rounds = 10;
+    let current = 1, score = 0, streak = 0;
+    let target = {n:1,d:2,v:.5};
+
+    const qIndex = document.getElementById('qIndex');
+    const scoreEl = document.getElementById('score');
+    const streakEl = document.getElementById('streak');
+    const fractionEl = document.getElementById('fraction');
+    const slider = document.getElementById('slider');
+    const pin = document.getElementById('pin');
+    const feedback = document.getElementById('feedback');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const pool = [];
+    for (let d = 2; d <= 12; d++) {
+      for (let n = 1; n < d; n++) {
+        const g = gcd(n, d);
+        if (g === 1) pool.push({ n, d, v: n / d });
+      }
+    }
+
+    slider.addEventListener('input', () => pin.style.left = slider.value + '%');
+    submitBtn.addEventListener('click', submit);
+
+    function gcd(a,b){while(b){[a,b]=[b,a%b]}return a}
+    function pick(){return pool[Math.floor(Math.random()*pool.length)]}
+
+    function newQuestion(){
+      target = pick();
+      fractionEl.textContent = `${target.n}/${target.d}`;
+      qIndex.textContent = current;
+      feedback.textContent = '';
+      feedback.className = 'feedback';
+      slider.value = 50;
+      pin.style.left = '50%';
+      submitBtn.disabled = false;
+      submitBtn.textContent = '确认位置';
+    }
+
+    function submit(){
+      const answer = Number(slider.value) / 100;
+      const err = Math.abs(answer - target.v);
+      let add = 0;
+      if (err <= 0.05) { add = 2; streak++; feedback.textContent = `完美命中！误差 ${(err*100).toFixed(1)}%`; feedback.classList.add('ok'); }
+      else if (err <= 0.10) { add = 1; streak++; feedback.textContent = `答对了！误差 ${(err*100).toFixed(1)}%`; feedback.classList.add('ok'); }
+      else { streak = 0; feedback.textContent = `再试下一题，误差 ${(err*100).toFixed(1)}%`; feedback.classList.add('bad'); }
+
+      // 连击奖励
+      if (streak >= 3 && add > 0) add += 1;
+      score += add;
+      scoreEl.textContent = score;
+      streakEl.textContent = streak;
+
+      submitBtn.disabled = true;
+      if (current >= rounds) {
+        submitBtn.textContent = '重新开始';
+        submitBtn.disabled = false;
+        submitBtn.onclick = () => {
+          current = 1; score = 0; streak = 0;
+          scoreEl.textContent = '0'; streakEl.textContent = '0';
+          submitBtn.onclick = submit;
+          newQuestion();
+        };
+        feedback.textContent += ` ｜ 本局总分：${score}`;
+        return;
+      }
+
+      current++;
+      setTimeout(newQuestion, 700);
+    }
+
+    newQuestion();
+  </script>
+</body>
+</html>
