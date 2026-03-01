@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>分数对决训练场</title>
+  <style>
+    :root {
+      --bg: #f5f7ff;
+      --card: #ffffff;
+      --text: #1d2a44;
+      --muted: #5f6b85;
+      --primary: #4f7cff;
+      --good: #16a34a;
+      --bad: #dc2626;
+      --shadow: 0 8px 24px rgba(31, 57, 120, 0.12);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 35%, #f9fafb 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(720px, 100%);
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(22px, 4.6vw, 30px);
+    }
+    .sub {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .stat {
+      background: #f3f6ff;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+    .stat b {
+      display: block;
+      font-size: clamp(18px, 4vw, 24px);
+      margin-bottom: 2px;
+    }
+    .arena {
+      background: #f8faff;
+      border: 1px solid #e7edff;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .fractions {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .frac {
+      background: #fff;
+      border: 1px solid #d9e3ff;
+      border-radius: 12px;
+      padding: 14px 10px;
+      text-align: center;
+      font-size: clamp(26px, 8vw, 44px);
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .vs {
+      font-size: clamp(16px, 4vw, 22px);
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 8px;
+      font-size: 18px;
+      font-weight: 700;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      min-height: 52px;
+      touch-action: manipulation;
+    }
+    button.secondary { background: #64748b; }
+    button:active { transform: scale(0.98); }
+    .feedback {
+      min-height: 84px;
+      border-radius: 12px;
+      padding: 12px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .feedback.good { border-color: #86efac; background: #f0fdf4; }
+    .feedback.bad { border-color: #fca5a5; background: #fef2f2; }
+    .controls {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tiny {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+    @media (max-width: 560px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      button { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" role="application" aria-label="分数比大小训练游戏">
+    <h1>分数对决训练场</h1>
+    <p class="sub">三四年级专属：判断两个分数谁更大，连对越多分越高，错题会自动重练！</p>
+
+    <section class="stats" aria-live="polite">
+      <div class="stat"><b id="score">0</b>得分</div>
+      <div class="stat"><b id="streak">0</b>连对</div>
+      <div class="stat"><b id="round">1</b>题号</div>
+      <div class="stat"><b id="retry">0</b>待重练</div>
+    </section>
+
+    <section class="arena">
+      <div class="fractions">
+        <div class="frac" id="leftFrac">1/2</div>
+        <div class="vs">?</div>
+        <div class="frac" id="rightFrac">3/4</div>
+      </div>
+      <div class="actions">
+        <button data-choice="left">左边更大</button>
+        <button data-choice="equal" class="secondary">一样大</button>
+        <button data-choice="right">右边更大</button>
+      </div>
+    </section>
+
+    <section id="feedback" class="feedback" aria-live="assertive">
+      选择“左边更大 / 一样大 / 右边更大”开始挑战。
+    </section>
+
+    <div class="controls">
+      <button id="nextBtn" class="secondary">下一题</button>
+      <button id="restartBtn" class="secondary">重新开始</button>
+    </div>
+
+    <p class="tiny">技巧：比较分数可先交叉相乘，a/b 与 c/d 比较时看 a×d 和 c×b 的大小。</p>
+  </main>
+
+  <script>
+    (() => {
+      const els = {
+        leftFrac: document.getElementById('leftFrac'),
+        rightFrac: document.getElementById('rightFrac'),
+        score: document.getElementById('score'),
+        streak: document.getElementById('streak'),
+        round: document.getElementById('round'),
+        retry: document.getElementById('retry'),
+        feedback: document.getElementById('feedback'),
+        nextBtn: document.getElementById('nextBtn'),
+        restartBtn: document.getElementById('restartBtn'),
+      };
+
+      const state = {
+        score: 0,
+        streak: 0,
+        round: 1,
+        answered: false,
+        current: null,
+        retryQueue: [],
+      };
+
+      const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+      function generateFraction() {
+        const denominator = rand(2, 12);
+        const numerator = rand(1, denominator - 1);
+        return { n: numerator, d: denominator };
+      }
+
+      function simplify(n, d) {
+        const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+        const g = gcd(n, d);
+        return { n: n / g, d: d / g };
+      }
+
+      function createQuestion() {
+        if (state.retryQueue.length > 0) {
+          return { ...state.retryQueue.shift(), fromRetry: true };
+        }
+
+        let left = generateFraction();
+        let right = generateFraction();
+
+        if (Math.random() < 0.2) {
+          const base = generateFraction();
+          const k = rand(2, 4);
+          left = base;
+          right = { n: base.n * k, d: base.d * k };
+        }
+
+        return { left, right, fromRetry: false };
+      }
+
+      function relation(q) {
+        const leftCross = q.left.n * q.right.d;
+        const rightCross = q.right.n * q.left.d;
+        if (leftCross > rightCross) return 'left';
+        if (leftCross < rightCross) return 'right';
+        return 'equal';
+      }
+
+      function explain(q, ans) {
+        const l = q.left, r = q.right;
+        const lc = l.n * r.d;
+        const rc = r.n * l.d;
+        const ls = simplify(l.n, l.d);
+        const rs = simplify(r.n, r.d);
+        if (ans === 'equal') {
+          return `把两个分数约分后，左边是 ${ls.n}/${ls.d}，右边是 ${rs.n}/${rs.d}，所以一样大。`;
+        }
+        return `交叉相乘：左边 ${l.n}×${r.d}=${lc}，右边 ${r.n}×${l.d}=${rc}。因为 ${lc} ${lc > rc ? '>' : '<'} ${rc}，所以${ans === 'left' ? '左边更大' : '右边更大'}。`;
+      }
+
+      function render() {
+        const q = state.current;
+        els.leftFrac.textContent = `${q.left.n}/${q.left.d}`;
+        els.rightFrac.textContent = `${q.right.n}/${q.right.d}`;
+        els.score.textContent = state.score;
+        els.streak.textContent = state.streak;
+        els.round.textContent = state.round;
+        els.retry.textContent = state.retryQueue.length;
+      }
+
+      function setFeedback(text, type = '') {
+        els.feedback.className = `feedback ${type}`.trim();
+        els.feedback.textContent = text;
+      }
+
+      function nextQuestion() {
+        state.answered = false;
+        state.current = createQuestion();
+        render();
+        setFeedback(state.current.fromRetry
+          ? '这是一道重练题，认真再来一次！'
+          : '新题来了：判断哪个分数更大？');
+      }
+
+      function answer(choice) {
+        if (state.answered) {
+          setFeedback('你已经作答啦，点击“下一题”继续。');
+          return;
+        }
+
+        const q = state.current;
+        const real = relation(q);
+        state.answered = true;
+
+        if (choice === real) {
+          state.streak += 1;
+          state.score += 10 + Math.min(state.streak * 2, 20);
+          setFeedback(`✅ 回答正确！${explain(q, real)}`, 'good');
+        } else {
+          state.streak = 0;
+          state.score = Math.max(0, state.score - 5);
+          state.retryQueue.push({ left: q.left, right: q.right });
+          setFeedback(`❌ 这题答错了。正确答案是“${real === 'left' ? '左边更大' : real === 'right' ? '右边更大' : '一样大'}”。${explain(q, real)} 已加入重练。`, 'bad');
+        }
+
+        render();
+      }
+
+      function restart() {
+        state.score = 0;
+        state.streak = 0;
+        state.round = 1;
+        state.retryQueue = [];
+        state.answered = false;
+        state.current = createQuestion();
+        render();
+        setFeedback('游戏已重置，开始新一轮挑战吧！');
+      }
+
+      document.querySelectorAll('button[data-choice]').forEach(btn => {
+        btn.addEventListener('click', () => answer(btn.dataset.choice));
+      });
+
+      els.nextBtn.addEventListener('click', () => {
+        if (!state.answered) {
+          setFeedback('先作答再进入下一题哦。');
+          return;
+        }
+        state.round += 1;
+        nextQuestion();
+      });
+
+      els.restartBtn.addEventListener('click', restart);
+
+      state.current = createQuestion();
+      render();
+    })();
+  </script>
+</body>
+</html>
