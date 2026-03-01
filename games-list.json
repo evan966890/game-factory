@@ -336,5 +336,11 @@
     "path": "games/wasteland-convoy/index.html",
     "category": "策略经营",
     "createdAt": "2026-03-01T18:27:07.601513Z"
+  },
+  {
+    "name": "数列推理冲刺",
+    "path": "games/sequence-reasoning-sprint/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-01T18:39:18.739830Z"
   }
 ]
