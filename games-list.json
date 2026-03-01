@@ -198,5 +198,11 @@
     "path": "games/fraction-decimal-sprint/index.html",
     "category": "数学",
     "createdAt": "2026-03-01T19:51:18.134291+08:00"
+  },
+  {
+    "name": "循环路径编程",
+    "path": "games/loop-path-coder/index.html",
+    "category": "编程入门",
+    "createdAt": "2026-03-01T20:11:20.295473+08:00"
   }
 ]

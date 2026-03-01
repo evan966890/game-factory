@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>循环路径编程</title>
+  <style>
+    :root{--bg:#0f172a;--panel:#111827;--card:#1f2937;--ok:#22c55e;--bad:#ef4444;--text:#e5e7eb;--muted:#9ca3af;--accent:#38bdf8}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#0b1024,#111827);color:var(--text)}
+    .wrap{max-width:860px;margin:0 auto;padding:16px}
+    .panel{background:rgba(17,24,39,.9);border:1px solid #334155;border-radius:14px;padding:14px}
+    h1{font-size:22px;margin:4px 0 8px} p{margin:6px 0;color:var(--muted)}
+    .top{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center}
+    .badge{background:#0b3b52;color:#bae6fd;padding:6px 10px;border-radius:999px;font-size:13px}
+    .score{font-weight:700}
+    .board{margin-top:12px;display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+    .cell{aspect-ratio:1;border-radius:10px;background:var(--card);display:flex;align-items:center;justify-content:center;font-weight:700;border:1px solid #334155}
+    .start{background:#14532d}.goal{background:#7f1d1d}.path{background:#0b3b52}
+    .robot{font-size:22px}
+    .controls{margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    button{border:1px solid #334155;background:#0f172a;color:var(--text);padding:10px;border-radius:10px;font-size:15px}
+    button:active{transform:scale(.98)}
+    .run{background:#082f49;border-color:#0ea5e9}
+    .clear{background:#3f1d1d;border-color:#ef4444}
+    .queue{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;min-height:36px}
+    .token{background:#1e293b;border:1px solid #475569;padding:6px 8px;border-radius:8px;font-size:13px}
+    .msg{margin-top:10px;min-height:24px;font-weight:600}
+    .ok{color:var(--ok)} .bad{color:var(--bad)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel">
+      <div class="top">
+        <div>
+          <h1>循环路径编程</h1>
+          <p>目标：用最少步骤让机器人🤖从起点走到终点。理解“重复动作=循环”。</p>
+        </div>
+        <div class="badge">关卡 <span id="level">1</span>/8</div>
+        <div class="score">得分：<span id="score">0</span></div>
+      </div>
+
+      <div id="board" class="board"></div>
+
+      <div class="controls">
+        <button data-cmd="R">右 ➡️</button>
+        <button data-cmd="D">下 ⬇️</button>
+        <button data-cmd="L">左 ⬅️</button>
+        <button data-cmd="U">上 ⬆️</button>
+        <button data-cmd="REP2">重复×2 🔁</button>
+        <button data-cmd="REP3">重复×3 🔁</button>
+        <button class="run" id="run">运行程序 ▶️</button>
+        <button class="clear" id="clear">清空步骤 🧹</button>
+        <button id="hint">提示 💡</button>
+      </div>
+
+      <div id="queue" class="queue"></div>
+      <div id="msg" class="msg"></div>
+    </div>
+  </div>
+
+<script>
+const levels=[
+  {size:6,start:[0,0],goal:[0,5],path:[[0,1],[0,2],[0,3],[0,4]],best:'R,R,R,R,R'},
+  {size:6,start:[0,0],goal:[5,0],path:[[1,0],[2,0],[3,0],[4,0]],best:'D,D,D,D,D'},
+  {size:6,start:[1,1],goal:[1,5],path:[[1,2],[1,3],[1,4]],best:'R,REP2,R'},
+  {size:6,start:[2,1],goal:[5,1],path:[[3,1],[4,1]],best:'D,REP2,D'},
+  {size:6,start:[0,0],goal:[2,3],path:[[0,1],[0,2],[0,3],[1,3]],best:'REP3 R,REP2 D'},
+  {size:6,start:[4,0],goal:[1,3],path:[[3,0],[2,0],[1,0],[1,1],[1,2]],best:'REP3 U,REP3 R'},
+  {size:6,start:[5,5],goal:[2,2],path:[[4,5],[3,5],[2,5],[2,4],[2,3]],best:'REP3 U,REP3 L'},
+  {size:6,start:[0,5],goal:[5,0],path:[[1,5],[2,5],[3,5],[4,5],[5,5],[5,4],[5,3],[5,2],[5,1]],best:'REP5 D,REP5 L'}
+];
+let level=0,score=0,program=[];
+const board=document.getElementById('board'),queue=document.getElementById('queue'),msg=document.getElementById('msg');
+const levelEl=document.getElementById('level'),scoreEl=document.getElementById('score');
+
+function key(r,c){return `${r},${c}`}
+function render(){
+  const lv=levels[level];
+  levelEl.textContent=level+1; scoreEl.textContent=score;
+  board.innerHTML=''; board.style.gridTemplateColumns=`repeat(${lv.size},1fr)`;
+  const pathSet=new Set(lv.path.map(([r,c])=>key(r,c)));
+  for(let r=0;r<lv.size;r++) for(let c=0;c<lv.size;c++){
+    const d=document.createElement('div'); d.className='cell';
+    if(pathSet.has(key(r,c))) d.classList.add('path');
+    if(r===lv.start[0]&&c===lv.start[1]){d.classList.add('start');d.textContent='🚩';}
+    if(r===lv.goal[0]&&c===lv.goal[1]){d.classList.add('goal');d.textContent='🏁';}
+    board.appendChild(d);
+  }
+  renderQueue();
+  setMsg('先拼出步骤，再点“运行程序”。');
+}
+function renderQueue(){queue.innerHTML=''; program.forEach(t=>{const s=document.createElement('span');s.className='token';s.textContent=t;queue.appendChild(s);});}
+function setMsg(t,ok){msg.textContent=t;msg.className='msg '+(ok===true?'ok':ok===false?'bad':'');}
+
+function expandProgram(arr){
+  const out=[];
+  for(let i=0;i<arr.length;i++){
+    const t=arr[i];
+    if(t==='REP2' || t==='REP3'){
+      const n=t==='REP2'?2:3;
+      const next=arr[i+1];
+      if(!next || next.startsWith('REP')) continue;
+      for(let k=0;k<n;k++) out.push(next);
+      i++;
+    } else out.push(t);
+  }
+  return out;
+}
+function run(){
+  const lv=levels[level]; let [r,c]=lv.start;
+  const steps=expandProgram(program);
+  if(!steps.length){setMsg('还没有步骤哦。',false);return;}
+  for(const s of steps){
+    if(s==='R') c++; if(s==='L') c--; if(s==='U') r--; if(s==='D') r++;
+    if(r<0||c<0||r>=lv.size||c>=lv.size){setMsg('机器人走出边界了，试试更短的循环。',false);return;}
+  }
+  if(r===lv.goal[0]&&c===lv.goal[1]){
+    const bonus=Math.max(1,12-steps.length);
+    score+=bonus;
+    setMsg(`成功通关！本关 +${bonus} 分`,true);
+    if(level<levels.length-1){level++;program=[];setTimeout(render,500);}else{setMsg(`恭喜通关 8 关，总分 ${score}！再来一轮巩固循环思维吧。`,true);}
+  }else setMsg('还没到终点，再调整程序顺序。',false);
+}
+
+for(const b of document.querySelectorAll('button[data-cmd]')) b.onclick=()=>{program.push(b.dataset.cmd);renderQueue();};
+document.getElementById('run').onclick=run;
+document.getElementById('clear').onclick=()=>{program=[];renderQueue();setMsg('已清空步骤。');};
+document.getElementById('hint').onclick=()=>{setMsg('提示：把“重复×2/×3”放在方向前面，会自动重复该方向。');};
+render();
+</script>
+</body>
+</html>
