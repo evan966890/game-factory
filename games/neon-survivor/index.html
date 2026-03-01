@@ -1,0 +1,1019 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>霓虹幸存者：夜城突围</title>
+  <style>
+    :root {
+      --bg: #050914;
+      --panel: #0f1930;
+      --line: #2c4f8f;
+      --text: #e9f2ff;
+      --muted: #95acd4;
+      --cyan: #64e5ff;
+      --pink: #ff75c3;
+      --green: #5effa3;
+      --warn: #ffd36b;
+      --bad: #ff7d8f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(1200px 620px at 10% -10%, #1d2e63 0%, var(--bg) 62%);
+      color: var(--text);
+      font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 14px;
+    }
+    .app {
+      width: min(980px, 100%);
+      background: linear-gradient(180deg, rgba(12, 20, 42, .92), rgba(8, 14, 30, .96));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 18px 44px rgba(0,0,0,.38);
+      position: relative;
+      overflow: hidden;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(1.15rem, 3.7vw, 1.6rem);
+    }
+    .sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: .94rem;
+    }
+    .hud {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .stat {
+      background: rgba(16, 28, 58, .9);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+    }
+    .stat .k { color: var(--muted); font-size: .78rem; }
+    .stat .v {
+      margin-top: 3px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .3px;
+    }
+    .bar {
+      margin-top: 8px;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid #315ca6;
+      background: #0a1533;
+      position: relative;
+    }
+    .bar > i {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 50%;
+      background: linear-gradient(90deg, #58d1ff, #7d74ff);
+    }
+    .bar > span {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: .76rem;
+      color: #dbe7ff;
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+    .controls {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    button {
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: .95rem;
+      font-weight: 800;
+      color: var(--text);
+      background: #1b2f63;
+      cursor: pointer;
+    }
+    button:active { transform: translateY(1px); }
+    .danger { background: #4d2338; border-color: #7f3d5c; }
+    .ghost { background: #162a57; }
+    .tip {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: .88rem;
+      white-space: nowrap;
+    }
+    .canvas-wrap {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #060b18;
+      position: relative;
+    }
+    canvas { width: 100%; height: auto; display: block; touch-action: none; }
+    .note {
+      margin-top: 10px;
+      font-size: .9rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(3,7,18,.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 10;
+    }
+    .overlay.show { display: flex; }
+    .panel {
+      width: min(760px, 100%);
+      background: linear-gradient(180deg, #111f48, #0c1737);
+      border: 1px solid #3f64b8;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 16px 38px rgba(0,0,0,.35);
+    }
+    .panel h2 { margin: 0 0 10px; font-size: 1.2rem; }
+    .upgrades {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .up {
+      min-height: 106px;
+      text-align: left;
+      border: 1px solid #4a71cc;
+      border-radius: 12px;
+      background: #173066;
+      padding: 10px;
+      color: #e6f0ff;
+    }
+    .up b { display: block; margin-bottom: 4px; }
+    .up small { color: #b4c9f4; line-height: 1.45; }
+    .summary {
+      margin-top: 8px;
+      border: 1px dashed #4c71c9;
+      border-radius: 12px;
+      background: #10234d;
+      padding: 10px;
+      color: #d9e7ff;
+      line-height: 1.5;
+      font-size: .95rem;
+    }
+    @media (max-width: 860px) {
+      .hud { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .upgrades { grid-template-columns: 1fr; }
+      .tip { width: 100%; margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>🌃 霓虹幸存者：夜城突围</h1>
+    <p class="sub">热门“幸存者割草 + 轻肉鸽”思路：单手走位自动射击，击杀刷经验，升级三选一，撑过 180 秒夜城潮汐即胜利。</p>
+
+    <section class="hud" aria-live="polite">
+      <article class="stat"><div class="k">生存时间</div><div class="v" id="time">180.0s</div></article>
+      <article class="stat"><div class="k">生命</div><div class="v" id="hp">100 / 100</div></article>
+      <article class="stat"><div class="k">等级</div><div class="v" id="lv">1</div></article>
+      <article class="stat"><div class="k">击杀</div><div class="v" id="kills">0</div></article>
+      <article class="stat"><div class="k">得分</div><div class="v" id="score">0</div></article>
+      <article class="stat"><div class="k">DPS倍率</div><div class="v" id="dps">1.00x</div></article>
+    </section>
+
+    <div class="bar" title="经验进度">
+      <i id="xpFill" style="width: 0%"></i>
+      <span id="xpText">XP 0 / 20</span>
+    </div>
+
+    <section class="controls">
+      <button id="pauseBtn" class="ghost">暂停</button>
+      <button id="restartBtn" class="danger">重开</button>
+      <div class="tip">操作：WASD/方向键 或 触摸拖动移动（自动攻击最近敌人）</div>
+    </section>
+
+    <div class="canvas-wrap">
+      <canvas id="game" width="940" height="560" aria-label="霓虹幸存者游戏画面"></canvas>
+    </div>
+
+    <div class="note">
+      <span id="msg">提示：优先保证走位，别被包围；升级优先选射速和穿透更稳。</span>
+      <span>目标：坚持 180 秒</span>
+    </div>
+
+    <div id="levelOverlay" class="overlay">
+      <div class="panel">
+        <h2>✨ 升级选择（3 选 1）</h2>
+        <div class="upgrades" id="upgradeList"></div>
+      </div>
+    </div>
+
+    <div id="endOverlay" class="overlay">
+      <div class="panel">
+        <h2 id="endTitle">结算</h2>
+        <div class="summary" id="endSummary"></div>
+        <div style="margin-top: 10px;">
+          <button id="againBtn">再来一局</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    "use strict";
+
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const el = {
+      time: document.getElementById("time"),
+      hp: document.getElementById("hp"),
+      lv: document.getElementById("lv"),
+      kills: document.getElementById("kills"),
+      score: document.getElementById("score"),
+      dps: document.getElementById("dps"),
+      xpFill: document.getElementById("xpFill"),
+      xpText: document.getElementById("xpText"),
+      pauseBtn: document.getElementById("pauseBtn"),
+      restartBtn: document.getElementById("restartBtn"),
+      msg: document.getElementById("msg"),
+      levelOverlay: document.getElementById("levelOverlay"),
+      upgradeList: document.getElementById("upgradeList"),
+      endOverlay: document.getElementById("endOverlay"),
+      endTitle: document.getElementById("endTitle"),
+      endSummary: document.getElementById("endSummary"),
+      againBtn: document.getElementById("againBtn")
+    };
+
+    const BOUNDS = { x: 18, y: 18, w: 904, h: 524 };
+
+    const state = {
+      running: true,
+      ended: false,
+      pausedByLevel: false,
+      timeLeft: 180,
+      score: 0,
+      kills: 0,
+      level: 1,
+      xp: 0,
+      nextXp: 20,
+      flash: 0,
+      stars: [],
+      particles: [],
+      texts: [],
+      player: null,
+      enemies: [],
+      bullets: [],
+      orbs: [],
+      keys: new Set(),
+      touch: { active: false, x: 0, y: 0, dx: 0, dy: 0 },
+      spawnTimer: 0,
+      spawnInterval: 0.85
+    };
+
+    const upgrades = [
+      {
+        id: "atk",
+        title: "过载火控",
+        desc: "子弹伤害 +20%",
+        apply(p) { p.damageMul *= 1.2; }
+      },
+      {
+        id: "rate",
+        title: "高频扳机",
+        desc: "射击间隔 -14%",
+        apply(p) { p.fireDelay *= 0.86; }
+      },
+      {
+        id: "speed",
+        title: "神经加速",
+        desc: "移动速度 +18%",
+        apply(p) { p.speed *= 1.18; }
+      },
+      {
+        id: "pierce",
+        title: "穿透弹头",
+        desc: "子弹穿透 +1",
+        apply(p) { p.pierce += 1; }
+      },
+      {
+        id: "hp",
+        title: "应急装甲",
+        desc: "最大生命 +20 并回复 20",
+        apply(p) {
+          p.maxHp += 20;
+          p.hp = Math.min(p.maxHp, p.hp + 20);
+        }
+      },
+      {
+        id: "regen",
+        title: "纳米修复",
+        desc: "每秒回复 +0.9 生命",
+        apply(p) { p.regen += 0.9; }
+      },
+      {
+        id: "multi",
+        title: "分裂射线",
+        desc: "每次射击额外 +1 发",
+        apply(p) { p.multiShot += 1; }
+      },
+      {
+        id: "magnet",
+        title: "磁场回收",
+        desc: "经验吸附范围 +34%",
+        apply(p) { p.pickupRange *= 1.34; }
+      }
+    ];
+
+    function rand(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function dist(a, b) {
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      return Math.hypot(dx, dy);
+    }
+
+    function initStars() {
+      state.stars = [];
+      for (let i = 0; i < 100; i++) {
+        state.stars.push({
+          x: rand(0, canvas.width),
+          y: rand(0, canvas.height),
+          s: rand(0.8, 2.1),
+          a: rand(0.12, 0.45)
+        });
+      }
+    }
+
+    function createPlayer() {
+      return {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        r: 14,
+        speed: 210,
+        maxHp: 100,
+        hp: 100,
+        regen: 0,
+        fireDelay: 0.33,
+        fireCd: 0,
+        damage: 22,
+        damageMul: 1,
+        pierce: 0,
+        multiShot: 0,
+        pickupRange: 54,
+        invuln: 0
+      };
+    }
+
+    function reset() {
+      state.running = true;
+      state.ended = false;
+      state.pausedByLevel = false;
+      state.timeLeft = 180;
+      state.score = 0;
+      state.kills = 0;
+      state.level = 1;
+      state.xp = 0;
+      state.nextXp = 20;
+      state.flash = 0;
+      state.particles = [];
+      state.texts = [];
+      state.enemies = [];
+      state.bullets = [];
+      state.orbs = [];
+      state.spawnTimer = 0.25;
+      state.spawnInterval = 0.85;
+      state.player = createPlayer();
+      hideOverlays();
+      initStars();
+      setMsg("夜城封锁开始：自动攻击已启用，尽量绕圈走位。");
+      syncHUD();
+    }
+
+    function hideOverlays() {
+      el.levelOverlay.classList.remove("show");
+      el.endOverlay.classList.remove("show");
+    }
+
+    function setMsg(text) {
+      el.msg.textContent = text;
+    }
+
+    function spawnEnemy() {
+      const t = 1 - state.timeLeft / 180;
+      const hard = 1 + t * 2.4;
+      const roll = Math.random();
+
+      let type;
+      if (roll < 0.58) {
+        type = { r: 12, hp: 34, speed: 78, dmg: 10, color: "#ff7b9d", xp: 4 };
+      } else if (roll < 0.84) {
+        type = { r: 15, hp: 66, speed: 58, dmg: 15, color: "#ffb56d", xp: 7 };
+      } else {
+        type = { r: 10, hp: 26, speed: 120, dmg: 8, color: "#86ffd4", xp: 5 };
+      }
+
+      const edge = Math.floor(Math.random() * 4);
+      let x, y;
+      if (edge === 0) { x = rand(BOUNDS.x, BOUNDS.x + BOUNDS.w); y = BOUNDS.y - 20; }
+      if (edge === 1) { x = BOUNDS.x + BOUNDS.w + 20; y = rand(BOUNDS.y, BOUNDS.y + BOUNDS.h); }
+      if (edge === 2) { x = rand(BOUNDS.x, BOUNDS.x + BOUNDS.w); y = BOUNDS.y + BOUNDS.h + 20; }
+      if (edge === 3) { x = BOUNDS.x - 20; y = rand(BOUNDS.y, BOUNDS.y + BOUNDS.h); }
+
+      const hp = Math.round(type.hp * hard);
+      state.enemies.push({
+        x, y,
+        r: type.r,
+        hp,
+        maxHp: hp,
+        speed: type.speed * (1 + t * 0.22),
+        dmg: type.dmg,
+        color: type.color,
+        xp: Math.round(type.xp * (1 + t * 0.45)),
+        hit: 0
+      });
+    }
+
+    function nearestEnemy() {
+      let best = null;
+      let bd = Infinity;
+      for (const e of state.enemies) {
+        const d = dist(state.player, e);
+        if (d < bd) {
+          bd = d;
+          best = e;
+        }
+      }
+      return best;
+    }
+
+    function shoot() {
+      const p = state.player;
+      const target = nearestEnemy();
+      if (!target) return;
+
+      const shots = 1 + p.multiShot;
+      for (let i = 0; i < shots; i++) {
+        const angleBase = Math.atan2(target.y - p.y, target.x - p.x);
+        const spread = (shots - 1) > 0 ? (i - (shots - 1) / 2) * 0.16 : 0;
+        const angle = angleBase + spread;
+        const spd = 430;
+        state.bullets.push({
+          x: p.x,
+          y: p.y,
+          vx: Math.cos(angle) * spd,
+          vy: Math.sin(angle) * spd,
+          r: 4,
+          dmg: p.damage * p.damageMul,
+          life: 1.2,
+          pierce: p.pierce,
+          hitSet: new Set()
+        });
+      }
+    }
+
+    function addText(x, y, text, color = "#fff") {
+      state.texts.push({ x, y, text, color, ttl: 0.7 });
+    }
+
+    function addParticle(x, y, color) {
+      for (let i = 0; i < 7; i++) {
+        const a = rand(0, Math.PI * 2);
+        const s = rand(40, 140);
+        state.particles.push({
+          x, y,
+          vx: Math.cos(a) * s,
+          vy: Math.sin(a) * s,
+          r: rand(1.4, 3.2),
+          color,
+          ttl: rand(0.3, 0.7)
+        });
+      }
+    }
+
+    function killEnemy(enemy) {
+      state.kills += 1;
+      state.score += 12 + state.level * 2;
+      state.orbs.push({ x: enemy.x, y: enemy.y, r: 4, xp: enemy.xp, t: 0 });
+      addParticle(enemy.x, enemy.y, enemy.color);
+      addText(enemy.x, enemy.y - 16, `+${enemy.xp}XP`, "#a8ffda");
+    }
+
+    function gainXp(v) {
+      state.xp += v;
+      while (state.xp >= state.nextXp) {
+        state.xp -= state.nextXp;
+        state.level += 1;
+        state.nextXp = Math.round(16 + state.level * 8 + Math.pow(state.level, 1.22));
+        openUpgrade();
+      }
+    }
+
+    function openUpgrade() {
+      state.running = false;
+      state.pausedByLevel = true;
+
+      const list = [...upgrades];
+      const pick = [];
+      while (pick.length < 3 && list.length) {
+        const idx = Math.floor(Math.random() * list.length);
+        pick.push(list.splice(idx, 1)[0]);
+      }
+
+      el.upgradeList.innerHTML = "";
+      for (const up of pick) {
+        const btn = document.createElement("button");
+        btn.className = "up";
+        btn.innerHTML = `<b>${up.title}</b><small>${up.desc}</small>`;
+        btn.addEventListener("click", () => {
+          up.apply(state.player);
+          el.levelOverlay.classList.remove("show");
+          state.running = true;
+          state.pausedByLevel = false;
+          setMsg(`已获得强化：${up.title}`);
+          syncHUD();
+        });
+        el.upgradeList.appendChild(btn);
+      }
+
+      el.levelOverlay.classList.add("show");
+      setMsg("升级时机：选一个强化再继续战斗。");
+      syncHUD();
+    }
+
+    function endGame(win) {
+      state.ended = true;
+      state.running = false;
+      state.pausedByLevel = false;
+      el.levelOverlay.classList.remove("show");
+
+      el.endTitle.textContent = win ? "🏆 夜城突围成功" : "💀 被异潮淹没";
+      const survival = (180 - state.timeLeft).toFixed(1);
+      const dpsMul = (state.player.damageMul * (0.33 / state.player.fireDelay)).toFixed(2);
+      el.endSummary.innerHTML = [
+        `生存时长：<b>${survival}s</b>`,
+        `最终等级：<b>${state.level}</b>`,
+        `击杀数量：<b>${state.kills}</b>`,
+        `总得分：<b>${state.score}</b>`,
+        `火力倍率：<b>${dpsMul}x</b>`,
+        win ? "评价：<b style='color:#7effc0'>可发布试玩版（稳定通关）</b>" : "建议：优先选“射速/穿透/回复”构筑更稳"
+      ].join("<br>");
+      el.endOverlay.classList.add("show");
+      syncHUD();
+    }
+
+    function updatePlayer(dt) {
+      const p = state.player;
+      let mx = 0, my = 0;
+
+      if (state.keys.has("ArrowLeft") || state.keys.has("a") || state.keys.has("A")) mx -= 1;
+      if (state.keys.has("ArrowRight") || state.keys.has("d") || state.keys.has("D")) mx += 1;
+      if (state.keys.has("ArrowUp") || state.keys.has("w") || state.keys.has("W")) my -= 1;
+      if (state.keys.has("ArrowDown") || state.keys.has("s") || state.keys.has("S")) my += 1;
+
+      if (state.touch.active) {
+        mx += state.touch.dx;
+        my += state.touch.dy;
+      }
+
+      const len = Math.hypot(mx, my) || 1;
+      mx /= len; my /= len;
+
+      p.x += mx * p.speed * dt;
+      p.y += my * p.speed * dt;
+      p.x = clamp(p.x, BOUNDS.x + p.r, BOUNDS.x + BOUNDS.w - p.r);
+      p.y = clamp(p.y, BOUNDS.y + p.r, BOUNDS.y + BOUNDS.h - p.r);
+
+      p.hp = Math.min(p.maxHp, p.hp + p.regen * dt);
+      p.invuln = Math.max(0, p.invuln - dt);
+
+      p.fireCd -= dt;
+      if (p.fireCd <= 0) {
+        shoot();
+        p.fireCd = p.fireDelay;
+      }
+    }
+
+    function updateEnemies(dt) {
+      const p = state.player;
+
+      for (let i = state.enemies.length - 1; i >= 0; i--) {
+        const e = state.enemies[i];
+        const dx = p.x - e.x;
+        const dy = p.y - e.y;
+        const d = Math.hypot(dx, dy) || 1;
+
+        e.x += (dx / d) * e.speed * dt;
+        e.y += (dy / d) * e.speed * dt;
+        e.hit = Math.max(0, e.hit - dt);
+
+        if (d < p.r + e.r) {
+          if (p.invuln <= 0) {
+            p.hp -= e.dmg;
+            p.invuln = 0.36;
+            state.flash = 0.16;
+            addText(p.x, p.y - 18, `-${e.dmg}`, "#ff9cab");
+            if (p.hp <= 0) {
+              p.hp = 0;
+              endGame(false);
+              return;
+            }
+          }
+        }
+      }
+    }
+
+    function updateBullets(dt) {
+      for (let i = state.bullets.length - 1; i >= 0; i--) {
+        const b = state.bullets[i];
+        b.x += b.vx * dt;
+        b.y += b.vy * dt;
+        b.life -= dt;
+
+        if (b.life <= 0 || b.x < BOUNDS.x - 20 || b.y < BOUNDS.y - 20 || b.x > BOUNDS.x + BOUNDS.w + 20 || b.y > BOUNDS.y + BOUNDS.h + 20) {
+          state.bullets.splice(i, 1);
+          continue;
+        }
+
+        for (let j = state.enemies.length - 1; j >= 0; j--) {
+          const e = state.enemies[j];
+          if (b.hitSet.has(e)) continue;
+          const d = Math.hypot(b.x - e.x, b.y - e.y);
+          if (d <= b.r + e.r) {
+            b.hitSet.add(e);
+            e.hp -= b.dmg;
+            e.hit = 0.08;
+            addText(e.x, e.y - 12, `${Math.round(b.dmg)}`, "#ffe38f");
+            if (e.hp <= 0) {
+              killEnemy(e);
+              state.enemies.splice(j, 1);
+            }
+
+            if (b.pierce > 0) {
+              b.pierce -= 1;
+            } else {
+              state.bullets.splice(i, 1);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    function updateOrbs(dt) {
+      const p = state.player;
+      for (let i = state.orbs.length - 1; i >= 0; i--) {
+        const o = state.orbs[i];
+        o.t += dt;
+
+        const d = Math.hypot(p.x - o.x, p.y - o.y);
+        if (d < p.pickupRange) {
+          const s = 200 + (p.pickupRange - d) * 8;
+          o.x += ((p.x - o.x) / (d || 1)) * s * dt;
+          o.y += ((p.y - o.y) / (d || 1)) * s * dt;
+        }
+
+        if (d < p.r + 5) {
+          gainXp(o.xp);
+          state.orbs.splice(i, 1);
+        }
+      }
+    }
+
+    function updateParticles(dt) {
+      for (let i = state.particles.length - 1; i >= 0; i--) {
+        const p = state.particles[i];
+        p.ttl -= dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vx *= 0.92;
+        p.vy *= 0.92;
+        if (p.ttl <= 0) state.particles.splice(i, 1);
+      }
+
+      for (let i = state.texts.length - 1; i >= 0; i--) {
+        const t = state.texts[i];
+        t.ttl -= dt;
+        t.y -= dt * 26;
+        if (t.ttl <= 0) state.texts.splice(i, 1);
+      }
+    }
+
+    function updateSpawn(dt) {
+      const p = 1 - state.timeLeft / 180;
+      state.spawnInterval = Math.max(0.2, 0.92 - p * 0.58);
+      state.spawnTimer -= dt;
+
+      while (state.spawnTimer <= 0) {
+        spawnEnemy();
+        if (Math.random() < p * 0.45) spawnEnemy();
+        state.spawnTimer += state.spawnInterval;
+      }
+    }
+
+    function update(dt) {
+      if (!state.running || state.ended) return;
+
+      state.timeLeft -= dt;
+      if (state.timeLeft <= 0) {
+        state.timeLeft = 0;
+        endGame(true);
+        return;
+      }
+
+      updateSpawn(dt);
+      updatePlayer(dt);
+      updateEnemies(dt);
+      updateBullets(dt);
+      updateOrbs(dt);
+      updateParticles(dt);
+
+      state.score += dt * 2;
+      state.flash = Math.max(0, state.flash - dt);
+
+      syncHUD();
+    }
+
+    function drawBg() {
+      const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      g.addColorStop(0, "#081128");
+      g.addColorStop(1, "#060c1d");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // neon grid
+      ctx.strokeStyle = "rgba(76,124,220,.16)";
+      ctx.lineWidth = 1;
+      for (let x = BOUNDS.x; x <= BOUNDS.x + BOUNDS.w; x += 44) {
+        ctx.beginPath();
+        ctx.moveTo(x, BOUNDS.y);
+        ctx.lineTo(x, BOUNDS.y + BOUNDS.h);
+        ctx.stroke();
+      }
+      for (let y = BOUNDS.y; y <= BOUNDS.y + BOUNDS.h; y += 44) {
+        ctx.beginPath();
+        ctx.moveTo(BOUNDS.x, y);
+        ctx.lineTo(BOUNDS.x + BOUNDS.w, y);
+        ctx.stroke();
+      }
+
+      for (const s of state.stars) {
+        ctx.globalAlpha = s.a;
+        ctx.fillStyle = "#d4e5ff";
+        ctx.fillRect(s.x, s.y, s.s, s.s);
+      }
+      ctx.globalAlpha = 1;
+
+      ctx.strokeStyle = "#2f4f90";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(BOUNDS.x, BOUNDS.y, BOUNDS.w, BOUNDS.h);
+    }
+
+    function drawPlayer() {
+      const p = state.player;
+      ctx.save();
+      if (p.invuln > 0 && Math.floor(p.invuln * 30) % 2 === 0) ctx.globalAlpha = 0.45;
+
+      // aura
+      const rg = ctx.createRadialGradient(p.x, p.y, 4, p.x, p.y, p.r + 10);
+      rg.addColorStop(0, "rgba(102,229,255,.55)");
+      rg.addColorStop(1, "rgba(102,229,255,0)");
+      ctx.fillStyle = rg;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r + 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#63e2ff";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#d9f6ff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = "#0d1f46";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawEnemies() {
+      for (const e of state.enemies) {
+        ctx.save();
+        if (e.hit > 0) ctx.globalAlpha = 0.65;
+        ctx.fillStyle = e.color;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(0,0,0,.35)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+
+        const bw = e.r * 2;
+        const ratio = clamp(e.hp / e.maxHp, 0, 1);
+        ctx.fillStyle = "rgba(0,0,0,.45)";
+        ctx.fillRect(e.x - bw / 2, e.y - e.r - 9, bw, 4);
+        ctx.fillStyle = "#7dffba";
+        ctx.fillRect(e.x - bw / 2, e.y - e.r - 9, bw * ratio, 4);
+      }
+    }
+
+    function drawBullets() {
+      for (const b of state.bullets) {
+        const g = ctx.createRadialGradient(b.x, b.y, 1, b.x, b.y, 6);
+        g.addColorStop(0, "rgba(255,230,140,.95)");
+        g.addColorStop(1, "rgba(255,145,180,.2)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawOrbs() {
+      for (const o of state.orbs) {
+        const pulse = 3 + Math.sin(o.t * 10) * 1.2;
+        ctx.fillStyle = "rgba(120,255,201,.9)";
+        ctx.beginPath();
+        ctx.arc(o.x, o.y, pulse, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawParticles() {
+      for (const p of state.particles) {
+        ctx.globalAlpha = clamp(p.ttl / 0.7, 0, 1);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      for (const t of state.texts) {
+        ctx.globalAlpha = clamp(t.ttl / 0.7, 0, 1);
+        ctx.fillStyle = t.color;
+        ctx.font = "700 13px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(t.text, t.x, t.y);
+      }
+      ctx.globalAlpha = 1;
+      ctx.textAlign = "left";
+    }
+
+    function drawTouchHint() {
+      if (!state.touch.active) return;
+      const t = state.touch;
+      ctx.strokeStyle = "rgba(120,170,255,.6)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, 24, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(t.x + t.dx * 34, t.y + t.dy * 34, 12, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    function render() {
+      drawBg();
+      drawOrbs();
+      drawBullets();
+      drawEnemies();
+      drawPlayer();
+      drawParticles();
+      drawTouchHint();
+
+      if (state.flash > 0) {
+        ctx.fillStyle = `rgba(255,90,120,${state.flash * 1.2})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    function syncHUD() {
+      const p = state.player;
+      el.time.textContent = `${state.timeLeft.toFixed(1)}s`;
+      el.hp.textContent = `${Math.ceil(p.hp)} / ${p.maxHp}`;
+      el.lv.textContent = `${state.level}`;
+      el.kills.textContent = `${state.kills}`;
+      el.score.textContent = `${Math.floor(state.score)}`;
+
+      const dpsMul = (p.damageMul * (0.33 / p.fireDelay)).toFixed(2);
+      el.dps.textContent = `${dpsMul}x`;
+
+      const xpRatio = clamp(state.xp / state.nextXp, 0, 1);
+      el.xpFill.style.width = `${(xpRatio * 100).toFixed(1)}%`;
+      el.xpText.textContent = `XP ${Math.floor(state.xp)} / ${state.nextXp}`;
+
+      el.pauseBtn.textContent = state.running ? "暂停" : "继续";
+      el.pauseBtn.disabled = state.ended || state.pausedByLevel;
+    }
+
+    // Input
+    window.addEventListener("keydown", (e) => {
+      state.keys.add(e.key);
+    });
+    window.addEventListener("keyup", (e) => {
+      state.keys.delete(e.key);
+    });
+
+    function pointerPos(ev) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (ev.clientX - rect.left) * (canvas.width / rect.width),
+        y: (ev.clientY - rect.top) * (canvas.height / rect.height)
+      };
+    }
+
+    canvas.addEventListener("pointerdown", (ev) => {
+      const p = pointerPos(ev);
+      state.touch.active = true;
+      state.touch.x = p.x;
+      state.touch.y = p.y;
+      state.touch.dx = 0;
+      state.touch.dy = 0;
+      canvas.setPointerCapture(ev.pointerId);
+    });
+
+    canvas.addEventListener("pointermove", (ev) => {
+      if (!state.touch.active) return;
+      const p = pointerPos(ev);
+      const dx = p.x - state.touch.x;
+      const dy = p.y - state.touch.y;
+      const len = Math.hypot(dx, dy);
+      if (len > 2) {
+        const m = Math.min(1, len / 44);
+        state.touch.dx = (dx / len) * m;
+        state.touch.dy = (dy / len) * m;
+      } else {
+        state.touch.dx = 0;
+        state.touch.dy = 0;
+      }
+    });
+
+    function stopTouch() {
+      state.touch.active = false;
+      state.touch.dx = 0;
+      state.touch.dy = 0;
+    }
+
+    canvas.addEventListener("pointerup", stopTouch);
+    canvas.addEventListener("pointercancel", stopTouch);
+
+    el.pauseBtn.addEventListener("click", () => {
+      if (state.ended || state.pausedByLevel) return;
+      state.running = !state.running;
+      syncHUD();
+      setMsg(state.running ? "战斗继续。" : "已暂停，调整思路后再冲。" );
+    });
+
+    el.restartBtn.addEventListener("click", reset);
+    el.againBtn.addEventListener("click", reset);
+
+    let last = performance.now();
+    function loop(now) {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+
+      update(dt);
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    reset();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
