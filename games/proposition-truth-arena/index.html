@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>命题逻辑真值擂台</title>
+  <style>
+    :root {
+      --bg: #0a1022;
+      --card: #111a33;
+      --card-2: #17254b;
+      --text: #eaf0ff;
+      --muted: #9db0dd;
+      --accent: #63b3ff;
+      --ok: #2ecc71;
+      --bad: #ff6b6b;
+      --warn: #f8c75d;
+      --line: #2a3b6b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(1000px 500px at 20% -10%, #1a2c59 0%, #0a1022 60%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 14px;
+    }
+    .app {
+      width: min(860px, 100%);
+      background: linear-gradient(180deg, #111a33, #0d1530);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 16px 42px rgba(0, 0, 0, .35);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.2rem, 3.6vw, 1.7rem);
+    }
+    .desc {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: .95rem;
+    }
+    .goal {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(248, 199, 93, .12);
+      color: #ffe9ae;
+      border: 1px solid rgba(248, 199, 93, .35);
+      font-size: .92rem;
+    }
+    .top {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .stat {
+      background: rgba(99, 179, 255, .08);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+    }
+    .k { color: var(--muted); font-size: .78rem; }
+    .v { margin-top: 4px; font-weight: 700; font-size: 1.05rem; }
+    .row {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    select, button {
+      border: 1px solid var(--line);
+      background: #1a2952;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: .95rem;
+      font-weight: 700;
+    }
+    button { cursor: pointer; }
+    button:active { transform: translateY(1px); }
+    .card {
+      margin-top: 12px;
+      background: var(--card-2);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .chip {
+      display: inline-block;
+      background: #22386c;
+      border: 1px solid #355190;
+      border-radius: 999px;
+      padding: 5px 10px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+      font-weight: 700;
+      font-size: .9rem;
+    }
+    .expr {
+      margin-top: 8px;
+      background: #0f1b3a;
+      border: 1px dashed #385291;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: clamp(1rem, 4.2vw, 1.24rem);
+      line-height: 1.45;
+      font-family: ui-monospace, Menlo, Consolas, "SF Mono", monospace;
+      word-break: break-word;
+    }
+    .answers {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .truth { background: rgba(46, 204, 113, .2); border-color: rgba(46, 204, 113, .6); }
+    .false { background: rgba(255, 107, 107, .2); border-color: rgba(255, 107, 107, .6); }
+    .feedback {
+      margin-top: 10px;
+      min-height: 24px;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .muted { color: var(--muted); font-weight: 500; }
+    .foot {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .next { background: var(--accent); color: #0a1838; border-color: #94cbff; }
+    .restart { background: #2a3d73; }
+    .result {
+      margin-top: 10px;
+      border: 1px solid #355190;
+      border-radius: 10px;
+      background: #10204a;
+      padding: 10px;
+      display: none;
+      line-height: 1.5;
+    }
+    @media (max-width: 720px) {
+      .top { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .answers { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>🧠 命题逻辑真值擂台</h1>
+    <p class="desc">根据变量取值，判断逻辑表达式最终真假（支持 ∧ / ∨ / ⊕ / ¬）。每局 12 题，即时反馈，错题可复盘。</p>
+    <div class="goal">目标：12 题中答对 <b>9</b> 题及以上视为达标。可随时重开反复挑战。</div>
+
+    <section class="top">
+      <article class="stat"><div class="k">题号</div><div class="v" id="round">1/12</div></article>
+      <article class="stat"><div class="k">得分</div><div class="v" id="score">0</div></article>
+      <article class="stat"><div class="k">连击</div><div class="v" id="streak">0</div></article>
+      <article class="stat"><div class="k">正确率</div><div class="v" id="acc">0%</div></article>
+      <article class="stat"><div class="k">达标进度</div><div class="v" id="target">0/9</div></article>
+    </section>
+
+    <div class="row">
+      <label for="level" class="muted">难度：</label>
+      <select id="level">
+        <option value="normal">进阶（3~4 项）</option>
+        <option value="hard">高阶（4~5 项）</option>
+        <option value="master">大师（5~6 项）</option>
+      </select>
+      <button id="newRound" class="restart">应用难度并重开</button>
+    </div>
+
+    <section class="card">
+      <div id="vars"></div>
+      <div class="expr" id="expr">(A ∧ ¬B) ⊕ C</div>
+
+      <div class="answers">
+        <button id="trueBtn" class="truth">结果为 真（1）</button>
+        <button id="falseBtn" class="false">结果为 假（0）</button>
+      </div>
+
+      <div class="feedback" id="feedback">准备好了就开始判断吧。</div>
+      <div class="foot">
+        <button id="nextBtn" class="next" disabled>下一题</button>
+        <button id="restartBtn" class="restart">重新开始</button>
+      </div>
+      <div id="result" class="result"></div>
+    </section>
+  </main>
+
+  <script>
+    const TOTAL = 12;
+    const TARGET = 9;
+
+    const LEVELS = {
+      normal: { minTerms: 3, maxTerms: 4, vars: ["A", "B", "C"] },
+      hard: { minTerms: 4, maxTerms: 5, vars: ["A", "B", "C", "D"] },
+      master: { minTerms: 5, maxTerms: 6, vars: ["A", "B", "C", "D"] }
+    };
+
+    const OPS = ["AND", "OR", "XOR"];
+    const OP_SYMBOL = { AND: "∧", OR: "∨", XOR: "⊕" };
+
+    const state = {
+      level: "normal",
+      round: 1,
+      score: 0,
+      streak: 0,
+      correct: 0,
+      answered: 0,
+      locked: false,
+      current: null
+    };
+
+    const el = {
+      round: document.getElementById("round"),
+      score: document.getElementById("score"),
+      streak: document.getElementById("streak"),
+      acc: document.getElementById("acc"),
+      target: document.getElementById("target"),
+      level: document.getElementById("level"),
+      vars: document.getElementById("vars"),
+      expr: document.getElementById("expr"),
+      feedback: document.getElementById("feedback"),
+      trueBtn: document.getElementById("trueBtn"),
+      falseBtn: document.getElementById("falseBtn"),
+      nextBtn: document.getElementById("nextBtn"),
+      restartBtn: document.getElementById("restartBtn"),
+      newRound: document.getElementById("newRound"),
+      result: document.getElementById("result")
+    };
+
+    const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const pick = (arr) => arr[rand(0, arr.length - 1)];
+
+    function makeVarNode(vars) {
+      const node = { type: "var", name: pick(vars) };
+      if (Math.random() < 0.32) {
+        return { type: "not", child: node };
+      }
+      return node;
+    }
+
+    function buildExpr(terms, vars) {
+      const nodes = [];
+      for (let i = 0; i < terms; i++) nodes.push(makeVarNode(vars));
+
+      while (nodes.length > 1) {
+        const i = rand(0, nodes.length - 2);
+        const left = nodes[i];
+        const right = nodes[i + 1];
+        const op = pick(OPS);
+        let merged = { type: "op", op, left, right };
+        if (Math.random() < 0.18) {
+          merged = { type: "not", child: merged };
+        }
+        nodes.splice(i, 2, merged);
+      }
+      return nodes[0];
+    }
+
+    function evalNode(node, vars) {
+      if (node.type === "var") return !!vars[node.name];
+      if (node.type === "not") return !evalNode(node.child, vars);
+      const a = evalNode(node.left, vars);
+      const b = evalNode(node.right, vars);
+      if (node.op === "AND") return a && b;
+      if (node.op === "OR") return a || b;
+      return Boolean(a ^ b);
+    }
+
+    function showNode(node) {
+      if (node.type === "var") return node.name;
+      if (node.type === "not") {
+        const c = node.child;
+        return c.type === "var" ? `¬${c.name}` : `¬(${showNode(c)})`;
+      }
+      return `(${showNode(node.left)} ${OP_SYMBOL[node.op]} ${showNode(node.right)})`;
+    }
+
+    function substNode(node, vars) {
+      if (node.type === "var") return vars[node.name] ? "1" : "0";
+      if (node.type === "not") {
+        const c = node.child;
+        return c.type === "var" ? `¬${substNode(c, vars)}` : `¬(${substNode(c, vars)})`;
+      }
+      return `(${substNode(node.left, vars)} ${OP_SYMBOL[node.op]} ${substNode(node.right, vars)})`;
+    }
+
+    function updateStats() {
+      el.round.textContent = `${Math.min(state.round, TOTAL)}/${TOTAL}`;
+      el.score.textContent = state.score;
+      el.streak.textContent = state.streak;
+      const acc = state.answered ? Math.round((state.correct / state.answered) * 100) : 0;
+      el.acc.textContent = `${acc}%`;
+      el.target.textContent = `${Math.min(state.correct, TARGET)}/${TARGET}`;
+    }
+
+    function renderVars(vars) {
+      el.vars.innerHTML = "";
+      Object.keys(vars).forEach((k) => {
+        const span = document.createElement("span");
+        span.className = "chip";
+        span.textContent = `${k} = ${vars[k] ? 1 : 0}`;
+        el.vars.appendChild(span);
+      });
+    }
+
+    function lockAnswer(v) {
+      el.trueBtn.disabled = v;
+      el.falseBtn.disabled = v;
+      el.nextBtn.disabled = !v;
+      state.locked = v;
+    }
+
+    function nextQuestion() {
+      if (state.round > TOTAL) {
+        showFinal();
+        return;
+      }
+
+      const cfg = LEVELS[state.level];
+      const termCount = rand(cfg.minTerms, cfg.maxTerms);
+      const vars = {};
+      cfg.vars.forEach((name) => { vars[name] = Math.random() < 0.5; });
+
+      const expr = buildExpr(termCount, cfg.vars);
+      const answer = evalNode(expr, vars);
+
+      state.current = { vars, expr, answer };
+
+      renderVars(vars);
+      el.expr.textContent = showNode(expr);
+      el.feedback.className = "feedback";
+      el.feedback.textContent = "请选择“真”或“假”。";
+      el.result.style.display = "none";
+      lockAnswer(false);
+      updateStats();
+    }
+
+    function handleAnswer(choice) {
+      if (state.locked || !state.current || state.round > TOTAL) return;
+
+      const right = choice === state.current.answer;
+      state.answered += 1;
+
+      if (right) {
+        state.correct += 1;
+        state.streak += 1;
+        const gain = 10 + Math.min(6, state.streak);
+        state.score += gain;
+        el.feedback.className = "feedback ok";
+        el.feedback.innerHTML = `✅ 正确！+${gain} 分<br><span class="muted">代入：${substNode(state.current.expr, state.current.vars)} = ${state.current.answer ? 1 : 0}</span>`;
+      } else {
+        state.streak = 0;
+        state.score = Math.max(0, state.score - 3);
+        el.feedback.className = "feedback bad";
+        el.feedback.innerHTML = `❌ 错误，正确答案是 ${state.current.answer ? "真（1）" : "假（0）"}<br><span class="muted">代入：${substNode(state.current.expr, state.current.vars)} = ${state.current.answer ? 1 : 0}</span>`;
+      }
+
+      lockAnswer(true);
+      updateStats();
+    }
+
+    function showFinal() {
+      lockAnswer(true);
+      el.nextBtn.disabled = true;
+      const pass = state.correct >= TARGET;
+      const acc = state.answered ? Math.round((state.correct / state.answered) * 100) : 0;
+      el.result.style.display = "block";
+      el.result.innerHTML = [
+        `<b>${pass ? "🎉 达标成功" : "📌 本局未达标"}</b>`,
+        `正确：${state.correct}/${TOTAL}，正确率：${acc}%`,
+        `总分：${state.score}`,
+        pass ? "继续挑战大师难度，冲击满分！" : `还差 ${Math.max(0, TARGET - state.correct)} 题即可达标，点“重新开始”再战。`
+      ].join("<br>");
+
+      el.feedback.className = "feedback";
+      el.feedback.textContent = "本局已结束。你可以重新开始或切换难度再战。";
+      el.round.textContent = `${TOTAL}/${TOTAL}`;
+    }
+
+    function startOver() {
+      state.round = 1;
+      state.score = 0;
+      state.streak = 0;
+      state.correct = 0;
+      state.answered = 0;
+      state.locked = false;
+      state.current = null;
+      updateStats();
+      nextQuestion();
+    }
+
+    el.trueBtn.addEventListener("click", () => handleAnswer(true));
+    el.falseBtn.addEventListener("click", () => handleAnswer(false));
+
+    el.nextBtn.addEventListener("click", () => {
+      if (!state.locked) return;
+      state.round += 1;
+      if (state.round > TOTAL) {
+        showFinal();
+      } else {
+        nextQuestion();
+      }
+    });
+
+    el.restartBtn.addEventListener("click", startOver);
+
+    el.newRound.addEventListener("click", () => {
+      state.level = el.level.value;
+      startOver();
+    });
+
+    el.level.value = state.level;
+    startOver();
+  </script>
+</body>
+</html>
