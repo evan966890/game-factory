@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>矩阵规律猎手</title>
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --text:#e5e7eb; --ok:#10b981; --bad:#ef4444; --main:#38bdf8; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Noto Sans CJK SC",sans-serif; background:linear-gradient(160deg,#0f172a,#1e293b); color:var(--text); min-height:100vh; display:flex; justify-content:center; }
+    .wrap { width:min(780px,100%); padding:16px; }
+    .card { background:rgba(17,24,39,.92); border:1px solid rgba(148,163,184,.25); border-radius:16px; padding:16px; box-shadow:0 8px 30px rgba(0,0,0,.25); }
+    h1 { margin:.2rem 0 0.6rem; font-size:clamp(1.35rem,4vw,1.8rem); }
+    .sub { margin:0 0 10px; color:#cbd5e1; }
+    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:10px 0 14px; }
+    .pill { background:#0b1220; border:1px solid rgba(148,163,184,.25); border-radius:10px; padding:8px; text-align:center; }
+    .pill b { display:block; font-size:1.1rem; color:var(--main); }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:8px 0 14px; }
+    .cell { aspect-ratio:1/1; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:clamp(1.05rem,5vw,1.5rem); border:1px solid rgba(148,163,184,.3); background:#0a1020; }
+    .cell.missing { border:2px dashed #f59e0b; color:#fbbf24; background:#1f2937; }
+    .tips { font-size:.95rem; color:#93c5fd; margin-bottom:10px; }
+    .opts { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+    button { border:0; border-radius:12px; padding:12px; font-size:1rem; font-weight:700; cursor:pointer; color:#e2e8f0; background:#1e293b; border:1px solid rgba(148,163,184,.35); }
+    button:hover { filter:brightness(1.1); }
+    .actions { display:flex; gap:8px; margin-top:10px; }
+    .primary { background:#0369a1; }
+    .status { min-height:24px; margin-top:10px; font-weight:700; }
+    .ok { color:var(--ok); }
+    .bad { color:var(--bad); }
+    .result { margin-top:12px; padding:10px; border-radius:10px; background:#0b1220; border:1px solid rgba(148,163,184,.25); }
+    @media (max-width:560px){ .stats{grid-template-columns:repeat(2,1fr);} }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>矩阵规律猎手</h1>
+      <p class="sub">找出 3×3 数字矩阵中的隐藏规律，补全缺失值。10 题一局，答对越快得分越高。</p>
+
+      <div class="stats">
+        <div class="pill">题目<b id="round">1/10</b></div>
+        <div class="pill">得分<b id="score">0</b></div>
+        <div class="pill">连对<b id="streak">0</b></div>
+        <div class="pill">剩余<b id="time">90s</b></div>
+      </div>
+
+      <div class="tips" id="ruleText">规律提示：每一行满足同一种运算关系。</div>
+      <div class="grid" id="grid"></div>
+      <div class="opts" id="options"></div>
+
+      <div class="status" id="status"></div>
+      <div class="actions">
+        <button class="primary" id="restart">重新开始</button>
+      </div>
+      <div class="result" id="result">目标：10 题中至少答对 7 题（通过率 70%）</div>
+    </section>
+  </main>
+
+  <script>
+    const totalRounds = 10;
+    const passRate = 0.7;
+    let round = 1, score = 0, streak = 0, correct = 0, timeLeft = 90, timer = null, locked = false;
+    let current = null;
+
+    const el = id => document.getElementById(id);
+    const gridEl = el('grid');
+    const optionsEl = el('options');
+
+    const rules = [
+      {
+        text: '规律提示：每一行第3个数 = 前两个数之和。',
+        build() {
+          const rows = [];
+          for (let i = 0; i < 3; i++) {
+            const a = r(2, 20), b = r(2, 20);
+            rows.push([a, b, a + b]);
+          }
+          return rows;
+        }
+      },
+      {
+        text: '规律提示：每一行第3个数 = 第1个数 × 2 + 第2个数。',
+        build() {
+          const rows = [];
+          for (let i = 0; i < 3; i++) {
+            const a = r(2, 12), b = r(1, 15);
+            rows.push([a, b, a * 2 + b]);
+          }
+          return rows;
+        }
+      },
+      {
+        text: '规律提示：每一行第3个数 = 第1个数 × 第2个数。',
+        build() {
+          const rows = [];
+          for (let i = 0; i < 3; i++) {
+            const a = r(2, 9), b = r(2, 9);
+            rows.push([a, b, a * b]);
+          }
+          return rows;
+        }
+      },
+      {
+        text: '规律提示：每一行第3个数 = 第1个数与第2个数的差的绝对值。',
+        build() {
+          const rows = [];
+          for (let i = 0; i < 3; i++) {
+            const a = r(5, 30), b = r(2, 25);
+            rows.push([a, b, Math.abs(a - b)]);
+          }
+          return rows;
+        }
+      }
+    ];
+
+    function r(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    function makeQuestion() {
+      const rule = rules[r(0, rules.length - 1)];
+      const rows = rule.build();
+      const missRow = r(0,2), missCol = r(0,2);
+      const answer = rows[missRow][missCol];
+      const matrix = rows.map(row => row.slice());
+      matrix[missRow][missCol] = null;
+
+      const options = new Set([answer]);
+      while (options.size < 4) {
+        const drift = r(-12, 12);
+        const val = Math.max(0, answer + drift + (Math.random() < 0.3 ? r(1,6) : 0));
+        if (val !== answer) options.add(val);
+      }
+      return { rule: rule.text, matrix, answer, options: shuffle([...options]) };
+    }
+
+    function shuffle(arr){
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function render() {
+      el('round').textContent = `${round}/${totalRounds}`;
+      el('score').textContent = score;
+      el('streak').textContent = streak;
+      el('time').textContent = `${timeLeft}s`;
+      el('ruleText').textContent = current.rule;
+
+      gridEl.innerHTML = '';
+      current.matrix.flat().forEach(v => {
+        const c = document.createElement('div');
+        c.className = 'cell' + (v === null ? ' missing' : '');
+        c.textContent = v === null ? '?' : v;
+        gridEl.appendChild(c);
+      });
+
+      optionsEl.innerHTML = '';
+      current.options.forEach(v => {
+        const b = document.createElement('button');
+        b.textContent = v;
+        b.onclick = () => choose(v);
+        optionsEl.appendChild(b);
+      });
+    }
+
+    function choose(val) {
+      if (locked || timeLeft <= 0) return;
+      locked = true;
+      const ok = val === current.answer;
+      const status = el('status');
+      if (ok) {
+        correct++;
+        streak++;
+        const bonus = Math.min(25, streak * 2);
+        score += 10 + bonus;
+        status.className = 'status ok';
+        status.textContent = `✅ 正确！+${10 + bonus} 分（连对 ${streak}）`;
+      } else {
+        streak = 0;
+        score = Math.max(0, score - 4);
+        status.className = 'status bad';
+        status.textContent = `❌ 错误，正确答案是 ${current.answer}（-4 分）`;
+      }
+
+      setTimeout(() => {
+        round++;
+        if (round > totalRounds || timeLeft <= 0) return endGame();
+        locked = false;
+        current = makeQuestion();
+        render();
+      }, 620);
+    }
+
+    function endGame() {
+      clearInterval(timer);
+      optionsEl.querySelectorAll('button').forEach(b => b.disabled = true);
+      const rate = correct / totalRounds;
+      const pass = rate >= passRate;
+      el('status').className = 'status ' + (pass ? 'ok' : 'bad');
+      el('status').textContent = pass ? '🎉 通过！推理能力很强' : '📘 未通过，再来一轮巩固规律识别';
+      el('result').innerHTML = `本局正确 <b>${correct}/${totalRounds}</b>，通过率 <b>${Math.round(rate*100)}%</b>，目标 <b>70%</b>。`;
+      locked = true;
+    }
+
+    function start() {
+      round = 1; score = 0; streak = 0; correct = 0; timeLeft = 90; locked = false;
+      current = makeQuestion();
+      el('status').textContent = '';
+      el('result').textContent = '目标：10 题中至少答对 7 题（通过率 70%）';
+      render();
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        el('time').textContent = `${timeLeft}s`;
+        if (timeLeft <= 0) endGame();
+      }, 1000);
+    }
+
+    el('restart').addEventListener('click', start);
+    start();
+  </script>
+</body>
+</html>

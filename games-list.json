@@ -354,5 +354,11 @@
     "path": "games/percent-discount-challenge/index.html",
     "category": "数学",
     "createdAt": "2026-03-01T19:19:03.281198+00:00"
+  },
+  {
+    "name": "矩阵规律猎手",
+    "path": "games/matrix-rule-hunt/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-02T03:39:22.164409+08:00"
   }
 ]
