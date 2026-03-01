@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>方程平衡实验室</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--ink:#e5e7eb;--muted:#94a3b8;--ok:#22c55e;--bad:#ef4444;--pri:#38bdf8}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#020617,#0f172a);color:var(--ink)}
+    .wrap{max-width:860px;margin:0 auto;padding:16px 14px 28px}
+    .card{background:rgba(17,24,39,.92);border:1px solid #1f2937;border-radius:16px;padding:14px;box-shadow:0 8px 22px rgba(0,0,0,.32)}
+    h1{font-size:22px;margin:0 0 6px}.sub{color:var(--muted);font-size:13px;line-height:1.6}
+    .bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+    .pill{background:#0b1220;border:1px solid #223047;border-radius:12px;padding:8px;text-align:center}
+    .k{font-size:12px;color:var(--muted)} .v{font-size:18px;font-weight:700}
+    .equation{font-size:24px;text-align:center;padding:16px 10px;border:1px dashed #334155;border-radius:14px;background:#0a1323;margin:10px 0 12px;min-height:72px;display:flex;align-items:center;justify-content:center;line-height:1.4}
+    .ops{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ops button{font-size:16px;padding:14px;border-radius:12px;border:1px solid #23344f;background:#0f1c32;color:#dbeafe}
+    .ops button:active{transform:scale(.98)}
+    .cta{display:flex;gap:10px;margin-top:12px}.cta button{flex:1;padding:12px;border:none;border-radius:12px;font-weight:700}
+    #check{background:var(--pri);color:#042f49} #next{background:#1f2937;color:#cbd5e1}
+    .msg{margin-top:10px;min-height:24px;font-weight:700}.ok{color:var(--ok)}.bad{color:var(--bad)}
+    .prog{height:10px;background:#0a1323;border-radius:999px;overflow:hidden;margin-top:8px;border:1px solid #1f2f45}.fill{height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#3b82f6);transition:width .25s}
+    @media (max-width:560px){.bar{grid-template-columns:1fr 1fr}.equation{font-size:20px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>⚖️ 方程平衡实验室</h1>
+      <div class="sub">目标：在两侧同时加减同一个数，把方程一步步化简，解出 x。三关难度递进，答对连击有加分。</div>
+
+      <div class="bar">
+        <div class="pill"><div class="k">关卡</div><div class="v" id="level">1</div></div>
+        <div class="pill"><div class="k">题号</div><div class="v" id="qidx">1/10</div></div>
+        <div class="pill"><div class="k">得分</div><div class="v" id="score">0</div></div>
+        <div class="pill"><div class="k">连击</div><div class="v" id="combo">0</div></div>
+      </div>
+
+      <div class="equation" id="eq"></div>
+      <div class="ops">
+        <button data-op="sub">两边同时减去</button>
+        <button data-op="add">两边同时加上</button>
+      </div>
+      <input id="n" type="number" inputmode="numeric" placeholder="输入要加/减的数" style="width:100%;margin:10px 0;padding:12px;border-radius:10px;border:1px solid #2b3c59;background:#0a1323;color:#e2e8f0;font-size:16px;"/>
+      <div class="cta">
+        <button id="check">执行这一步</button>
+        <button id="next">跳过本题</button>
+      </div>
+      <div class="msg" id="msg"></div>
+      <div class="prog"><div class="fill" id="fill"></div></div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const S={level:1,i:0,score:0,combo:0,total:10,stage:null};
+  const $=id=>document.getElementById(id);
+  const fmt=n=> n===0?'':(n>0?`+${n}`:`${n}`);
+  const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+
+  function gen(level){
+    const a = level===1?rnd(1,5):level===2?rnd(2,9):rnd(3,12);
+    const x = level===1?rnd(-6,9):level===2?rnd(-12,15):rnd(-20,20);
+    const b = level===1?rnd(-8,8):level===2?rnd(-20,20):rnd(-35,35);
+    const c = a*x+b;
+    return {a,b,c,x}; // ax+b=c
+  }
+
+  function show(){
+    const t=S.stage;
+    $('eq').textContent = `${t.a===1?'':t.a}x ${fmt(t.b)} = ${t.c}`.replace('  ',' ').replace('+ -','- ');
+    $('level').textContent=S.level;
+    $('qidx').textContent=`${S.i+1}/${S.total}`;
+    $('score').textContent=S.score;
+    $('combo').textContent=S.combo;
+    $('fill').style.width = `${(S.i/S.total)*100}%`;
+  }
+
+  function msg(txt,ok){const m=$('msg');m.textContent=txt;m.className='msg '+(ok?'ok':'bad');}
+
+  function newQ(){S.stage=gen(S.level);show();msg('提示：优先把常数项消到 0，再除以系数。',true);$('n').value='';}
+
+  function apply(op,n){
+    const t=S.stage;
+    if(op==='add'){t.b+=n;t.c+=n;} else {t.b-=n;t.c-=n;}
+    show();
+    if(t.b===0){
+      const ans=t.c/t.a;
+      if(Number.isInteger(ans)){
+        if(ans===t.x){
+          S.combo++; const gain=10+Math.min(20,S.combo*2); S.score+=gain;
+          msg(`✅ 解出 x=${ans}，+${gain} 分`,true);
+          setTimeout(()=>advance(true),520);
+        }else{S.combo=0;msg(`❌ 计算有误，继续调整`,false)}
+      }else{msg('⚠️ 还需让右侧可被系数整除，再继续。',false)}
+    }else{
+      msg('已执行一步，继续平衡方程。',true);
+    }
+  }
+
+  function advance(correct){
+    S.i++;
+    if(S.i>=S.total){
+      if(S.level<3){
+        S.level++;S.i=0;msg(`🎯 第${S.level-1}关完成！进入第${S.level}关`,true);setTimeout(newQ,650);return;
+      }
+      $('fill').style.width='100%';
+      const rank=S.score>=260?'方程大师':S.score>=180?'平衡专家':'新晋研究员';
+      $('eq').textContent=`🏁 通关！总分 ${S.score}，称号：${rank}`;
+      msg('点“跳过本题”可重开新一轮。',true);
+      S.i=S.total;return;
+    }
+    newQ();
+  }
+
+  document.querySelectorAll('.ops button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('.ops button').forEach(x=>x.style.outline='none');
+    b.style.outline='2px solid #38bdf8';
+    S.op=b.dataset.op;
+  }));
+  S.op='sub'; document.querySelector('.ops button[data-op="sub"]').style.outline='2px solid #38bdf8';
+
+  $('check').addEventListener('click',()=>{
+    if(S.i>=S.total){S.level=1;S.i=0;S.score=0;S.combo=0;newQ();return;}
+    const n=Number($('n').value);
+    if(!Number.isFinite(n)){msg('请输入要操作的整数。',false);return;}
+    apply(S.op,Math.trunc(n));
+  });
+  $('next').addEventListener('click',()=>{S.combo=0; if(S.i>=S.total){S.level=1;S.i=0;S.score=0;} advance(false);});
+
+  newQ();
+})();
+</script>
+</body>
+</html>

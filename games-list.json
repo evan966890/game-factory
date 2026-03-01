@@ -252,5 +252,11 @@
     "path": "games/word-sorter/index.html",
     "category": "语言学习",
     "createdAt": "2026-03-01T22:52:57.303416+08:00"
+  },
+  {
+    "name": "方程平衡实验室",
+    "path": "games/equation-balance-lab/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-01T15:12:45.691Z"
   }
 ]
