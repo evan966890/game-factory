@@ -366,5 +366,11 @@
     "path": "games/remainder-flash-battle/index.html",
     "category": "数学+逻辑",
     "createdAt": "2026-03-02T03:59:13.650100+08:00"
+  },
+  {
+    "name": "分数平衡实验室",
+    "path": "games/fraction-balance-lab/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T04:19:07.820446+08:00"
   }
 ]

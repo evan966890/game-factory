@@ -2,145 +2,253 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>分数平衡实验室</title>
   <style>
-    :root { --bg:#0f172a; --card:#111827; --accent:#22d3ee; --ok:#22c55e; --bad:#ef4444; --text:#e5e7eb; }
-    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC",sans-serif;background:linear-gradient(160deg,#020617,#0f172a 60%,#1f2937);color:var(--text);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:14px}
-    .app{width:min(760px,100%);background:rgba(17,24,39,.9);border:1px solid #334155;border-radius:18px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
-    h1{font-size:1.3rem;margin:0 0 10px}.meta{display:flex;gap:10px;flex-wrap:wrap;font-size:.95rem;color:#cbd5e1}
-    .pill{background:#1e293b;padding:6px 10px;border-radius:999px}
-    .balance{margin:14px 0;padding:14px;border-radius:14px;background:#0b1220;border:1px solid #334155}
-    .row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
-    .pan{min-height:80px;border:1px dashed #475569;border-radius:12px;padding:12px;text-align:center;background:#0f172a}
-    .eq{font-size:1.7rem;font-weight:700;color:#93c5fd}
-    .expr{font-size:1.25rem;line-height:1.4}
-    .choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
-    button{border:none;border-radius:12px;padding:12px 10px;background:#1d4ed8;color:white;font-size:1rem;font-weight:600}
-    button:active{transform:translateY(1px)}
-    .actions{display:flex;gap:10px;margin-top:10px}
-    .ghost{background:#334155}.good{background:var(--ok)}.bad{background:var(--bad)}
-    .msg{margin-top:10px;min-height:24px;font-weight:600}
-    .bar{height:10px;background:#1e293b;border-radius:999px;overflow:hidden;margin-top:10px}
-    .fill{height:100%;background:linear-gradient(90deg,#22d3ee,#818cf8);width:0}
-    @media (max-width:560px){.choices{grid-template-columns:1fr}.expr{font-size:1.1rem}}
+    :root {
+      --bg: #f5f7ff;
+      --card: #ffffff;
+      --text: #1f2a44;
+      --primary: #4f46e5;
+      --ok: #16a34a;
+      --bad: #dc2626;
+      --muted: #667085;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .app {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 8px 24px rgba(79,70,229,0.12);
+      margin-bottom: 12px;
+    }
+    h1 { font-size: 1.4rem; margin: 0 0 8px; }
+    p { margin: 6px 0; color: var(--muted); }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      text-align: center;
+    }
+    .hud .item { background: #f8faff; border-radius: 12px; padding: 10px; }
+    .label { font-size: .8rem; color: var(--muted); }
+    .value { font-size: 1.1rem; font-weight: 700; }
+
+    .balance {
+      display: grid;
+      grid-template-columns: 1fr 90px 1fr;
+      gap: 8px;
+      align-items: end;
+      margin-top: 12px;
+    }
+    .pan {
+      background: #eef2ff;
+      border-radius: 14px;
+      min-height: 140px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border: 2px solid #dbe3ff;
+      text-align: center;
+    }
+    .eq {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--primary);
+      align-self: center;
+    }
+    .expr { font-size: 1.3rem; font-weight: 700; }
+    .decimal { font-size: .9rem; color: var(--muted); margin-top: 4px; }
+
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    button {
+      border: none;
+      background: #e8ebff;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:active { transform: scale(0.98); }
+    .primary { background: var(--primary); color: #fff; width: 100%; margin-top: 10px; }
+    .msg { min-height: 24px; font-weight: 700; margin-top: 8px; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+
+    @media (max-width: 560px) {
+      .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .balance { grid-template-columns: 1fr; }
+      .eq { font-size: 2.3rem; }
+      .choices { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
   <main class="app">
-    <h1>⚖️ 分数平衡实验室</h1>
-    <div class="meta">
-      <div class="pill">目标：10 题中答对至少 8 题</div>
-      <div class="pill">模式：30 秒限时</div>
-      <div class="pill" id="score">得分：0</div>
-      <div class="pill" id="timer">剩余：30s</div>
-    </div>
+    <section class="card">
+      <h1>⚖️ 分数平衡实验室</h1>
+      <p>比较左右两边分数表达式，选择正确符号（&lt;、=、&gt;）。10 题一局，练习分数大小与通分直觉。</p>
+    </section>
 
-    <section class="balance">
-      <div class="row">
-        <div class="pan"><div class="expr" id="leftExpr">-</div></div>
-        <div class="eq" id="relation">?</div>
-        <div class="pan"><div class="expr" id="rightExpr">-</div></div>
+    <section class="card hud">
+      <div class="item"><div class="label">题号</div><div class="value" id="qNo">1 / 10</div></div>
+      <div class="item"><div class="label">得分</div><div class="value" id="score">0</div></div>
+      <div class="item"><div class="label">连对</div><div class="value" id="combo">0</div></div>
+      <div class="item"><div class="label">最高连对</div><div class="value" id="best">0</div></div>
+    </section>
+
+    <section class="card">
+      <div class="balance">
+        <div class="pan">
+          <div class="expr" id="leftExpr">1/2 + 1/4</div>
+          <div class="decimal" id="leftDec">= 0.75</div>
+        </div>
+        <div class="eq">?</div>
+        <div class="pan">
+          <div class="expr" id="rightExpr">3/4</div>
+          <div class="decimal" id="rightDec">= 0.75</div>
+        </div>
       </div>
-      <div class="choices" id="choices"></div>
+      <div class="choices">
+        <button data-op="<">左边 &lt; 右边</button>
+        <button data-op="=">左边 = 右边</button>
+        <button data-op=">">左边 &gt; 右边</button>
+        <button id="skipBtn">换一题（不计分）</button>
+      </div>
       <div class="msg" id="msg"></div>
-      <div class="bar"><div class="fill" id="fill"></div></div>
-      <div class="actions">
-        <button class="ghost" id="skipBtn">跳过（-1分）</button>
-        <button class="ghost" id="restartBtn">重新挑战</button>
-      </div>
+      <button class="primary" id="restartBtn">重新开始（10题）</button>
     </section>
   </main>
 
-<script>
-(() => {
-  const $ = id => document.getElementById(id);
-  const scoreEl = $('score'), timerEl = $('timer'), leftEl = $('leftExpr'), rightEl = $('rightExpr'), relationEl = $('relation');
-  const choicesEl = $('choices'), msgEl = $('msg'), fillEl = $('fill');
-  const restartBtn = $('restartBtn'), skipBtn = $('skipBtn');
+  <script>
+    const TOTAL = 10;
+    let idx = 0, score = 0, combo = 0, best = 0, finished = false;
+    let current = null;
 
-  let score = 0, solved = 0, total = 10, timeLeft = 30, current = null, lock = false, timer = null;
+    const els = {
+      qNo: document.getElementById('qNo'),
+      score: document.getElementById('score'),
+      combo: document.getElementById('combo'),
+      best: document.getElementById('best'),
+      leftExpr: document.getElementById('leftExpr'),
+      rightExpr: document.getElementById('rightExpr'),
+      leftDec: document.getElementById('leftDec'),
+      rightDec: document.getElementById('rightDec'),
+      msg: document.getElementById('msg')
+    };
 
-  const gcd = (a,b)=>b?gcd(b,a%b):Math.abs(a);
-  const simp = (n,d)=>{ const g=gcd(n,d); return [n/g,d/g]; };
-  const add = (a,b,c,d)=> simp(a*d+c*b,b*d);
-  const val = (n,d)=> n/d;
-  const fmt = (n,d)=> d===1?`${n}`:`${n}/${d}`;
+    const rInt = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+    const frac = () => ({ n:rInt(1,9), d:rInt(2,10) });
+    const val = f => f.n / f.d;
+    const fmt = f => `${f.n}/${f.d}`;
 
-  function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+    function buildSide() {
+      const mode = rInt(1,3);
+      if (mode === 1) {
+        const a = frac();
+        return { text: fmt(a), value: val(a) };
+      }
+      const a = frac(), b = frac();
+      if (mode === 2) {
+        return { text: `${fmt(a)} + ${fmt(b)}`, value: val(a)+val(b) };
+      }
+      return { text: `${fmt(a)} - ${fmt(b)}`, value: val(a)-val(b) };
+    }
 
-  function makeExpr(){
-    const a=randInt(1,9), b=randInt(2,12), c=randInt(1,9), d=randInt(2,12);
-    const op = Math.random()<0.5 ? '+' : '−';
-    const [n,den] = op==='+' ? add(a,b,c,d) : add(a,b,-c,d);
-    return { text:`${fmt(a,b)} ${op} ${fmt(c,d)}`, value:val(n,den) };
-  }
+    function genQuestion() {
+      let L, R, diff;
+      do {
+        L = buildSide();
+        R = buildSide();
+        diff = L.value - R.value;
+      } while (Math.abs(diff) < 0.03 || L.value < 0 || R.value < 0);
 
-  function newQuestion(){
-    lock=false; msgEl.textContent=''; msgEl.className='msg';
-    const L = makeExpr(), R = makeExpr();
-    current = { L, R, ans: L.value===R.value ? '=' : (L.value>R.value?'>':'<') };
-    leftEl.textContent=L.text; rightEl.textContent=R.text; relationEl.textContent='?';
-    renderChoices();
-  }
+      const ans = diff > 0 ? '>' : diff < 0 ? '<' : '=';
+      return { L, R, ans };
+    }
 
-  function renderChoices(){
-    const arr = ['>','<','='].sort(()=>Math.random()-0.5);
-    choicesEl.innerHTML='';
-    arr.forEach(ch=>{
-      const btn=document.createElement('button');
-      btn.textContent = ch==='>'?'左边更大 (>)': ch==='<'?'右边更大 (<)':'两边相等 (=)';
-      btn.addEventListener('click',()=>judge(ch,btn));
-      choicesEl.appendChild(btn);
+    function updateHud() {
+      els.qNo.textContent = `${Math.min(idx+1, TOTAL)} / ${TOTAL}`;
+      els.score.textContent = score;
+      els.combo.textContent = combo;
+      els.best.textContent = best;
+    }
+
+    function renderQ() {
+      current = genQuestion();
+      els.leftExpr.textContent = current.L.text;
+      els.rightExpr.textContent = current.R.text;
+      els.leftDec.textContent = `≈ ${current.L.value.toFixed(2)}`;
+      els.rightDec.textContent = `≈ ${current.R.value.toFixed(2)}`;
+      els.msg.textContent = '';
+      els.msg.className = 'msg';
+      updateHud();
+    }
+
+    function finish() {
+      finished = true;
+      els.msg.textContent = `本局完成！得分 ${score}/${TOTAL}，最高连对 ${best}`;
+      els.msg.className = 'msg ok';
+      els.qNo.textContent = `${TOTAL} / ${TOTAL}`;
+    }
+
+    function next() {
+      idx++;
+      if (idx >= TOTAL) finish();
+      else renderQ();
+    }
+
+    function judge(op) {
+      if (finished) return;
+      if (op === current.ans) {
+        score++; combo++; best = Math.max(best, combo);
+        els.msg.textContent = '✅ 正确！';
+        els.msg.className = 'msg ok';
+      } else {
+        combo = 0;
+        els.msg.textContent = `❌ 错了，正确答案是 ${current.ans}`;
+        els.msg.className = 'msg bad';
+      }
+      updateHud();
+      setTimeout(next, 420);
+    }
+
+    document.querySelectorAll('[data-op]').forEach(btn => {
+      btn.addEventListener('click', () => judge(btn.dataset.op));
     });
-  }
 
-  function judge(ch,btn){
-    if(lock||!current) return; lock=true;
-    relationEl.textContent=current.ans;
-    solved++;
-    if(ch===current.ans){ score+=2; msgEl.textContent='✅ 正确！+2 分'; msgEl.classList.add('good'); btn.classList.add('good'); }
-    else { score=Math.max(0,score-1); msgEl.textContent=`❌ 正确答案是 ${current.ans}，-1 分`; msgEl.classList.add('bad'); btn.classList.add('bad'); }
-    updateMeta();
-    setTimeout(()=> solved>=total||timeLeft<=0 ? finish() : newQuestion(), 700);
-  }
+    document.getElementById('skipBtn').addEventListener('click', () => {
+      if (!finished) renderQ();
+    });
 
-  function skip(){
-    if(lock||!current) return;
-    score=Math.max(0,score-1); solved++;
-    msgEl.textContent='⏭️ 已跳过，-1 分'; msgEl.className='msg bad';
-    relationEl.textContent=current.ans;
-    updateMeta();
-    setTimeout(()=> solved>=total||timeLeft<=0 ? finish() : newQuestion(), 500);
-  }
+    document.getElementById('restartBtn').addEventListener('click', () => {
+      idx = 0; score = 0; combo = 0; best = 0; finished = false;
+      renderQ();
+    });
 
-  function updateMeta(){
-    scoreEl.textContent = `得分：${score}`;
-    timerEl.textContent = `剩余：${timeLeft}s`;
-    fillEl.style.width = `${(solved/total)*100}%`;
-  }
-
-  function finish(){
-    clearInterval(timer); lock=true;
-    const pass = score >= 12;
-    msgEl.className='msg ' + (pass?'good':'bad');
-    msgEl.textContent = pass
-      ? `🎉 挑战成功！最终 ${score} 分（目标 12 分）`
-      : `📘 挑战结束：${score} 分。再来一局冲击 12 分！`;
-    relationEl.textContent='✓';
-  }
-
-  function start(){
-    score=0; solved=0; timeLeft=30; lock=false;
-    updateMeta(); newQuestion();
-    clearInterval(timer);
-    timer=setInterval(()=>{ timeLeft--; updateMeta(); if(timeLeft<=0) finish(); },1000);
-  }
-
-  restartBtn.addEventListener('click',start);
-  skipBtn.addEventListener('click',skip);
-  start();
-})();
-</script>
+    renderQ();
+  </script>
 </body>
 </html>
