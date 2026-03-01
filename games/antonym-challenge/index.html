@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>反义词挑战</title>
+  <style>
+    :root {
+      --bg: #f5f9ff;
+      --card: #ffffff;
+      --text: #1f2f46;
+      --muted: #66768a;
+      --primary: #1976d2;
+      --primary-dark: #115da8;
+      --ok: #177245;
+      --bad: #b63b3b;
+      --border: #d9e5f2;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f3ff 0%, var(--bg) 45%, #f7fffb 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 620px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 26px rgba(20, 90, 160, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.45rem;
+    }
+
+    .subtitle {
+      margin: 0 0 14px;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      background: #f8fbff;
+      border-radius: 10px;
+      padding: 10px 6px;
+      text-align: center;
+    }
+
+    .label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      margin-bottom: 2px;
+    }
+
+    .value {
+      display: block;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .question-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fbfdff;
+      padding: 14px;
+    }
+
+    .question {
+      margin: 0 0 12px;
+      text-align: center;
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .prompt {
+      display: inline-block;
+      margin-left: 4px;
+      color: var(--primary-dark);
+      min-width: 2.2em;
+      text-align: center;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .option-btn {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 8px;
+      background: #fff;
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.06s ease, background 0.2s ease;
+      touch-action: manipulation;
+    }
+
+    .option-btn:active { transform: scale(0.98); }
+    .option-btn:hover { background: #f2f8ff; }
+    .option-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    .option-btn.correct {
+      background: #e9f9f0;
+      border-color: #a8e0bf;
+      color: var(--ok);
+    }
+
+    .option-btn.wrong {
+      background: #fff0f0;
+      border-color: #f1bbbb;
+      color: var(--bad);
+    }
+
+    .message {
+      min-height: 1.5em;
+      margin-top: 12px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .message.ok { color: var(--ok); }
+    .message.bad { color: var(--bad); }
+
+    .actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .btn.primary {
+      border-color: transparent;
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn.primary:hover { background: var(--primary-dark); }
+
+    @media (max-width: 520px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .options { grid-template-columns: 1fr; }
+      .question { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="反义词挑战游戏">
+    <h1>反义词挑战</h1>
+    <p class="subtitle">看题目词语，选出它的反义词。答对加分，答错会扣分。</p>
+
+    <section class="stats" aria-label="统计信息">
+      <div class="stat"><span class="label">总题数</span><span id="total" class="value">0</span></div>
+      <div class="stat"><span class="label">答对</span><span id="correct" class="value">0</span></div>
+      <div class="stat"><span class="label">得分</span><span id="score" class="value">0</span></div>
+      <div class="stat"><span class="label">正确率</span><span id="accuracy" class="value">0%</span></div>
+    </section>
+
+    <section class="question-box" aria-live="polite">
+      <p class="question">请选择 <span id="promptWord" class="prompt">高</span> 的反义词</p>
+      <div id="options" class="options"></div>
+      <div id="message" class="message"></div>
+      <div class="actions">
+        <button id="nextBtn" class="btn primary" type="button">下一题</button>
+        <button id="resetBtn" class="btn" type="button">重置</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const pairs = [
+        ['高', '低'], ['大', '小'], ['快', '慢'], ['冷', '热'], ['早', '晚'],
+        ['开', '关'], ['前', '后'], ['上', '下'], ['长', '短'], ['胖', '瘦'],
+        ['明', '暗'], ['进', '退'], ['多', '少'], ['轻', '重'], ['黑', '白']
+      ];
+
+      const promptWordEl = document.getElementById('promptWord');
+      const optionsEl = document.getElementById('options');
+      const messageEl = document.getElementById('message');
+      const totalEl = document.getElementById('total');
+      const correctEl = document.getElementById('correct');
+      const scoreEl = document.getElementById('score');
+      const accuracyEl = document.getElementById('accuracy');
+      const nextBtn = document.getElementById('nextBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      let total = 0;
+      let correct = 0;
+      let score = 0;
+      let current = null;
+      let answered = false;
+
+      function randomInt(max) {
+        return Math.floor(Math.random() * (max + 1));
+      }
+
+      function shuffle(arr) {
+        const copy = arr.slice();
+        for (let i = copy.length - 1; i > 0; i -= 1) {
+          const j = randomInt(i);
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function updateStats() {
+        totalEl.textContent = String(total);
+        correctEl.textContent = String(correct);
+        scoreEl.textContent = String(score);
+        const accuracy = total === 0 ? 0 : Math.round((correct / total) * 100);
+        accuracyEl.textContent = accuracy + '%';
+      }
+
+      function pickQuestion() {
+        current = pairs[randomInt(pairs.length - 1)];
+        const [left, right] = current;
+        const askLeft = Math.random() < 0.5;
+        const prompt = askLeft ? left : right;
+        const answer = askLeft ? right : left;
+
+        const distractPool = pairs
+          .flatMap((p) => p)
+          .filter((w) => w !== prompt && w !== answer);
+
+        const distractors = shuffle(distractPool).slice(0, 3);
+        const options = shuffle([answer, ...distractors]);
+
+        return { prompt, answer, options };
+      }
+
+      function renderQuestion() {
+        answered = false;
+        const q = pickQuestion();
+        current = q;
+        promptWordEl.textContent = q.prompt;
+        messageEl.textContent = '';
+        messageEl.className = 'message';
+
+        optionsEl.innerHTML = '';
+        q.options.forEach((option) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'option-btn';
+          btn.textContent = option;
+          btn.addEventListener('click', () => chooseOption(btn, option));
+          optionsEl.appendChild(btn);
+        });
+      }
+
+      function chooseOption(btn, chosen) {
+        if (answered) return;
+        answered = true;
+        total += 1;
+
+        const buttons = Array.from(optionsEl.querySelectorAll('button'));
+        buttons.forEach((b) => { b.disabled = true; });
+
+        if (chosen === current.answer) {
+          correct += 1;
+          score += 10;
+          btn.classList.add('correct');
+          messageEl.textContent = '回答正确，+10 分！';
+          messageEl.className = 'message ok';
+        } else {
+          score = Math.max(0, score - 5);
+          btn.classList.add('wrong');
+          const correctBtn = buttons.find((b) => b.textContent === current.answer);
+          if (correctBtn) correctBtn.classList.add('correct');
+          messageEl.textContent = '回答错误，正确答案是「' + current.answer + '」。';
+          messageEl.className = 'message bad';
+        }
+
+        updateStats();
+      }
+
+      function resetGame() {
+        total = 0;
+        correct = 0;
+        score = 0;
+        updateStats();
+        renderQuestion();
+      }
+
+      nextBtn.addEventListener('click', renderQuestion);
+      resetBtn.addEventListener('click', resetGame);
+
+      updateStats();
+      renderQuestion();
+    })();
+  </script>
+</body>
+</html>

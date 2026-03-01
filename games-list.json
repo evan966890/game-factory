@@ -102,5 +102,11 @@
     "path": "games/perimeter-builder/index.html",
     "category": "education",
     "createdAt": "2026-03-01T05:16:15.363Z"
+  },
+  {
+    "name": "反义词挑战",
+    "path": "games/antonym-challenge/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T06:25:13Z"
   }
 ]
