@@ -216,5 +216,11 @@
     "path": "games/coordinate-quadrant-race/index.html",
     "category": "数学",
     "createdAt": "2026-03-01T12:51:10.956Z"
+  },
+  {
+    "name": "分数快答闯关",
+    "path": "games/fraction-fast-answer/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T13:11:35.187Z"
   }
 ]

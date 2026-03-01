@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>分数快答闯关</title>
+  <style>
+    :root {
+      --bg: #f4f8ff;
+      --card: #ffffff;
+      --text: #1f2a44;
+      --ok: #1f9d55;
+      --bad: #e74c3c;
+      --brand: #4f6cff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #eef3ff, #f9fbff);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+    .app {
+      width: min(720px, 100%);
+      background: var(--card);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 8px 28px rgba(30, 50, 90, .12);
+    }
+    h1 { margin: 0 0 8px; font-size: 1.5rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .chip {
+      background: #eef2ff;
+      color: #3048b5;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: .88rem;
+      font-weight: 600;
+    }
+    .panel {
+      border: 2px solid #e8eeff;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 10px;
+    }
+    .question {
+      font-size: 1.45rem;
+      text-align: center;
+      margin: 10px 0 6px;
+      font-weight: 700;
+    }
+    .hint { text-align: center; color: #60708d; margin-bottom: 12px; min-height: 1.2em; }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 1.03rem;
+      font-weight: 700;
+      background: #f2f6ff;
+      color: #243252;
+      cursor: pointer;
+      transition: transform .06s ease, background .2s ease;
+    }
+    button:active { transform: scale(.98); }
+    .feedback {
+      margin-top: 10px;
+      text-align: center;
+      font-weight: 700;
+      min-height: 1.25em;
+    }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .actions { display: flex; justify-content: center; margin-top: 12px; }
+    .primary { background: var(--brand); color: white; padding: 12px 18px; }
+    .hidden { display: none !important; }
+    .result h2 { margin: 0 0 8px; text-align: center; }
+    .result p { margin: 6px 0; text-align: center; }
+    .star {
+      text-align: center;
+      font-size: 2rem;
+      margin-top: 4px;
+    }
+    @media (max-width: 520px) {
+      .question { font-size: 1.25rem; }
+      .options { grid-template-columns: 1fr; }
+      .app { padding: 14px; border-radius: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-live="polite">
+    <h1>分数快答闯关</h1>
+    <div class="meta">
+      <span class="chip" id="levelChip">第 1 关</span>
+      <span class="chip" id="progressChip">题目 1 / 6</span>
+      <span class="chip" id="scoreChip">得分 0</span>
+      <span class="chip" id="timeChip">倒计时 90s</span>
+    </div>
+
+    <section class="panel" id="playPanel">
+      <div class="question" id="question">准备开始！</div>
+      <div class="hint" id="hint">选择正确答案，连对可以获得奖励分！</div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+    </section>
+
+    <section class="panel result hidden" id="resultPanel">
+      <h2>闯关完成！</h2>
+      <p id="resultSummary"></p>
+      <p id="resultDetail"></p>
+      <div class="star" id="resultStar">⭐</div>
+      <div class="actions"><button class="primary" id="restartBtn">再来一局</button></div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const levels = [
+        { title: '第 1 关', total: 6, mode: 'compare' },
+        { title: '第 2 关', total: 6, mode: 'add' },
+        { title: '第 3 关', total: 6, mode: 'mix' }
+      ];
+
+      const levelChip = document.getElementById('levelChip');
+      const progressChip = document.getElementById('progressChip');
+      const scoreChip = document.getElementById('scoreChip');
+      const timeChip = document.getElementById('timeChip');
+      const questionEl = document.getElementById('question');
+      const hintEl = document.getElementById('hint');
+      const optionsEl = document.getElementById('options');
+      const feedbackEl = document.getElementById('feedback');
+      const playPanel = document.getElementById('playPanel');
+      const resultPanel = document.getElementById('resultPanel');
+      const resultSummary = document.getElementById('resultSummary');
+      const resultDetail = document.getElementById('resultDetail');
+      const resultStar = document.getElementById('resultStar');
+      const restartBtn = document.getElementById('restartBtn');
+
+      const state = {
+        level: 0,
+        index: 0,
+        score: 0,
+        correct: 0,
+        streak: 0,
+        remain: 90,
+        timer: null,
+        current: null
+      };
+
+      const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+      const simplify = ({n, d}) => {
+        const g = gcd(Math.abs(n), Math.abs(d));
+        return { n: n / g, d: d / g };
+      };
+      const toText = ({n, d}) => `${n}/${d}`;
+      const value = f => f.n / f.d;
+      const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+      function randomFraction(maxDen = 12) {
+        let d = rand(2, maxDen);
+        let n = rand(1, d - 1);
+        return simplify({n, d});
+      }
+
+      function buildCompareQ() {
+        let a = randomFraction(12), b = randomFraction(12);
+        while (a.n === b.n && a.d === b.d) b = randomFraction(12);
+        const answer = value(a) > value(b) ? '>' : '<';
+        const q = `${toText(a)} ☐ ${toText(b)}`;
+        return { q, options: ['>', '<', '=','无法比较'], answer, tip: '比较分数大小，可先通分。' };
+      }
+
+      function buildAddQ() {
+        const a = randomFraction(8);
+        const b = randomFraction(8);
+        const sum = simplify({n: a.n * b.d + b.n * a.d, d: a.d * b.d});
+        const answer = toText(sum);
+        const options = new Set([answer]);
+        while (options.size < 4) {
+          const fake = simplify({n: Math.max(1, sum.n + rand(-3, 3)), d: Math.max(2, sum.d + rand(-3, 3))});
+          options.add(toText(fake));
+        }
+        return {
+          q: `${toText(a)} + ${toText(b)} = ?`,
+          options: [...options].sort(() => Math.random() - 0.5),
+          answer,
+          tip: '先通分再相加，最后约分。'
+        };
+      }
+
+      function buildMixQ() {
+        return Math.random() < 0.5 ? buildCompareQ() : buildAddQ();
+      }
+
+      function nextQuestion() {
+        const cfg = levels[state.level];
+        if (state.index >= cfg.total) {
+          state.level += 1;
+          state.index = 0;
+          if (state.level >= levels.length) {
+            return finish();
+          }
+        }
+
+        const mode = levels[state.level].mode;
+        state.current = mode === 'compare' ? buildCompareQ() : mode === 'add' ? buildAddQ() : buildMixQ();
+        render();
+      }
+
+      function render() {
+        const cfg = levels[state.level];
+        levelChip.textContent = cfg.title;
+        progressChip.textContent = `题目 ${state.index + 1} / ${cfg.total}`;
+        scoreChip.textContent = `得分 ${state.score}`;
+        timeChip.textContent = `倒计时 ${state.remain}s`;
+        questionEl.textContent = state.current.q;
+        hintEl.textContent = state.current.tip;
+        feedbackEl.textContent = '';
+        feedbackEl.className = 'feedback';
+        optionsEl.innerHTML = '';
+        state.current.options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.textContent = opt;
+          btn.addEventListener('click', () => answer(opt));
+          optionsEl.appendChild(btn);
+        });
+      }
+
+      function answer(pick) {
+        const ok = pick === state.current.answer;
+        if (ok) {
+          state.correct += 1;
+          state.streak += 1;
+          state.score += 10 + (state.streak >= 2 ? 5 : 0);
+          feedbackEl.textContent = state.streak >= 2 ? '✅ 正确！连对奖励 +5' : '✅ 回答正确！';
+          feedbackEl.className = 'feedback ok';
+        } else {
+          state.streak = 0;
+          state.score = Math.max(0, state.score - 3);
+          feedbackEl.textContent = `❌ 正确答案是 ${state.current.answer}`;
+          feedbackEl.className = 'feedback bad';
+        }
+        scoreChip.textContent = `得分 ${state.score}`;
+        state.index += 1;
+        disableButtons();
+        setTimeout(nextQuestion, 650);
+      }
+
+      function disableButtons() {
+        [...optionsEl.querySelectorAll('button')].forEach(b => b.disabled = true);
+      }
+
+      function finish(timeout = false) {
+        clearInterval(state.timer);
+        playPanel.classList.add('hidden');
+        resultPanel.classList.remove('hidden');
+        const totalQ = levels.reduce((a, b) => a + b.total, 0);
+        resultSummary.textContent = timeout
+          ? `时间到！你答对了 ${state.correct} / ${totalQ} 题。`
+          : `你完成了全部关卡，答对 ${state.correct} / ${totalQ} 题。`;
+        resultDetail.textContent = `最终得分：${state.score} 分`;
+        resultStar.textContent = state.score >= 180 ? '🏆' : state.score >= 130 ? '🌟' : '⭐';
+      }
+
+      function tick() {
+        state.remain -= 1;
+        timeChip.textContent = `倒计时 ${state.remain}s`;
+        if (state.remain <= 0) finish(true);
+      }
+
+      function start() {
+        state.level = 0;
+        state.index = 0;
+        state.score = 0;
+        state.correct = 0;
+        state.streak = 0;
+        state.remain = 90;
+        clearInterval(state.timer);
+        state.timer = setInterval(tick, 1000);
+        playPanel.classList.remove('hidden');
+        resultPanel.classList.add('hidden');
+        nextQuestion();
+      }
+
+      restartBtn.addEventListener('click', start);
+      start();
+    })();
+  </script>
+</body>
+</html>
