@@ -378,5 +378,11 @@
     "path": "games/decimal-adventure-grade3/index.html",
     "category": "education",
     "createdAt": "2026-03-01T20:39:22Z"
+  },
+  {
+    "name": "电网调度官：峰谷挑战",
+    "path": "games/grid-dispatcher/index.html",
+    "category": "科学+策略",
+    "createdAt": "2026-03-01T20:48:59.107142Z"
   }
 ]
