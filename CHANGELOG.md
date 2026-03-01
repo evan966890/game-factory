@@ -36,3 +36,6 @@
 - 新增教育游戏 `数学闯关岛`，文件路径：`games/math-quest/index.html`。
 - 游戏功能包含：乘法/除法模式切换（含混合模式）、即时反馈、多关卡进度条、得分统计、正确率统计、重置与下一题。
 - 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。
+- 新增教育游戏 `数字迷宫探险`，文件路径：`games/number-maze/index.html`。
+- 游戏功能包含：迷宫移动、答题解锁前进、关卡升级、步数与正确率统计、关卡重置。
+- 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。

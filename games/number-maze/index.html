@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>数字迷宫探险</title>
+  <style>
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f3f8ff;color:#1f2a44}
+    .wrap{max-width:820px;margin:0 auto;padding:14px}
+    .card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 10px 24px rgba(26,87,184,.12)}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 12px}
+    .stat{background:#eef4ff;border-radius:10px;padding:8px;text-align:center}
+    .k{font-size:12px;color:#687792}.v{font-size:20px;font-weight:700}
+    .maze{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+    .cell{aspect-ratio:1/1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;background:#eaf1ff}
+    .wall{background:#7d8bad}
+    .goal{background:#4bcf7a;color:#fff}
+    .player{outline:3px solid #ff8a00;background:#fff3e0}
+    .controls{display:grid;grid-template-columns:repeat(3,70px);justify-content:center;gap:8px;margin-top:12px}
+    button{border:0;border-radius:10px;padding:10px;background:#2d6cdf;color:#fff;font-size:18px;font-weight:700}
+    .wide{grid-column:1/4;background:#edf4ff;color:#2450a6}
+    .msg{min-height:22px;text-align:center;font-weight:700;margin-top:8px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1 style="text-align:center;margin:6px 0 8px">数字迷宫探险</h1>
+    <p style="text-align:center;color:#5b6886;margin:0 0 10px">每移动一步会遇到一道小题，答对才能前进到终点！</p>
+    <div class="stats">
+      <div class="stat"><div class="k">关卡</div><div id="level" class="v">1</div></div>
+      <div class="stat"><div class="k">正确率</div><div id="acc" class="v">0%</div></div>
+      <div class="stat"><div class="k">步数</div><div id="steps" class="v">0</div></div>
+    </div>
+    <div id="maze" class="maze"></div>
+    <div class="msg" id="msg"></div>
+    <div class="controls">
+      <div></div><button id="up">↑</button><div></div>
+      <button id="left">←</button><button id="down">↓</button><button id="right">→</button>
+      <button id="reset" class="wide">重置关卡</button>
+    </div>
+  </div>
+</div>
+<script>
+const size=6;
+let state={level:1,player:{x:0,y:0},goal:{x:5,y:5},walls:new Set(),steps:0,total:0,correct:0};
+const mazeEl=document.getElementById('maze'),msgEl=document.getElementById('msg');
+const lv=document.getElementById('level'),acc=document.getElementById('acc'),stepsEl=document.getElementById('steps');
+
+function key(x,y){return `${x},${y}`}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function genWalls(){
+  const count=5+state.level;
+  const s=new Set();
+  while(s.size<count){
+    const x=rand(0,size-1),y=rand(0,size-1);
+    if((x===0&&y===0)||(x===size-1&&y===size-1)) continue;
+    s.add(key(x,y));
+  }
+  state.walls=s;
+}
+function render(){
+  mazeEl.innerHTML='';
+  mazeEl.style.gridTemplateColumns=`repeat(${size},1fr)`;
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+    const d=document.createElement('div');d.className='cell';
+    if(state.walls.has(key(x,y))) d.classList.add('wall');
+    if(x===state.goal.x&&y===state.goal.y){d.classList.add('goal');d.textContent='终点';}
+    if(x===state.player.x&&y===state.player.y){d.classList.add('player');d.textContent='我';}
+    mazeEl.appendChild(d);
+  }
+  lv.textContent=state.level;
+  stepsEl.textContent=state.steps;
+  acc.textContent=state.total?Math.round(state.correct/state.total*100)+'%':'0%';
+}
+function askMath(){
+  const max=4+state.level;
+  const a=rand(1,max),b=rand(1,max),op=Math.random()<0.5?'+':'-';
+  const ans=op==='+'?a+b:a-b;
+  const input=prompt(`回答后才能前进：${a} ${op} ${b} = ?`);
+  if(input===null) return false;
+  state.total++;
+  if(Number(input)===ans){state.correct++;msgEl.textContent='答对了，继续前进！';return true;}
+  msgEl.textContent=`答错了，正确答案是 ${ans}`;return false;
+}
+function move(dx,dy){
+  const nx=state.player.x+dx,ny=state.player.y+dy;
+  if(nx<0||ny<0||nx>=size||ny>=size) return msgEl.textContent='撞墙了，换个方向';
+  if(state.walls.has(key(nx,ny))) return msgEl.textContent='这里是障碍物，过不去';
+  if(!askMath()) return;
+  state.player={x:nx,y:ny};state.steps++;
+  if(nx===state.goal.x&&ny===state.goal.y){
+    msgEl.textContent=`闯关成功！进入第 ${state.level+1} 关`;
+    state.level++; resetLevel();
+  }
+  render();
+}
+function resetLevel(){state.player={x:0,y:0};state.goal={x:size-1,y:size-1};state.steps=0;genWalls();render();}
+['up','down','left','right'].forEach(id=>document.getElementById(id).onclick=()=>({up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]})[id]&&move(...({up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]})[id]));
+document.getElementById('reset').onclick=resetLevel;
+resetLevel();
+</script>
+</body>
+</html>
