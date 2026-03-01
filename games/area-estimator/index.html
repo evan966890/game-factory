@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>面积估算挑战</title>
+  <style>
+    :root {
+      --bg: #f5f7ff;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --ok: #15803d;
+      --bad: #dc2626;
+      --shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100svh;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 35%, #ecfeff 100%);
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(760px, 100%);
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(1.3rem, 3.8vw, 1.8rem); }
+    .subtitle { margin: 0; color: var(--muted); font-size: .95rem; }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      text-align: center;
+    }
+    .hud .item { background: #eff6ff; border-radius: 10px; padding: 10px 8px; }
+    .label { font-size: .8rem; color: #4b5563; }
+    .value { font-size: 1.2rem; font-weight: 700; }
+    #shapeBox {
+      width: 100%;
+      min-height: 220px;
+      display: grid;
+      place-items: center;
+      background: #f8fafc;
+      border-radius: 12px;
+      border: 1px dashed #cbd5e1;
+      overflow: hidden;
+    }
+    #prompt { margin: 10px 0 0; text-align: center; font-weight: 600; }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    button {
+      border: none;
+      background: #dbeafe;
+      color: #1e3a8a;
+      border-radius: 10px;
+      padding: 12px 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .06s ease, background .2s;
+      touch-action: manipulation;
+    }
+    button:active { transform: scale(.98); }
+    button:hover { background: #bfdbfe; }
+    button.secondary { background: #e5e7eb; color: #111827; }
+    #feedback { min-height: 1.5em; font-weight: 700; text-align: center; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    @media (max-width: 560px) {
+      .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <h1>面积估算挑战</h1>
+      <p class="subtitle">观察图形，估算面积并在 10 题内拿高分。适合 3-5 年级几何启蒙。</p>
+    </section>
+
+    <section class="card hud" aria-label="状态栏">
+      <div class="item"><div class="label">题号</div><div class="value" id="qNo">1/10</div></div>
+      <div class="item"><div class="label">得分</div><div class="value" id="score">0</div></div>
+      <div class="item"><div class="label">连对</div><div class="value" id="streak">0</div></div>
+      <div class="item"><div class="label">正确率</div><div class="value" id="acc">0%</div></div>
+    </section>
+
+    <section class="card">
+      <div id="shapeBox" aria-live="polite"></div>
+      <p id="prompt"></p>
+    </section>
+
+    <section class="card">
+      <div class="options" id="options"></div>
+      <p id="feedback"></p>
+      <div class="row">
+        <button id="nextBtn" class="secondary">下一题</button>
+        <button id="restartBtn" class="secondary">重新开始</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const total = 10;
+    let index = 0, score = 0, correct = 0, streak = 0;
+    let currentAnswer = 0;
+
+    const qNo = document.getElementById('qNo');
+    const scoreEl = document.getElementById('score');
+    const streakEl = document.getElementById('streak');
+    const accEl = document.getElementById('acc');
+    const shapeBox = document.getElementById('shapeBox');
+    const prompt = document.getElementById('prompt');
+    const options = document.getElementById('options');
+    const feedback = document.getElementById('feedback');
+    const nextBtn = document.getElementById('nextBtn');
+    const restartBtn = document.getElementById('restartBtn');
+
+    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    function makeQuestion() {
+      const type = Math.random() < 0.5 ? 'rect' : 'tri';
+      if (type === 'rect') {
+        const w = rand(4, 12), h = rand(3, 10);
+        currentAnswer = w * h;
+        prompt.textContent = `长方形：长 ${w} cm，宽 ${h} cm。面积约是多少？`;
+        renderRect(w, h);
+      } else {
+        const b = rand(6, 16), h = rand(4, 12);
+        currentAnswer = Math.round((b * h) / 2);
+        prompt.textContent = `三角形：底 ${b} cm，高 ${h} cm。面积约是多少？`;
+        renderTri(b, h);
+      }
+      renderOptions(currentAnswer);
+      feedback.textContent = '';
+      feedback.className = '';
+      updateHUD();
+    }
+
+    function renderRect(w, h) {
+      const scale = 14;
+      shapeBox.innerHTML = `<svg width="100%" height="220" viewBox="0 0 260 220" role="img" aria-label="长方形示意图">
+        <rect x="${130 - (w*scale)/2}" y="${110 - (h*scale)/2}" width="${w*scale}" height="${h*scale}" fill="#93c5fd" stroke="#1d4ed8" stroke-width="3" rx="6"/>
+      </svg>`;
+    }
+
+    function renderTri(b, h) {
+      const scale = 12;
+      const bw = b * scale, hh = h * scale;
+      const x = 130, y = 115;
+      const x1 = x - bw / 2, x2 = x + bw / 2, yb = y + hh / 2, yt = y - hh / 2;
+      shapeBox.innerHTML = `<svg width="100%" height="220" viewBox="0 0 260 220" role="img" aria-label="三角形示意图">
+        <polygon points="${x1},${yb} ${x2},${yb} ${x},${yt}" fill="#a7f3d0" stroke="#047857" stroke-width="3"/>
+      </svg>`;
+    }
+
+    function renderOptions(ans) {
+      const set = new Set([ans]);
+      while (set.size < 4) {
+        const delta = rand(-18, 18) || 6;
+        const val = Math.max(4, ans + delta);
+        set.add(val);
+      }
+      const list = [...set].sort(() => Math.random() - 0.5);
+      options.innerHTML = '';
+      for (const n of list) {
+        const btn = document.createElement('button');
+        btn.textContent = `${n} cm²`;
+        btn.onclick = () => choose(n);
+        options.appendChild(btn);
+      }
+    }
+
+    function choose(v) {
+      if (index >= total) return;
+      const ok = v === currentAnswer;
+      if (ok) {
+        correct++;
+        streak++;
+        score += streak >= 3 ? 15 : 10;
+        feedback.textContent = `✅ 正确！面积约为 ${currentAnswer} cm²`;
+        feedback.className = 'ok';
+      } else {
+        streak = 0;
+        score = Math.max(0, score - 5);
+        feedback.textContent = `❌ 再想想，正确答案是 ${currentAnswer} cm²`;
+        feedback.className = 'bad';
+      }
+      index++;
+      updateHUD();
+      if (index >= total) finish();
+    }
+
+    function updateHUD() {
+      qNo.textContent = `${Math.min(index + 1, total)}/${total}`;
+      scoreEl.textContent = score;
+      streakEl.textContent = streak;
+      accEl.textContent = index ? `${Math.round((correct / index) * 100)}%` : '0%';
+    }
+
+    function finish() {
+      prompt.textContent = `挑战完成！最终得分 ${score}，答对 ${correct}/${total} 题。`;
+      options.innerHTML = '';
+    }
+
+    nextBtn.onclick = () => {
+      if (index >= total) return;
+      makeQuestion();
+    };
+
+    restartBtn.onclick = () => {
+      index = 0; score = 0; correct = 0; streak = 0;
+      makeQuestion();
+    };
+
+    makeQuestion();
+  </script>
+</body>
+</html>

@@ -180,5 +180,11 @@
     "path": "games/multiplication-ladder/index.html",
     "category": "数学",
     "createdAt": "2026-03-01T18:51:16.725699+08:00"
+  },
+  {
+    "name": "面积估算挑战",
+    "path": "games/area-estimator/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T19:11:24.896198+08:00"
   }
 ]
