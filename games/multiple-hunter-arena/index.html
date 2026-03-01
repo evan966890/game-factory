@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>倍数快打擂台</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #121a32;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --ok: #22c55e;
+      --bad: #ef4444;
+      --main: #38bdf8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text);
+      min-height: 100dvh;
+      padding: 14px;
+      display: flex;
+      justify-content: center;
+    }
+    .app {
+      width: min(760px, 100%);
+      background: rgba(18, 26, 50, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 16px 34px rgba(0,0,0,.32);
+    }
+    h1 { margin: 0 0 8px; font-size: 1.5rem; }
+    .desc { margin: 0 0 12px; color: var(--muted); line-height: 1.5; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .stat {
+      background: #0b1328;
+      border-radius: 10px;
+      padding: 9px;
+      text-align: center;
+    }
+    .label { font-size: .78rem; color: var(--muted); }
+    .value { margin-top: 2px; font-weight: 700; font-size: 1.14rem; }
+    .rule {
+      background: #0f172a;
+      border: 1px dashed rgba(56,189,248,.5);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      margin-bottom: 12px;
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: #7dd3fc;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .cell {
+      border: none;
+      border-radius: 10px;
+      min-height: 54px;
+      background: #1f2a44;
+      color: var(--text);
+      font-size: 1.08rem;
+      font-weight: 700;
+      touch-action: manipulation;
+    }
+    .cell:active { transform: scale(.98); }
+    .cell.ok { background: rgba(34,197,94,.22); outline: 2px solid var(--ok); }
+    .cell.bad { background: rgba(239,68,68,.2); outline: 2px solid var(--bad); }
+    .cell.locked { opacity: .5; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .row button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 13px;
+      font-weight: 700;
+      flex: 1;
+      min-width: 130px;
+      color: #082f49;
+      background: var(--main);
+    }
+    .row button.secondary { color: var(--text); background: #334155; }
+    .hint { margin-top: 10px; min-height: 22px; color: #cbd5e1; }
+    @media (max-width: 520px) {
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .board { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>🎯 倍数快打擂台</h1>
+    <p class="desc">60 秒挑战：只点选“目标数字”的倍数。连对会加成，点错会扣分！</p>
+
+    <section class="stats">
+      <div class="stat"><div class="label">剩余时间</div><div class="value" id="time">60</div></div>
+      <div class="stat"><div class="label">得分</div><div class="value" id="score">0</div></div>
+      <div class="stat"><div class="label">连击</div><div class="value" id="combo">0</div></div>
+      <div class="stat"><div class="label">正确率</div><div class="value" id="acc">0%</div></div>
+    </section>
+
+    <div class="rule" id="rule">目标：请点击 3 的倍数</div>
+    <section class="board" id="board"></section>
+    <p class="hint" id="hint">点击“开始挑战”后计时开始。</p>
+
+    <div class="row">
+      <button id="startBtn">开始挑战</button>
+      <button class="secondary" id="nextBtn">换一组数字</button>
+      <button class="secondary" id="resetBtn">重置</button>
+    </div>
+  </main>
+
+  <script>
+    const boardEl = document.getElementById('board');
+    const timeEl = document.getElementById('time');
+    const scoreEl = document.getElementById('score');
+    const comboEl = document.getElementById('combo');
+    const accEl = document.getElementById('acc');
+    const ruleEl = document.getElementById('rule');
+    const hintEl = document.getElementById('hint');
+    const startBtn = document.getElementById('startBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const CELLS = 20;
+    const MIN = 2;
+    const MAX = 99;
+
+    let score = 0;
+    let combo = 0;
+    let correct = 0;
+    let attempts = 0;
+    let target = 3;
+    let timeLeft = 60;
+    let running = false;
+    let timer = null;
+
+    function rand(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function newTarget() {
+      target = rand(3, 9);
+      ruleEl.textContent = `目标：请点击 ${target} 的倍数`;
+    }
+
+    function buildBoard() {
+      boardEl.innerHTML = '';
+      for (let i = 0; i < CELLS; i++) {
+        const val = rand(MIN, MAX);
+        const btn = document.createElement('button');
+        btn.className = 'cell';
+        btn.textContent = val;
+        btn.dataset.value = String(val);
+        btn.dataset.hit = String(val % target === 0);
+        btn.addEventListener('click', () => choose(btn));
+        boardEl.appendChild(btn);
+      }
+      hintEl.textContent = `新题面已生成：寻找所有 ${target} 的倍数！`;
+    }
+
+    function updateStats() {
+      timeEl.textContent = timeLeft;
+      scoreEl.textContent = score;
+      comboEl.textContent = combo;
+      accEl.textContent = attempts ? `${Math.round((correct / attempts) * 100)}%` : '0%';
+    }
+
+    function lockBoard() {
+      boardEl.querySelectorAll('.cell').forEach(c => c.classList.add('locked'));
+    }
+
+    function choose(btn) {
+      if (!running || btn.classList.contains('locked')) return;
+
+      attempts++;
+      btn.classList.add('locked');
+
+      if (btn.dataset.hit === 'true') {
+        correct++;
+        combo++;
+        score += 8 + Math.min(12, combo * 2);
+        btn.classList.add('ok');
+        hintEl.textContent = `✅ ${btn.dataset.value} 是 ${target} 的倍数！连击 x${combo}`;
+      } else {
+        combo = 0;
+        score = Math.max(0, score - 6);
+        btn.classList.add('bad');
+        hintEl.textContent = `❌ ${btn.dataset.value} 不是 ${target} 的倍数。`;
+      }
+      updateStats();
+
+      const left = [...boardEl.querySelectorAll('.cell:not(.locked)')].some(c => c.dataset.hit === 'true');
+      if (!left) {
+        score += 20;
+        updateStats();
+        lockBoard();
+        hintEl.textContent = `🎉 本轮目标全部命中，奖励 +20！可点“换一组数字”继续。`;
+      }
+    }
+
+    function start() {
+      if (running) return;
+      running = true;
+      hintEl.textContent = '开局！快找倍数！';
+      timer = setInterval(() => {
+        timeLeft--;
+        updateStats();
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          running = false;
+          lockBoard();
+          hintEl.textContent = `⏰ 时间到！总分 ${score}，正确率 ${accEl.textContent}。`;
+        }
+      }, 1000);
+    }
+
+    function nextRound() {
+      if (!running) {
+        hintEl.textContent = '请先点击“开始挑战”。';
+        return;
+      }
+      newTarget();
+      buildBoard();
+    }
+
+    function reset() {
+      clearInterval(timer);
+      running = false;
+      score = 0;
+      combo = 0;
+      correct = 0;
+      attempts = 0;
+      timeLeft = 60;
+      newTarget();
+      buildBoard();
+      updateStats();
+      hintEl.textContent = '已重置，点击“开始挑战”重新开始。';
+    }
+
+    startBtn.addEventListener('click', start);
+    nextBtn.addEventListener('click', nextRound);
+    resetBtn.addEventListener('click', reset);
+
+    newTarget();
+    buildBoard();
+    updateStats();
+  </script>
+</body>
+</html>

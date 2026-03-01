@@ -420,5 +420,11 @@
     "path": "games/angle-classifier-sprint/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T06:39:09.630436+08:00"
+  },
+  {
+    "name": "倍数快打擂台",
+    "path": "games/multiple-hunter-arena/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T22:59:21Z"
   }
 ]
