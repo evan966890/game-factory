@@ -21,45 +21,25 @@
       color: var(--text);
       padding: 24px 16px 32px;
     }
-    .container {
-      max-width: 860px;
-      margin: 0 auto;
-    }
-    h1 {
-      margin: 0 0 8px;
-      font-size: 1.7rem;
-    }
-    .desc {
-      margin: 0 0 20px;
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-    @media (min-width: 680px) {
-      .grid { grid-template-columns: repeat(2, 1fr); }
-    }
+    .container { max-width: 980px; margin: 0 auto; }
+    h1 { margin: 0 0 8px; font-size: 1.7rem; }
+    .desc { margin: 0 0 20px; color: var(--muted); font-size: 0.95rem; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 680px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 980px) { .grid { grid-template-columns: repeat(3, 1fr); } }
     .card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 14px;
       box-shadow: 0 6px 18px rgba(16, 78, 125, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
-    .title {
-      margin: 0 0 4px;
-      font-size: 1.05rem;
-      font-weight: 700;
-    }
-    .meta {
-      margin: 0 0 10px;
-      color: var(--muted);
-      font-size: 0.85rem;
-      word-break: break-all;
-    }
+    .title { margin: 0; font-size: 1.05rem; font-weight: 700; }
+    .meta { margin: 0; color: var(--muted); font-size: 0.85rem; word-break: break-all; }
+    .row { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .btn {
       display: inline-block;
       text-decoration: none;
@@ -69,57 +49,62 @@
       border-radius: 10px;
       font-size: 0.9rem;
       font-weight: 600;
+      white-space: nowrap;
     }
+    .muted { color: var(--muted); font-size: 0.82rem; }
   </style>
 </head>
 <body>
   <main class="container">
     <h1>🎮 游戏自动化工厂 · 已发布游戏</h1>
-    <p class="desc">点击「立即试玩」开始体验。所有游戏均为纯 HTML/CSS/JS，可在移动端浏览器直接打开。</p>
+    <p class="desc">所有游戏都在本页自动读取 `games-list.json` 展示。点「立即试玩」即可开始。</p>
 
-    <section class="grid">
-      <article class="card">
-        <h2 class="title">加法练习</h2>
-        <p class="meta">games/addition-practice/index.html</p>
-        <a class="btn" href="games/addition-practice/index.html">立即试玩</a>
-      </article>
-
-      <article class="card">
-        <h2 class="title">减法练习</h2>
-        <p class="meta">games/subtraction-practice/index.html</p>
-        <a class="btn" href="games/subtraction-practice/index.html">立即试玩</a>
-      </article>
-
-      <article class="card">
-        <h2 class="title">乘法练习</h2>
-        <p class="meta">games/multiplication-practice/index.html</p>
-        <a class="btn" href="games/multiplication-practice/index.html">立即试玩</a>
-      </article>
-
-      <article class="card">
-        <h2 class="title">除法练习</h2>
-        <p class="meta">games/division-practice/index.html</p>
-        <a class="btn" href="games/division-practice/index.html">立即试玩</a>
-      </article>
-
-      <article class="card">
-        <h2 class="title">分数大小比一比</h2>
-        <p class="meta">games/fraction-compare/index.html</p>
-        <a class="btn" href="games/fraction-compare/index.html">立即试玩</a>
-      </article>
-
-      <article class="card">
-        <h2 class="title">图形配对大师</h2>
-        <p class="meta">games/shape-match/index.html</p>
-        <a class="btn" href="games/shape-match/index.html">立即试玩</a>
-      </article>
-
-      <article class="card">
-        <h2 class="title">单词拼写挑战</h2>
-        <p class="meta">games/word-spell/index.html</p>
-        <a class="btn" href="games/word-spell/index.html">立即试玩</a>
-      </article>
-    </section>
+    <section id="grid" class="grid"></section>
   </main>
+
+  <script>
+    (function () {
+      const grid = document.getElementById('grid');
+      function escapeHtml(str) {
+        return String(str)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#39;');
+      }
+
+      fetch('games-list.json')
+        .then((res) => {
+          if (!res.ok) throw new Error('加载 games-list.json 失败');
+          return res.json();
+        })
+        .then((games) => {
+          if (!Array.isArray(games) || games.length === 0) {
+            grid.innerHTML = '<p class="muted">暂时还没有游戏，稍后再来看看～</p>';
+            return;
+          }
+
+          grid.innerHTML = games.map((game, idx) => {
+            const name = escapeHtml(game.name || `游戏 ${idx + 1}`);
+            const path = escapeHtml(game.path || '#');
+            const created = escapeHtml(game.createdAt || '');
+            return `
+              <article class="card">
+                <h2 class="title">${name}</h2>
+                <p class="meta">${path}</p>
+                <div class="row">
+                  <span class="muted">${created}</span>
+                  <a class="btn" href="${path}">立即试玩</a>
+                </div>
+              </article>
+            `;
+          }).join('');
+        })
+        .catch((err) => {
+          grid.innerHTML = `<p class="muted">加载失败：${escapeHtml(err.message)}</p>`;
+        });
+    })();
+  </script>
 </body>
 </html>
