@@ -282,5 +282,11 @@
     "path": "games/probability-decision-lab/index.html",
     "category": "数学+逻辑",
     "createdAt": "2026-03-01T16:36:43.669Z"
+  },
+  {
+    "name": "逻辑门竞技场",
+    "path": "games/logic-gate-arena/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T16:56:19Z"
   }
 ]
