@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>百分数折扣挑战</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #38bdf8;
+      --good: #22c55e;
+      --bad: #ef4444;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+      background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 60%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+    .app {
+      width: min(720px, 100%);
+      background: color-mix(in srgb, var(--card) 85%, #000);
+      border: 1px solid #1f2937;
+      border-radius: 20px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    h1 { margin: 0 0 10px; font-size: 1.35rem; }
+    .meta { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
+    .meta .item { background: #0b1220; border-radius: 12px; padding: 10px; text-align: center; }
+    .label { color: var(--muted); font-size: .8rem; }
+    .value { font-size: 1.2rem; font-weight: 700; }
+    .question {
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      line-height: 1.5;
+      min-height: 88px;
+      display: flex;
+      align-items: center;
+      font-size: 1.06rem;
+    }
+    .answers { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+    button {
+      appearance: none;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      background: #1e293b;
+      color: var(--text);
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 52px;
+    }
+    button:hover { border-color: var(--accent); }
+    button:disabled { opacity: .75; cursor: not-allowed; }
+    .feedback { margin-top: 10px; min-height: 24px; font-weight: 600; }
+    .good { color: var(--good); }
+    .bad { color: var(--bad); }
+    .actions { margin-top: 12px; display: flex; gap: 10px; }
+    .actions button { flex: 1; background: #0ea5e9; border-color: transparent; color: #001019; }
+    .actions button.secondary { background: #334155; color: #e5e7eb; }
+    .result { margin-top: 10px; color: #fef08a; font-weight: 700; min-height: 24px; }
+    @media (max-width: 560px) {
+      .answers { grid-template-columns: 1fr; }
+      .meta { grid-template-columns: 1fr 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>🧾 百分数折扣挑战</h1>
+    <div class="meta">
+      <div class="item"><div class="label">题号</div><div class="value" id="round">1/10</div></div>
+      <div class="item"><div class="label">得分</div><div class="value" id="score">0</div></div>
+      <div class="item"><div class="label">连对</div><div class="value" id="streak">0</div></div>
+    </div>
+    <section class="question" id="question"></section>
+    <section class="answers" id="answers"></section>
+    <div class="feedback" id="feedback"></div>
+    <div class="result" id="result"></div>
+    <div class="actions">
+      <button id="nextBtn" class="secondary" disabled>下一题</button>
+      <button id="restartBtn">重新开始</button>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      const total = 10;
+      let current = 0;
+      let score = 0;
+      let streak = 0;
+      let locked = false;
+      let correctText = "";
+
+      const els = {
+        round: document.getElementById('round'),
+        score: document.getElementById('score'),
+        streak: document.getElementById('streak'),
+        question: document.getElementById('question'),
+        answers: document.getElementById('answers'),
+        feedback: document.getElementById('feedback'),
+        result: document.getElementById('result'),
+        nextBtn: document.getElementById('nextBtn'),
+        restartBtn: document.getElementById('restartBtn')
+      };
+
+      const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+      function makeQuestion() {
+        const price = rand(40, 500);
+        const discount = [10, 15, 20, 25, 30, 40, 50][rand(0, 6)];
+        const sale = +(price * (1 - discount / 100)).toFixed(2);
+        const save = +(price - sale).toFixed(2);
+        const askSale = Math.random() > 0.5;
+
+        if (askSale) {
+          correctText = `¥${sale.toFixed(2)}`;
+          return {
+            text: `原价 ¥${price}，打 ${discount}% 折后，现价是多少？`,
+            answer: correctText,
+            options: makeOptions(sale)
+          };
+        }
+
+        correctText = `¥${save.toFixed(2)}`;
+        return {
+          text: `原价 ¥${price}，打 ${discount}% 折后，便宜了多少钱？`,
+          answer: correctText,
+          options: makeOptions(save)
+        };
+      }
+
+      function makeOptions(correct) {
+        const vals = new Set([+correct.toFixed(2)]);
+        while (vals.size < 4) {
+          const offset = rand(-30, 30) + (Math.random() > 0.5 ? 0.99 : 0.49);
+          const candidate = Math.max(0.01, +(correct + offset).toFixed(2));
+          vals.add(candidate);
+        }
+        return [...vals]
+          .sort(() => Math.random() - 0.5)
+          .map(v => `¥${v.toFixed(2)}`);
+      }
+
+      let q = null;
+      function render() {
+        els.round.textContent = `${Math.min(current + 1, total)}/${total}`;
+        els.score.textContent = score;
+        els.streak.textContent = streak;
+        els.feedback.textContent = '';
+        els.feedback.className = 'feedback';
+        els.nextBtn.disabled = true;
+        locked = false;
+
+        q = makeQuestion();
+        els.question.textContent = q.text;
+        els.answers.innerHTML = '';
+        q.options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.textContent = opt;
+          btn.onclick = () => choose(opt, btn);
+          els.answers.appendChild(btn);
+        });
+      }
+
+      function choose(opt, btn) {
+        if (locked) return;
+        locked = true;
+        const buttons = [...els.answers.querySelectorAll('button')];
+        buttons.forEach(b => b.disabled = true);
+
+        if (opt === q.answer) {
+          streak += 1;
+          score += 10 + Math.min(10, streak);
+          els.feedback.textContent = `✅ 正确！答案是 ${q.answer}`;
+          els.feedback.classList.add('good');
+          btn.style.borderColor = '#22c55e';
+        } else {
+          streak = 0;
+          els.feedback.textContent = `❌ 再想想，正确答案是 ${q.answer}`;
+          els.feedback.classList.add('bad');
+          buttons.find(b => b.textContent === q.answer).style.borderColor = '#22c55e';
+          btn.style.borderColor = '#ef4444';
+        }
+        current += 1;
+        els.score.textContent = score;
+        els.streak.textContent = streak;
+
+        if (current >= total) {
+          els.result.textContent = `本局完成！总分 ${score} / ${total * 20}。`;
+          els.nextBtn.disabled = true;
+        } else {
+          els.nextBtn.disabled = false;
+        }
+      }
+
+      els.nextBtn.addEventListener('click', () => {
+        if (current < total) render();
+      });
+
+      els.restartBtn.addEventListener('click', () => {
+        current = 0;
+        score = 0;
+        streak = 0;
+        els.result.textContent = '';
+        render();
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>

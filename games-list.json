@@ -348,5 +348,11 @@
     "path": "games/fraction-balance-lab/index.html",
     "category": "数学",
     "createdAt": "2026-03-01T18:59:06Z"
+  },
+  {
+    "name": "百分数折扣挑战",
+    "path": "games/percent-discount-challenge/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T19:19:03.281198+00:00"
   }
 ]
