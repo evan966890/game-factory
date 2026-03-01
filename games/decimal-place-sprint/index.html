@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>小数位冲刺</title>
+  <style>
+    :root {
+      --bg: #f4f7ff;
+      --card: #ffffff;
+      --text: #1f2a44;
+      --accent: #4a6cf7;
+      --ok: #14a44d;
+      --bad: #e5484d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #eef3ff, #f8fbff);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+    .app {
+      width: 100%;
+      max-width: 680px;
+      background: var(--card);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(62, 94, 255, .12);
+    }
+    h1 { margin: 0 0 8px; font-size: 1.5rem; }
+    .sub { margin: 0 0 14px; color: #5d6a85; font-size: .95rem; }
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .pill {
+      background: #eef2ff;
+      color: #31458f;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: .92rem;
+    }
+    .question {
+      background: #f7f9ff;
+      border: 2px solid #e2e9ff;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .number { font-size: 2rem; font-weight: 800; letter-spacing: 1px; margin: 8px 0; }
+    .ask { margin: 6px 0 0; font-size: 1rem; }
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      background: #edf2ff;
+      color: #273354;
+      transition: transform .08s ease, background .2s ease;
+      touch-action: manipulation;
+    }
+    button:active { transform: scale(.98); }
+    button.primary { background: var(--accent); color: #fff; }
+    .feedback {
+      min-height: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .hint { color: #61708f; font-size: .9rem; }
+    @media (min-width: 560px) {
+      .choices { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>小数位冲刺</h1>
+    <p class="sub">10 题闯关：判断数字在「十分位 / 百分位 / 千分位」上的值，越快越准！</p>
+
+    <div class="row">
+      <div class="pill" id="qInfo">第 1 / 10 题</div>
+      <div class="pill" id="scoreInfo">得分：0</div>
+      <div class="pill" id="timeInfo">剩余：60 秒</div>
+    </div>
+
+    <section class="question" id="questionBox">
+      <div class="number" id="numberText">0.000</div>
+      <p class="ask" id="askText">数字 0 在十分位上的值是？</p>
+    </section>
+
+    <section class="choices" id="choices"></section>
+    <div class="feedback" id="feedback"></div>
+
+    <div class="footer">
+      <button class="primary" id="restartBtn" hidden>再来一局</button>
+      <div class="hint">答对 +10 分，答错不扣分。支持手机和离线使用。</div>
+    </div>
+  </main>
+
+  <script>
+    const TOTAL = 10;
+    const LIMIT = 60;
+
+    const qInfo = document.getElementById('qInfo');
+    const scoreInfo = document.getElementById('scoreInfo');
+    const timeInfo = document.getElementById('timeInfo');
+    const numberText = document.getElementById('numberText');
+    const askText = document.getElementById('askText');
+    const choices = document.getElementById('choices');
+    const feedback = document.getElementById('feedback');
+    const restartBtn = document.getElementById('restartBtn');
+
+    let idx = 0;
+    let score = 0;
+    let remain = LIMIT;
+    let timer = null;
+    let current = null;
+    let locked = false;
+
+    const places = [
+      { key: 'tenths', name: '十分位', pos: -1 },
+      { key: 'hundredths', name: '百分位', pos: -2 },
+      { key: 'thousandths', name: '千分位', pos: -3 }
+    ];
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function pick(arr) {
+      return arr[randInt(0, arr.length - 1)];
+    }
+
+    function genQuestion() {
+      const integer = randInt(0, 9);
+      const d1 = randInt(0, 9);
+      const d2 = randInt(0, 9);
+      const d3 = randInt(0, 9);
+      const place = pick(places);
+      const s = `${integer}.${d1}${d2}${d3}`;
+      const digits = { '-1': d1, '-2': d2, '-3': d3 };
+      const digit = digits[place.pos];
+      const value = Number((digit * Math.pow(10, place.pos)).toFixed(3));
+
+      const wrongs = new Set();
+      while (wrongs.size < 3) {
+        const wrongDigit = randInt(0, 9);
+        const wrongPlace = pick(places);
+        const w = Number((wrongDigit * Math.pow(10, wrongPlace.pos)).toFixed(3));
+        if (w !== value) wrongs.add(w);
+      }
+
+      const options = [value, ...wrongs];
+      for (let i = options.length - 1; i > 0; i--) {
+        const j = randInt(0, i);
+        [options[i], options[j]] = [options[j], options[i]];
+      }
+
+      return { s, place: place.name, value, options };
+    }
+
+    function formatValue(n) {
+      return n.toFixed(3).replace(/0+$/, '').replace(/\.$/, '.0');
+    }
+
+    function renderQuestion() {
+      current = genQuestion();
+      locked = false;
+      qInfo.textContent = `第 ${idx + 1} / ${TOTAL} 题`;
+      scoreInfo.textContent = `得分：${score}`;
+      numberText.textContent = current.s;
+      askText.textContent = `该数字在「${current.place}」上的值是？`;
+      feedback.textContent = '';
+      feedback.className = 'feedback';
+      choices.innerHTML = '';
+
+      current.options.forEach(v => {
+        const btn = document.createElement('button');
+        btn.textContent = formatValue(v);
+        btn.addEventListener('click', () => answer(v, btn));
+        choices.appendChild(btn);
+      });
+    }
+
+    function answer(v, btn) {
+      if (locked) return;
+      locked = true;
+      const correct = v === current.value;
+      if (correct) {
+        score += 10;
+        feedback.textContent = '✅ 回答正确！';
+        feedback.classList.add('ok');
+        btn.style.background = '#d8f5e2';
+      } else {
+        feedback.textContent = `❌ 正确答案：${formatValue(current.value)}`;
+        feedback.classList.add('bad');
+        btn.style.background = '#ffe2e4';
+      }
+      scoreInfo.textContent = `得分：${score}`;
+
+      setTimeout(() => {
+        idx++;
+        if (idx >= TOTAL) return finish();
+        renderQuestion();
+      }, 500);
+    }
+
+    function finish() {
+      clearInterval(timer);
+      timer = null;
+      choices.innerHTML = '';
+      askText.textContent = '本局结束！';
+      numberText.textContent = `${score} 分`;
+      feedback.textContent = score >= 80 ? '太棒了！你的小数位值掌握得很好。' : '继续练习，你会越来越快！';
+      feedback.className = 'feedback ok';
+      restartBtn.hidden = false;
+    }
+
+    function tick() {
+      remain -= 1;
+      timeInfo.textContent = `剩余：${remain} 秒`;
+      if (remain <= 0) {
+        finish();
+      }
+    }
+
+    function start() {
+      idx = 0;
+      score = 0;
+      remain = LIMIT;
+      restartBtn.hidden = true;
+      timeInfo.textContent = `剩余：${remain} 秒`;
+      clearInterval(timer);
+      timer = setInterval(tick, 1000);
+      renderQuestion();
+    }
+
+    restartBtn.addEventListener('click', start);
+    start();
+  </script>
+</body>
+</html>
