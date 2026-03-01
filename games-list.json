@@ -168,5 +168,11 @@
     "path": "games/fraction-duel-grade3/index.html",
     "category": "教育",
     "createdAt": "2026-03-01T18:11:27.362037+08:00"
+  },
+  {
+    "name": "奇偶快分挑战",
+    "path": "games/odd-even-rush/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T18:31:21.588837+08:00"
   }
 ]

@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>奇偶快分挑战</title>
+  <style>
+    :root {
+      --bg: #f5fbff;
+      --card: #ffffff;
+      --text: #183247;
+      --muted: #5f7688;
+      --ok: #137a3f;
+      --bad: #b42318;
+      --primary: #1274d3;
+      --border: #d7e4ee;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #eaf6ff 0%, #f9fcff 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(760px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 10px 28px rgba(8, 55, 92, 0.12);
+      padding: 16px;
+    }
+    h1 { margin: 0 0 8px; font-size: 1.5rem; }
+    .sub { margin: 0 0 12px; color: var(--muted); font-size: 0.95rem; }
+    .top {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    @media (min-width: 640px) {
+      .top { grid-template-columns: 1fr auto; align-items: end; }
+    }
+    .difficulty {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 0.95rem;
+      font-weight: 650;
+      background: #edf5fc;
+      color: var(--text);
+    }
+    button.active { background: var(--primary); color: #fff; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .stat {
+      background: #f6fbff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+    }
+    .label { color: var(--muted); font-size: 0.8rem; }
+    .value { font-size: 1.1rem; font-weight: 700; margin-top: 2px; }
+    .board {
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      background: #fbfdff;
+    }
+    .number {
+      font-size: clamp(2.2rem, 8vw, 3.3rem);
+      font-weight: 800;
+      letter-spacing: 1px;
+      margin: 8px 0 16px;
+    }
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .odd { background: #9b59b6; color: #fff; }
+    .even { background: #2ecc71; color: #fff; }
+    .feedback {
+      min-height: 24px;
+      font-weight: 700;
+    }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .row {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ghost {
+      background: #eef4fa;
+      color: #27455d;
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>🔢 奇偶快分挑战</h1>
+    <p class="sub">判断数字是奇数还是偶数，答对马上加分。三档难度，越快越稳！</p>
+
+    <section class="top">
+      <div>
+        <div class="label">难度分层</div>
+        <div class="difficulty" id="difficulty"></div>
+      </div>
+      <button id="newGame" class="ghost">重新开始</button>
+    </section>
+
+    <section class="stats">
+      <article class="stat"><div class="label">当前题号</div><div class="value" id="questionIdx">1/10</div></article>
+      <article class="stat"><div class="label">得分</div><div class="value" id="score">0</div></article>
+      <article class="stat"><div class="label">连对</div><div class="value" id="streak">0</div></article>
+      <article class="stat"><div class="label">正确率</div><div class="value" id="accuracy">0%</div></article>
+    </section>
+
+    <section class="board">
+      <div class="label">请判断这个数字</div>
+      <div class="number" id="number">0</div>
+      <div class="actions">
+        <button class="odd" id="oddBtn">奇数</button>
+        <button class="even" id="evenBtn">偶数</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="row">
+        <button id="nextBtn" class="ghost">下一题</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const LEVELS = [
+      { key: 'easy', label: '简单（1-20）', min: 1, max: 20 },
+      { key: 'normal', label: '普通（1-100）', min: 1, max: 100 },
+      { key: 'hard', label: '进阶（100-999）', min: 100, max: 999 }
+    ];
+
+    const state = {
+      level: LEVELS[0],
+      total: 10,
+      current: 1,
+      score: 0,
+      correct: 0,
+      answered: false,
+      streak: 0,
+      number: 0
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const els = {
+      difficulty: $('difficulty'),
+      number: $('number'),
+      questionIdx: $('questionIdx'),
+      score: $('score'),
+      streak: $('streak'),
+      accuracy: $('accuracy'),
+      feedback: $('feedback'),
+      oddBtn: $('oddBtn'),
+      evenBtn: $('evenBtn'),
+      nextBtn: $('nextBtn'),
+      newGame: $('newGame')
+    };
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function renderLevelButtons() {
+      els.difficulty.innerHTML = '';
+      LEVELS.forEach((lvl) => {
+        const btn = document.createElement('button');
+        btn.textContent = lvl.label;
+        if (lvl.key === state.level.key) btn.classList.add('active');
+        btn.addEventListener('click', () => {
+          state.level = lvl;
+          resetGame();
+          renderLevelButtons();
+        });
+        els.difficulty.appendChild(btn);
+      });
+    }
+
+    function pickNumber() {
+      state.number = randInt(state.level.min, state.level.max);
+      state.answered = false;
+      els.feedback.textContent = '';
+      els.feedback.className = 'feedback';
+      els.number.textContent = state.number;
+    }
+
+    function updateStats() {
+      els.questionIdx.textContent = `${state.current}/${state.total}`;
+      els.score.textContent = state.score;
+      els.streak.textContent = state.streak;
+      const acc = state.current > 1 || state.answered
+        ? Math.round((state.correct / (state.current - (state.answered ? 0 : 1))) * 100)
+        : 0;
+      els.accuracy.textContent = Number.isFinite(acc) ? `${acc}%` : '0%';
+    }
+
+    function answer(choice) {
+      if (state.answered) return;
+      state.answered = true;
+      const isEven = state.number % 2 === 0;
+      const right = (choice === 'even' && isEven) || (choice === 'odd' && !isEven);
+
+      if (right) {
+        state.correct += 1;
+        state.streak += 1;
+        const bonus = state.streak >= 3 ? 2 : 0;
+        state.score += 10 + bonus;
+        els.feedback.textContent = bonus ? `✅ 正确！连对奖励 +${10 + bonus}` : '✅ 正确！+10 分';
+        els.feedback.classList.add('ok');
+      } else {
+        state.streak = 0;
+        state.score = Math.max(0, state.score - 4);
+        els.feedback.textContent = `❌ 再想想，这个数字是${isEven ? '偶数' : '奇数'}（-4 分）`;
+        els.feedback.classList.add('bad');
+      }
+
+      if (state.current === state.total) {
+        els.feedback.textContent += ` ｜本局结束：共答对 ${state.correct} 题`;
+      }
+
+      updateStats();
+    }
+
+    function nextQuestion() {
+      if (state.current >= state.total) {
+        resetGame();
+        return;
+      }
+      state.current += 1;
+      pickNumber();
+      updateStats();
+    }
+
+    function resetGame() {
+      state.current = 1;
+      state.score = 0;
+      state.correct = 0;
+      state.streak = 0;
+      pickNumber();
+      updateStats();
+    }
+
+    els.oddBtn.addEventListener('click', () => answer('odd'));
+    els.evenBtn.addEventListener('click', () => answer('even'));
+    els.nextBtn.addEventListener('click', nextQuestion);
+    els.newGame.addEventListener('click', resetGame);
+
+    renderLevelButtons();
+    resetGame();
+  </script>
+</body>
+</html>
