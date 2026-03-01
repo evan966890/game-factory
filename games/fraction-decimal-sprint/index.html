@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>分数化小数冲刺</title>
+  <style>
+    :root{--bg:#f4f8ff;--card:#fff;--text:#16324f;--ok:#157f3b;--bad:#c62828;--pri:#2f6fed}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC",sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:720px;margin:0 auto;padding:16px}
+    .card{background:var(--card);border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+    h1{font-size:1.35rem;margin:0 0 6px}.sub{margin:0 0 12px;color:#4a6789}
+    .q{font-size:2rem;text-align:center;margin:16px 0;font-weight:700}
+    .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button{border:0;border-radius:12px;padding:12px 10px;font-size:1rem;background:#eef3ff;color:var(--text)}
+    button:active{transform:scale(.98)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .pill{background:#edf4ff;border-radius:999px;padding:8px 12px;font-weight:600}
+    .msg{min-height:26px;margin-top:12px;font-weight:700}
+    .ok{color:var(--ok)} .bad{color:var(--bad)}
+    .next{background:var(--pri);color:#fff;margin-top:10px;width:100%}
+    .progress{height:10px;background:#e5edff;border-radius:999px;overflow:hidden;margin:12px 0}
+    .bar{height:100%;width:0;background:linear-gradient(90deg,#5a8dff,#2f6fed)}
+    @media (max-width:520px){.choices{grid-template-columns:1fr}.q{font-size:1.8rem}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>分数化小数冲刺</h1>
+      <p class="sub">把分数快速变成小数，10 题一局，看看你能得多少分！</p>
+
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="q" id="q">1/2 = ?</div>
+      <div class="choices" id="choices"></div>
+
+      <div class="msg" id="msg"></div>
+      <div class="row">
+        <div class="pill">得分：<span id="score">0</span></div>
+        <div class="pill">正确：<span id="correct">0</span>/<span id="total">0</span></div>
+        <div class="pill">准确率：<span id="acc">0%</span></div>
+      </div>
+      <button class="next" id="next">下一题</button>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const qEl = document.getElementById('q');
+  const choicesEl = document.getElementById('choices');
+  const msgEl = document.getElementById('msg');
+  const scoreEl = document.getElementById('score');
+  const correctEl = document.getElementById('correct');
+  const totalEl = document.getElementById('total');
+  const accEl = document.getElementById('acc');
+  const nextBtn = document.getElementById('next');
+  const bar = document.getElementById('bar');
+
+  const pool = [
+    [1,2],[1,4],[3,4],[1,5],[2,5],[3,5],[4,5],[1,8],[3,8],[5,8],[7,8],
+    [1,10],[3,10],[7,10],[9,10],[2,25],[3,25],[7,20],[9,20],[11,20],[13,20],
+    [3,2],[5,4],[7,4],[9,4],[11,4]
+  ];
+
+  let idx = 0, score = 0, correct = 0, total = 0, current = null, locked = false;
+  const rounds = 10;
+
+  const fmt = n => (Math.round(n * 1000) / 1000).toString().replace(/\.0+$/,'');
+
+  function pickQuestion() {
+    const [a,b] = pool[Math.floor(Math.random()*pool.length)];
+    const ans = a/b;
+    const opts = new Set([fmt(ans)]);
+    while (opts.size < 4) {
+      const delta = (Math.random()*0.6 + 0.1) * (Math.random() > 0.5 ? 1 : -1);
+      const fake = Math.max(0, ans + delta);
+      opts.add(fmt(fake));
+    }
+    return {a,b,ans:fmt(ans),options:[...opts].sort(() => Math.random()-0.5)};
+  }
+
+  function render() {
+    if (idx >= rounds) {
+      qEl.textContent = `闯关完成！`;
+      choicesEl.innerHTML = '';
+      msgEl.className = 'msg ok';
+      msgEl.textContent = `本局结束：${correct}/${total} 题正确，最终得分 ${score}！`;
+      nextBtn.textContent = '再来一局';
+      bar.style.width = '100%';
+      return;
+    }
+
+    locked = false;
+    current = pickQuestion();
+    qEl.textContent = `${current.a}/${current.b} = ?`;
+    msgEl.textContent = '';
+    msgEl.className = 'msg';
+    choicesEl.innerHTML = '';
+
+    current.options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.textContent = opt;
+      btn.onclick = () => check(opt, btn);
+      choicesEl.appendChild(btn);
+    });
+
+    totalEl.textContent = total;
+    correctEl.textContent = correct;
+    scoreEl.textContent = score;
+    accEl.textContent = total ? Math.round((correct/total)*100) + '%' : '0%';
+    bar.style.width = `${(idx/rounds)*100}%`;
+    nextBtn.textContent = '下一题';
+  }
+
+  function disableChoices() {
+    [...choicesEl.querySelectorAll('button')].forEach(b => b.disabled = true);
+  }
+
+  function check(opt, btn) {
+    if (locked) return;
+    locked = true;
+    total++;
+    if (opt === current.ans) {
+      correct++;
+      score += 10;
+      msgEl.className = 'msg ok';
+      msgEl.textContent = '✅ 回答正确！';
+      btn.style.background = '#d7f5df';
+    } else {
+      score = Math.max(0, score - 4);
+      msgEl.className = 'msg bad';
+      msgEl.textContent = `❌ 正确答案是 ${current.ans}`;
+      btn.style.background = '#ffe2e2';
+      [...choicesEl.querySelectorAll('button')].forEach(b => {
+        if (b.textContent === current.ans) b.style.background = '#d7f5df';
+      });
+    }
+    scoreEl.textContent = score;
+    totalEl.textContent = total;
+    correctEl.textContent = correct;
+    accEl.textContent = Math.round((correct/total)*100) + '%';
+    disableChoices();
+  }
+
+  nextBtn.onclick = () => {
+    if (idx >= rounds) {
+      idx = 0; score = 0; correct = 0; total = 0;
+      render();
+      return;
+    }
+    idx++;
+    render();
+  };
+
+  render();
+})();
+</script>
+</body>
+</html>
