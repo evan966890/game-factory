@@ -54,5 +54,17 @@
     "path": "games/number-maze/index.html",
     "category": "education",
     "createdAt": "2026-03-01T04:24:00Z"
+  },
+  {
+    "name": "角度分类训练营",
+    "path": "games/angle-classifier/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T04:37:00Z"
+  },
+  {
+    "name": "行星排序实验室",
+    "path": "games/planet-order/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T04:39:00Z"
   }
 ]

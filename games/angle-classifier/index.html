@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>角度分类训练营</title>
+  <style>
+    :root {
+      --bg: #f6f8ff;
+      --card: #ffffff;
+      --text: #1f2a44;
+      --primary: #4f7cff;
+      --accent: #23c58b;
+      --danger: #ff5b6e;
+      --muted: #66708a;
+      --shadow: 0 8px 24px rgba(31, 42, 68, 0.12);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top, #eef3ff, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px;
+    }
+    .app {
+      width: min(560px, 100%);
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    h1 {
+      font-size: clamp(22px, 5vw, 30px);
+      margin: 0 0 8px;
+      text-align: center;
+    }
+    .desc {
+      margin: 0 0 14px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 14px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(80px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .stat {
+      background: #f3f6ff;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      font-size: 13px;
+    }
+    .stat strong {
+      display: block;
+      font-size: 20px;
+      margin-top: 2px;
+    }
+    .board {
+      background: #fbfcff;
+      border: 2px dashed #d9e2ff;
+      border-radius: 12px;
+      padding: 10px;
+    }
+    svg {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+      display: block;
+      background: #fff;
+      border-radius: 10px;
+    }
+    .question {
+      text-align: center;
+      margin: 10px 0;
+      font-size: 15px;
+      color: var(--muted);
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 8px;
+      font-size: 15px;
+      font-weight: 600;
+      background: #e9efff;
+      color: var(--text);
+      cursor: pointer;
+      min-height: 44px;
+    }
+    button:active { transform: scale(0.98); }
+    .next {
+      width: 100%;
+      margin-top: 10px;
+      background: var(--primary);
+      color: #fff;
+    }
+    .reset {
+      width: 100%;
+      margin-top: 8px;
+      background: #f0f3fa;
+      color: var(--text);
+    }
+    .feedback {
+      min-height: 24px;
+      margin-top: 10px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .ok { color: var(--accent); }
+    .bad { color: var(--danger); }
+  </style>
+</head>
+<body>
+  <main class="app" aria-live="polite">
+    <h1>角度分类训练营</h1>
+    <p class="desc">观察图中角度，判断它是锐角、直角还是钝角。</p>
+
+    <section class="stats" aria-label="游戏统计">
+      <div class="stat">得分<strong id="score">0</strong></div>
+      <div class="stat">正确<strong id="correct">0</strong></div>
+      <div class="stat">准确率<strong id="accuracy">0%</strong></div>
+    </section>
+
+    <section class="board">
+      <svg viewBox="0 0 300 300" role="img" aria-label="角度示意图">
+        <circle cx="150" cy="150" r="4" fill="#1f2a44" />
+        <line id="ray1" x1="150" y1="150" x2="150" y2="60" stroke="#4f7cff" stroke-width="8" stroke-linecap="round" />
+        <line id="ray2" x1="150" y1="150" x2="230" y2="190" stroke="#23c58b" stroke-width="8" stroke-linecap="round" />
+        <path id="arc" d="" stroke="#ff9f1c" stroke-width="5" fill="none" />
+      </svg>
+      <div class="question" id="question">这是哪一类角？</div>
+      <div class="buttons">
+        <button data-type="acute">锐角（小于90°）</button>
+        <button data-type="right">直角（等于90°）</button>
+        <button data-type="obtuse">钝角（大于90°）</button>
+      </div>
+      <button class="next" id="nextBtn">下一题</button>
+      <button class="reset" id="resetBtn">重置</button>
+      <div class="feedback" id="feedback"></div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const scoreEl = document.getElementById('score');
+      const correctEl = document.getElementById('correct');
+      const accuracyEl = document.getElementById('accuracy');
+      const feedbackEl = document.getElementById('feedback');
+      const ray2 = document.getElementById('ray2');
+      const arc = document.getElementById('arc');
+      const buttons = document.querySelectorAll('[data-type]');
+      const nextBtn = document.getElementById('nextBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      let score = 0;
+      let correct = 0;
+      let total = 0;
+      let current = { degree: 90, type: 'right' };
+      let answered = false;
+
+      function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function pickAngle() {
+        const pool = ['acute', 'right', 'obtuse'];
+        const type = pool[randomInt(0, pool.length - 1)];
+        let degree = 90;
+        if (type === 'acute') degree = randomInt(20, 85);
+        if (type === 'right') degree = 90;
+        if (type === 'obtuse') degree = randomInt(95, 160);
+        return { degree, type };
+      }
+
+      function pointByAngle(centerX, centerY, radius, angleDeg) {
+        const rad = (angleDeg * Math.PI) / 180;
+        return {
+          x: centerX + radius * Math.cos(rad),
+          y: centerY - radius * Math.sin(rad)
+        };
+      }
+
+      function drawArc(degree) {
+        const cx = 150, cy = 150, r = 42;
+        const start = pointByAngle(cx, cy, r, 90);
+        const end = pointByAngle(cx, cy, r, 90 - degree);
+        const largeArcFlag = degree > 180 ? 1 : 0;
+        arc.setAttribute('d', `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`);
+      }
+
+      function renderAngle(degree) {
+        const p = pointByAngle(150, 150, 100, 90 - degree);
+        ray2.setAttribute('x2', String(p.x));
+        ray2.setAttribute('y2', String(p.y));
+        drawArc(degree);
+      }
+
+      function updateStats() {
+        scoreEl.textContent = String(score);
+        correctEl.textContent = String(correct);
+        const acc = total === 0 ? 0 : Math.round((correct / total) * 100);
+        accuracyEl.textContent = acc + '%';
+      }
+
+      function newQuestion() {
+        current = pickAngle();
+        answered = false;
+        renderAngle(current.degree);
+        feedbackEl.textContent = '';
+        feedbackEl.className = 'feedback';
+      }
+
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+          total += 1;
+          const chosen = btn.getAttribute('data-type');
+          if (chosen === current.type) {
+            correct += 1;
+            score += 10;
+            feedbackEl.textContent = `✅ 正确！这是 ${current.degree}°。`;
+            feedbackEl.classList.add('ok');
+          } else {
+            score = Math.max(0, score - 5);
+            const map = { acute: '锐角', right: '直角', obtuse: '钝角' };
+            feedbackEl.textContent = `❌ 再试试！这是 ${map[current.type]}（${current.degree}°）。`;
+            feedbackEl.classList.add('bad');
+          }
+          updateStats();
+        });
+      });
+
+      nextBtn.addEventListener('click', newQuestion);
+      resetBtn.addEventListener('click', () => {
+        score = 0;
+        correct = 0;
+        total = 0;
+        updateStats();
+        newQuestion();
+      });
+
+      updateStats();
+      newQuestion();
+    })();
+  </script>
+</body>
+</html>
