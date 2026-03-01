@@ -150,5 +150,11 @@
     "path": "games/factorization-quiz/index.html",
     "category": "education",
     "createdAt": "2026-03-01T09:21:02Z"
+  },
+  {
+    "name": "近义词冲刺",
+    "path": "games/synonym-sprint/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T09:31:22Z"
   }
 ]

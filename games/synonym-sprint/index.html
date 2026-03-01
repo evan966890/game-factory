@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>近义词冲刺</title>
+  <style>
+    :root {
+      --bg: #f2f8ff;
+      --card: #ffffff;
+      --ink: #1f2d3d;
+      --primary: #2d7ef7;
+      --good: #14a44d;
+      --bad: #d93025;
+      --shadow: 0 8px 20px rgba(21, 58, 102, 0.12);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #e8f2ff 0%, var(--bg) 100%);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(720px, 100%);
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.45rem;
+      text-align: center;
+    }
+    .subtitle {
+      margin: 8px 0 16px;
+      text-align: center;
+      color: #4a5d75;
+      font-size: 0.95rem;
+    }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .badge {
+      background: #f5f9ff;
+      border: 1px solid #dbe8ff;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+    .badge .k { font-size: 0.8rem; color: #53709a; }
+    .badge .v { font-size: 1.2rem; font-weight: 700; margin-top: 3px; }
+    .question-card {
+      background: #f8fbff;
+      border: 1px solid #dbe8ff;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .prompt { font-size: 0.95rem; color: #486089; }
+    .word {
+      margin-top: 6px;
+      font-size: clamp(1.6rem, 6vw, 2.2rem);
+      font-weight: 800;
+      text-align: center;
+      color: #153a66;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    button.option {
+      width: 100%;
+      border: 1px solid #c9dcff;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 1rem;
+      background: #fff;
+      color: #19375e;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform .06s ease, background .2s ease, border-color .2s ease;
+    }
+    button.option:active { transform: scale(0.98); }
+    button.option[disabled] { opacity: 0.8; cursor: not-allowed; }
+    .feedback {
+      min-height: 24px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .good { color: var(--good); }
+    .bad { color: var(--bad); }
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .btn.primary { background: var(--primary); color: white; }
+    .btn.secondary { background: #e8f1ff; color: #1b3f70; }
+    .result {
+      margin-top: 12px;
+      background: #f5f9ff;
+      border: 1px solid #dbe8ff;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      font-size: 0.95rem;
+      color: #2f4e77;
+    }
+    @media (min-width: 620px) {
+      .options { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-live="polite">
+    <h1>近义词冲刺</h1>
+    <p class="subtitle">在 60 秒内选出每个词语的近义词，看看你能拿多少分！</p>
+
+    <section class="hud">
+      <div class="badge"><div class="k">得分</div><div class="v" id="score">0</div></div>
+      <div class="badge"><div class="k">题号</div><div class="v" id="round">1</div></div>
+      <div class="badge"><div class="k">倒计时</div><div class="v" id="time">60</div></div>
+    </section>
+
+    <section class="question-card">
+      <div class="prompt">请选择下列词语的近义词：</div>
+      <div class="word" id="word">加载中...</div>
+    </section>
+
+    <section class="options" id="options"></section>
+    <div class="feedback" id="feedback"></div>
+
+    <section class="actions">
+      <button class="btn secondary" id="skipBtn" type="button">跳过这题</button>
+      <button class="btn primary" id="restartBtn" type="button">重新开始</button>
+    </section>
+
+    <section class="result" id="result">答对 +10 分，答错 -3 分，跳过不扣分。</section>
+  </main>
+
+  <script>
+    const WORD_BANK = [
+      ["开心", "高兴", ["难过", "安静", "缓慢"]],
+      ["聪明", "机智", ["笨拙", "疲劳", "着急"]],
+      ["勇敢", "大胆", ["胆小", "害怕", "消极"]],
+      ["迅速", "快速", ["缓慢", "悠闲", "笨重"]],
+      ["整洁", "干净", ["凌乱", "破旧", "拥挤"]],
+      ["珍贵", "宝贵", ["便宜", "普通", "微小"]],
+      ["宽广", "辽阔", ["狭窄", "短小", "弯曲"]],
+      ["安静", "宁静", ["喧闹", "热闹", "躁动"]],
+      ["温暖", "暖和", ["寒冷", "潮湿", "昏暗"]],
+      ["努力", "勤奋", ["懒惰", "放弃", "随意"]],
+      ["美丽", "漂亮", ["丑陋", "古老", "坚硬"]],
+      ["强壮", "健壮", ["虚弱", "瘦小", "柔软"]],
+      ["专心", "专注", ["分心", "胡闹", "粗心"]],
+      ["著名", "有名", ["陌生", "安静", "偏远"]],
+      ["诚实", "老实", ["狡猾", "浮夸", "虚假"]],
+      ["节省", "节约", ["浪费", "铺张", "随便"]],
+      ["清楚", "明白", ["模糊", "困惑", "深奥"]],
+      ["兴奋", "激动", ["平静", "乏味", "困倦"]]
+    ];
+
+    const state = {
+      score: 0,
+      round: 1,
+      leftTime: 60,
+      timer: null,
+      current: null,
+      locked: false,
+      played: []
+    };
+
+    const el = {
+      score: document.getElementById('score'),
+      round: document.getElementById('round'),
+      time: document.getElementById('time'),
+      word: document.getElementById('word'),
+      options: document.getElementById('options'),
+      feedback: document.getElementById('feedback'),
+      result: document.getElementById('result'),
+      restartBtn: document.getElementById('restartBtn'),
+      skipBtn: document.getElementById('skipBtn')
+    };
+
+    function pickQuestion() {
+      if (state.played.length === WORD_BANK.length) state.played = [];
+      let idx;
+      do {
+        idx = Math.floor(Math.random() * WORD_BANK.length);
+      } while (state.played.includes(idx));
+
+      state.played.push(idx);
+      const [word, right, wrongs] = WORD_BANK[idx];
+      const options = [right, ...wrongs].sort(() => Math.random() - 0.5);
+      state.current = { word, right, options };
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      el.word.textContent = state.current.word;
+      el.options.innerHTML = '';
+      state.current.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option';
+        btn.type = 'button';
+        btn.textContent = opt;
+        btn.addEventListener('click', () => handleAnswer(opt, btn));
+        el.options.appendChild(btn);
+      });
+      el.feedback.textContent = '';
+      el.feedback.className = 'feedback';
+      syncHud();
+    }
+
+    function handleAnswer(choice, btn) {
+      if (state.locked || state.leftTime <= 0) return;
+      state.locked = true;
+
+      const ok = choice === state.current.right;
+      if (ok) {
+        state.score += 10;
+        el.feedback.textContent = '答对啦！+';
+        el.feedback.classList.add('good');
+      } else {
+        state.score = Math.max(0, state.score - 3);
+        el.feedback.textContent = `答错了，正确答案是：${state.current.right}`;
+        el.feedback.classList.add('bad');
+      }
+
+      [...el.options.children].forEach(b => {
+        b.disabled = true;
+        if (b.textContent === state.current.right) {
+          b.style.borderColor = '#14a44d';
+          b.style.background = '#e8f8ef';
+        }
+        if (!ok && b === btn) {
+          b.style.borderColor = '#d93025';
+          b.style.background = '#fdebea';
+        }
+      });
+
+      state.round += 1;
+      syncHud();
+      setTimeout(() => {
+        state.locked = false;
+        if (state.leftTime > 0) pickQuestion();
+      }, 700);
+    }
+
+    function skipQuestion() {
+      if (state.locked || state.leftTime <= 0) return;
+      state.round += 1;
+      syncHud();
+      pickQuestion();
+    }
+
+    function syncHud() {
+      el.score.textContent = state.score;
+      el.round.textContent = state.round;
+      el.time.textContent = state.leftTime;
+    }
+
+    function gameOver() {
+      clearInterval(state.timer);
+      state.timer = null;
+      state.locked = true;
+      [...el.options.children].forEach(b => b.disabled = true);
+      el.feedback.textContent = '时间到！';
+      el.feedback.className = 'feedback good';
+      const level = state.score >= 120 ? '词汇达人' : state.score >= 80 ? '语文能手' : '继续加油';
+      el.result.textContent = `本局得分 ${state.score} 分，评级：${level}。点击“重新开始”再来一局！`;
+    }
+
+    function startGame() {
+      state.score = 0;
+      state.round = 1;
+      state.leftTime = 60;
+      state.locked = false;
+      state.played = [];
+      clearInterval(state.timer);
+      state.timer = setInterval(() => {
+        state.leftTime -= 1;
+        syncHud();
+        if (state.leftTime <= 0) gameOver();
+      }, 1000);
+      el.result.textContent = '答对 +10 分，答错 -3 分，跳过不扣分。';
+      pickQuestion();
+    }
+
+    el.restartBtn.addEventListener('click', startGame);
+    el.skipBtn.addEventListener('click', skipQuestion);
+
+    startGame();
+  </script>
+</body>
+</html>
