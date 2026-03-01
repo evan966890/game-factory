@@ -30,5 +30,11 @@
     "path": "games/fraction-compare/index.html",
     "category": "education",
     "createdAt": "2026-03-01T03:40:00Z"
+  },
+  {
+    "name": "图形配对大师",
+    "path": "games/shape-match/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T03:59:02Z"
   }
 ]
