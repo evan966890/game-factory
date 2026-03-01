@@ -234,5 +234,11 @@
     "path": "games/fraction-rotation-lab/index.html",
     "category": "数学+空间逻辑",
     "createdAt": "2026-03-01T13:51:33.160543Z"
+  },
+  {
+    "name": "倍数冲刺",
+    "path": "games/multiple-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T14:11:16.910Z"
   }
 ]
