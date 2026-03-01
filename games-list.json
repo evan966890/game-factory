@@ -108,5 +108,11 @@
     "path": "games/antonym-challenge/index.html",
     "category": "education",
     "createdAt": "2026-03-01T06:25:13Z"
+  },
+  {
+    "name": "物态分类实验室",
+    "path": "games/matter-classifier/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T06:27:33Z"
   }
 ]

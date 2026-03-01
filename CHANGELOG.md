@@ -66,3 +66,6 @@
 - 新增教育游戏 `反义词挑战`，文件路径：`games/antonym-challenge/index.html`。
 - 游戏功能包含：反义词四选一判断、即时反馈、得分/正确率统计、下一题与重置。
 - 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。
+- 新增教育游戏 `物态分类实验室`，文件路径：`games/matter-classifier/index.html`。
+- 游戏功能包含：物品物态判断（固体/液体/气体）、即时反馈、得分与正确率统计、下一题与重置。
+- 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。

@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>物态分类实验室</title>
+  <style>
+    :root {
+      --bg: #f4f9ff;
+      --card: #ffffff;
+      --text: #20324a;
+      --muted: #637488;
+      --primary: #0a74b8;
+      --primary-dark: #085a8f;
+      --ok: #1d7a46;
+      --bad: #b33b3b;
+      --border: #d9e5ef;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #e9f4ff 0%, var(--bg) 48%, #f6fff9 100%);
+    }
+
+    .app {
+      width: min(100%, 620px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 28px rgba(8, 90, 143, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.42rem;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 6px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .value {
+      display: block;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .question-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fcfeff;
+      padding: 14px;
+    }
+
+    .question {
+      margin: 0 0 12px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.45;
+    }
+
+    .target {
+      color: var(--primary-dark);
+      margin-left: 4px;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .option-btn {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 8px;
+      background: #fff;
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.06s ease, background 0.2s ease;
+      touch-action: manipulation;
+    }
+
+    .option-btn:hover { background: #f0f8ff; }
+    .option-btn:active { transform: scale(0.98); }
+    .option-btn:disabled { opacity: 0.72; cursor: not-allowed; }
+
+    .option-btn.correct {
+      background: #e9f9ef;
+      border-color: #a9e1bf;
+      color: var(--ok);
+    }
+
+    .option-btn.wrong {
+      background: #fff0f0;
+      border-color: #f2bcbc;
+      color: var(--bad);
+    }
+
+    .message {
+      margin-top: 12px;
+      min-height: 1.5em;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .message.ok { color: var(--ok); }
+    .message.bad { color: var(--bad); }
+
+    .actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.94rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .btn.primary {
+      border-color: transparent;
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn.primary:hover { background: var(--primary-dark); }
+
+    @media (max-width: 560px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="物态分类实验室游戏">
+    <h1>物态分类实验室</h1>
+    <p class="subtitle">判断物品属于固体、液体还是气体。答对得分，答错会扣分。</p>
+
+    <section class="stats" aria-label="统计信息">
+      <div class="stat"><span class="label">总题数</span><span id="total" class="value">0</span></div>
+      <div class="stat"><span class="label">答对</span><span id="correct" class="value">0</span></div>
+      <div class="stat"><span class="label">得分</span><span id="score" class="value">0</span></div>
+      <div class="stat"><span class="label">正确率</span><span id="accuracy" class="value">0%</span></div>
+    </section>
+
+    <section class="question-box" aria-live="polite">
+      <p class="question">「<span id="itemWord" class="target">水</span>」属于哪一种物态？</p>
+      <div id="options" class="options"></div>
+      <div id="message" class="message"></div>
+      <div class="actions">
+        <button id="nextBtn" type="button" class="btn primary">下一题</button>
+        <button id="resetBtn" type="button" class="btn">重置</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const bank = [
+        { item: '石头', type: '固体' },
+        { item: '铅笔', type: '固体' },
+        { item: '冰块', type: '固体' },
+        { item: '木桌', type: '固体' },
+        { item: '牛奶', type: '液体' },
+        { item: '果汁', type: '液体' },
+        { item: '汽油', type: '液体' },
+        { item: '雨水', type: '液体' },
+        { item: '空气', type: '气体' },
+        { item: '氧气', type: '气体' },
+        { item: '水蒸气', type: '气体' },
+        { item: '二氧化碳', type: '气体' }
+      ];
+
+      const allOptions = ['固体', '液体', '气体', '难判断'];
+
+      const itemWordEl = document.getElementById('itemWord');
+      const optionsEl = document.getElementById('options');
+      const messageEl = document.getElementById('message');
+      const totalEl = document.getElementById('total');
+      const correctEl = document.getElementById('correct');
+      const scoreEl = document.getElementById('score');
+      const accuracyEl = document.getElementById('accuracy');
+      const nextBtn = document.getElementById('nextBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      let total = 0;
+      let correct = 0;
+      let score = 0;
+      let answered = false;
+      let current = null;
+
+      function randomInt(max) {
+        return Math.floor(Math.random() * (max + 1));
+      }
+
+      function shuffle(arr) {
+        const copy = arr.slice();
+        for (let i = copy.length - 1; i > 0; i -= 1) {
+          const j = randomInt(i);
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function updateStats() {
+        totalEl.textContent = String(total);
+        correctEl.textContent = String(correct);
+        scoreEl.textContent = String(score);
+        const rate = total === 0 ? 0 : Math.round((correct / total) * 100);
+        accuracyEl.textContent = rate + '%';
+      }
+
+      function nextQuestion() {
+        current = bank[randomInt(bank.length - 1)];
+        answered = false;
+        itemWordEl.textContent = current.item;
+        messageEl.textContent = '';
+        messageEl.className = 'message';
+
+        const options = shuffle(allOptions);
+        optionsEl.innerHTML = '';
+        options.forEach((label) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'option-btn';
+          btn.textContent = label;
+          btn.addEventListener('click', () => onChoose(btn, label));
+          optionsEl.appendChild(btn);
+        });
+      }
+
+      function onChoose(btn, value) {
+        if (answered) return;
+        answered = true;
+        total += 1;
+
+        const btns = Array.from(optionsEl.querySelectorAll('button'));
+        btns.forEach((b) => (b.disabled = true));
+
+        if (value === current.type) {
+          correct += 1;
+          score += 10;
+          btn.classList.add('correct');
+          messageEl.textContent = '回答正确，+10 分！';
+          messageEl.className = 'message ok';
+        } else {
+          score = Math.max(0, score - 5);
+          btn.classList.add('wrong');
+          const rightBtn = btns.find((b) => b.textContent === current.type);
+          if (rightBtn) rightBtn.classList.add('correct');
+          messageEl.textContent = '回答错误，正确答案是「' + current.type + '」。';
+          messageEl.className = 'message bad';
+        }
+
+        updateStats();
+      }
+
+      function resetGame() {
+        total = 0;
+        correct = 0;
+        score = 0;
+        updateStats();
+        nextQuestion();
+      }
+
+      nextBtn.addEventListener('click', nextQuestion);
+      resetBtn.addEventListener('click', resetGame);
+
+      updateStats();
+      nextQuestion();
+    })();
+  </script>
+</body>
+</html>
