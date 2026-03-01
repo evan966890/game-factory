@@ -384,5 +384,11 @@
     "path": "games/grid-dispatcher/index.html",
     "category": "科学+策略",
     "createdAt": "2026-03-01T20:48:59.107142Z"
+  },
+  {
+    "name": "四则运算接龙",
+    "path": "games/arithmetic-chain-relay/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T04:59:14.646648+08:00"
   }
 ]

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>四则运算接龙</title>
+  <style>
+    :root {
+      --bg: #f3f7ff;
+      --card: #ffffff;
+      --ink: #1b2a4a;
+      --primary: #3a7bff;
+      --ok: #12a150;
+      --bad: #d83434;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #f7faff 0%, #edf4ff 100%);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: 100%;
+      max-width: 640px;
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow: 0 12px 30px rgba(58, 123, 255, 0.12);
+      padding: 18px;
+    }
+    h1 { margin: 0 0 8px; font-size: 28px; text-align: center; }
+    .sub { text-align: center; margin: 0 0 14px; color: #4f628f; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .chip {
+      background: #eef3ff;
+      border-radius: 12px;
+      text-align: center;
+      padding: 10px 6px;
+      font-weight: 700;
+    }
+    .screen {
+      border: 2px dashed #c8d9ff;
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+    .expr {
+      font-size: clamp(32px, 8vw, 52px);
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .chain {
+      font-size: 20px;
+      color: #38518a;
+      font-weight: 700;
+    }
+    .input-row {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      max-width: 320px;
+    }
+    input {
+      flex: 1;
+      border: 2px solid #bdd0ff;
+      border-radius: 12px;
+      font-size: 22px;
+      text-align: center;
+      padding: 10px;
+      outline: none;
+    }
+    input:focus { border-color: var(--primary); }
+    button {
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 12px 16px;
+      cursor: pointer;
+    }
+    button:active { transform: scale(0.98); }
+    .msg { min-height: 24px; font-weight: 700; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .footer {
+      margin-top: 14px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>四则运算接龙</h1>
+    <p class="sub">三年级心算挑战：把结果接下去，连对 10 题赢得高分！</p>
+
+    <div class="stats">
+      <div class="chip">得分<br><span id="score">0</span></div>
+      <div class="chip">连对<br><span id="streak">0</span></div>
+      <div class="chip">剩余题数<br><span id="left">10</span></div>
+    </div>
+
+    <section class="screen" id="startScreen">
+      <div>规则：每题根据上一题结果继续计算，输入答案后按“提交”或回车。</div>
+      <button id="startBtn">开始游戏</button>
+    </section>
+
+    <section class="screen hidden" id="gameScreen">
+      <div class="chain" id="chainInfo">起始值：0</div>
+      <div class="expr" id="expr">0 + 0 = ?</div>
+      <div class="input-row">
+        <input id="answer" inputmode="numeric" autocomplete="off" />
+        <button id="submitBtn">提交</button>
+      </div>
+      <div class="msg" id="msg"></div>
+    </section>
+
+    <section class="screen hidden" id="endScreen">
+      <h2>本局完成！</h2>
+      <div id="resultText"></div>
+      <div class="footer">
+        <button id="restartBtn">再来一局</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const totalRounds = 10;
+    const ops = ['+', '-', '×', '÷'];
+
+    const el = {
+      score: document.getElementById('score'),
+      streak: document.getElementById('streak'),
+      left: document.getElementById('left'),
+      startScreen: document.getElementById('startScreen'),
+      gameScreen: document.getElementById('gameScreen'),
+      endScreen: document.getElementById('endScreen'),
+      chainInfo: document.getElementById('chainInfo'),
+      expr: document.getElementById('expr'),
+      answer: document.getElementById('answer'),
+      msg: document.getElementById('msg'),
+      resultText: document.getElementById('resultText'),
+      startBtn: document.getElementById('startBtn'),
+      submitBtn: document.getElementById('submitBtn'),
+      restartBtn: document.getElementById('restartBtn')
+    };
+
+    let score = 0;
+    let streak = 0;
+    let round = 0;
+    let currentBase = 0;
+    let currentAnswer = 0;
+
+    function rand(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function pickQuestion() {
+      const op = ops[rand(0, ops.length - 1)];
+      let b = 0;
+      if (op === '+') {
+        b = rand(1, 20);
+        currentAnswer = currentBase + b;
+      } else if (op === '-') {
+        b = rand(1, Math.max(1, currentBase));
+        currentAnswer = currentBase - b;
+      } else if (op === '×') {
+        b = rand(2, 9);
+        currentAnswer = currentBase * b;
+      } else {
+        const factor = rand(2, 9);
+        currentAnswer = currentBase;
+        currentBase = currentBase * factor;
+        b = factor;
+      }
+
+      el.chainInfo.textContent = `接龙起点：${currentBase}`;
+      el.expr.textContent = `${currentBase} ${op} ${b} = ?`;
+
+      if (op !== '÷') {
+        // no-op, keep expression as built
+      } else {
+        currentAnswer = currentBase / b;
+      }
+    }
+
+    function updateStats() {
+      el.score.textContent = score;
+      el.streak.textContent = streak;
+      el.left.textContent = totalRounds - round;
+    }
+
+    function showMessage(text, good) {
+      el.msg.textContent = text;
+      el.msg.className = `msg ${good ? 'ok' : 'bad'}`;
+    }
+
+    function nextRound() {
+      if (round >= totalRounds) {
+        endGame();
+        return;
+      }
+      pickQuestion();
+      el.answer.value = '';
+      el.answer.focus();
+      updateStats();
+    }
+
+    function submit() {
+      const val = Number(el.answer.value.trim());
+      if (!Number.isFinite(val)) {
+        showMessage('请输入数字答案。', false);
+        return;
+      }
+
+      round += 1;
+      if (val === currentAnswer) {
+        streak += 1;
+        score += 10 + Math.min(streak, 5) * 2;
+        showMessage('答对啦，继续接龙！', true);
+        currentBase = currentAnswer;
+      } else {
+        streak = 0;
+        score = Math.max(0, score - 4);
+        showMessage(`这题答案是 ${currentAnswer}，继续加油！`, false);
+        currentBase = currentAnswer;
+      }
+
+      updateStats();
+      setTimeout(nextRound, 550);
+    }
+
+    function startGame() {
+      score = 0;
+      streak = 0;
+      round = 0;
+      currentBase = rand(5, 20);
+      el.startScreen.classList.add('hidden');
+      el.endScreen.classList.add('hidden');
+      el.gameScreen.classList.remove('hidden');
+      el.msg.textContent = '';
+      nextRound();
+    }
+
+    function endGame() {
+      el.gameScreen.classList.add('hidden');
+      el.endScreen.classList.remove('hidden');
+      const rank = score >= 120 ? '心算王者' : score >= 90 ? '接龙高手' : '继续练习';
+      el.resultText.textContent = `总分 ${score} 分，最高连对 ${streak}，评级：${rank}`;
+    }
+
+    el.startBtn.addEventListener('click', startGame);
+    el.restartBtn.addEventListener('click', startGame);
+    el.submitBtn.addEventListener('click', submit);
+    el.answer.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submit();
+    });
+  </script>
+</body>
+</html>
