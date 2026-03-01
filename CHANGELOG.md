@@ -45,3 +45,6 @@
 - 新增教育游戏 `行星排序实验室`，文件路径：`games/planet-order/index.html`。
 - 游戏功能包含：行星顺序拖拽排序（支持鼠标/触摸）、即时判定、得分与准确率统计、洗牌重开。
 - 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。
+- 新增教育游戏 `二进制灯泡工坊`，文件路径：`games/binary-lights/index.html`。
+- 游戏功能包含：4 位二进制（8/4/2/1）灯泡点亮交互、十进制目标匹配、即时判定、得分与准确率统计、下一题与重置。
+- 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。

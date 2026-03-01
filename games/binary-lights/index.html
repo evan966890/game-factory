@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>二进制灯泡工坊</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --ok: #10b981;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --accent: #60a5fa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: 100%;
+      max-width: 720px;
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 16px;
+      backdrop-filter: blur(8px);
+    }
+    h1 { margin: 0 0 8px; font-size: 1.4rem; }
+    p { margin: 8px 0; color: var(--muted); }
+    .target {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(96, 165, 250, 0.3);
+      text-align: center;
+    }
+    .target strong { color: #fef08a; font-size: 1.5rem; }
+    .bits {
+      margin: 16px 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .bit {
+      padding: 10px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: #1f2937;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+      transition: transform .1s ease, border-color .2s ease;
+    }
+    .bit:active { transform: scale(.98); }
+    .bit.on {
+      border-color: #fde047;
+      background: linear-gradient(180deg, #facc15, #f59e0b);
+      color: #111827;
+      font-weight: 700;
+    }
+    .value { font-size: 1.2rem; margin-top: 6px; }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      margin: 8px 0;
+    }
+    .pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: #0b1220;
+      color: var(--text);
+      font-size: .9rem;
+    }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: .95rem;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .check { background: var(--ok); color: #062b20; font-weight: 700; }
+    .next { background: var(--accent); color: #052241; }
+    .reset { background: #334155; color: var(--text); }
+    .msg {
+      min-height: 26px;
+      margin-top: 8px;
+      font-weight: 600;
+    }
+    .msg.ok { color: var(--ok); }
+    .msg.bad { color: var(--danger); }
+    @media (max-width: 480px) {
+      h1 { font-size: 1.2rem; }
+      .bits { gap: 8px; }
+      .bit { padding: 8px 6px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>💡 二进制灯泡工坊</h1>
+    <p>目标：点亮 8 / 4 / 2 / 1 四个灯泡，凑出指定十进制数字（0~15）。</p>
+
+    <section class="target">
+      目标数字：<strong id="targetNum">0</strong>
+      <div class="value">当前数值：<span id="currentNum">0</span></div>
+      <div class="value">当前二进制：<span id="currentBits">0000</span></div>
+    </section>
+
+    <section class="bits" id="bits"></section>
+
+    <div class="row">
+      <div class="pill">得分：<span id="score">0</span></div>
+      <div class="pill">已答：<span id="done">0</span></div>
+      <div class="pill">正确：<span id="correct">0</span></div>
+      <div class="pill">准确率：<span id="acc">0%</span></div>
+    </div>
+
+    <div class="actions">
+      <button class="check" id="checkBtn">提交答案</button>
+      <button class="next" id="nextBtn">下一题</button>
+      <button class="reset" id="resetBtn">重置本题</button>
+    </div>
+    <div id="message" class="msg" aria-live="polite"></div>
+  </main>
+
+  <script>
+    (function () {
+      const weights = [8, 4, 2, 1];
+      const state = {
+        target: 0,
+        bits: [0, 0, 0, 0],
+        score: 0,
+        done: 0,
+        correct: 0,
+      };
+
+      const bitsEl = document.getElementById('bits');
+      const targetNumEl = document.getElementById('targetNum');
+      const currentNumEl = document.getElementById('currentNum');
+      const currentBitsEl = document.getElementById('currentBits');
+      const scoreEl = document.getElementById('score');
+      const doneEl = document.getElementById('done');
+      const correctEl = document.getElementById('correct');
+      const accEl = document.getElementById('acc');
+      const messageEl = document.getElementById('message');
+
+      function toBinary4(n) {
+        return n.toString(2).padStart(4, '0');
+      }
+
+      function currentValue() {
+        return state.bits.reduce((sum, bit, i) => sum + bit * weights[i], 0);
+      }
+
+      function updateStats() {
+        scoreEl.textContent = String(state.score);
+        doneEl.textContent = String(state.done);
+        correctEl.textContent = String(state.correct);
+        const acc = state.done ? Math.round((state.correct / state.done) * 100) : 0;
+        accEl.textContent = acc + '%';
+      }
+
+      function updateCurrentDisplay() {
+        const value = currentValue();
+        currentNumEl.textContent = String(value);
+        currentBitsEl.textContent = state.bits.join('');
+      }
+
+      function renderBits() {
+        bitsEl.innerHTML = '';
+        weights.forEach((w, i) => {
+          const div = document.createElement('div');
+          div.className = 'bit' + (state.bits[i] ? ' on' : '');
+          div.setAttribute('role', 'button');
+          div.setAttribute('tabindex', '0');
+          div.innerHTML = `<div>权重 ${w}</div><div style="font-size:1.4rem;margin-top:4px;">${state.bits[i] ? '💡' : '⚪️'}</div><div>${state.bits[i]}</div>`;
+          div.addEventListener('click', () => toggleBit(i));
+          div.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleBit(i);
+            }
+          });
+          bitsEl.appendChild(div);
+        });
+      }
+
+      function setMessage(text, type) {
+        messageEl.textContent = text;
+        messageEl.className = 'msg ' + (type || '');
+      }
+
+      function toggleBit(i) {
+        state.bits[i] = state.bits[i] ? 0 : 1;
+        renderBits();
+        updateCurrentDisplay();
+      }
+
+      function nextQuestion() {
+        state.target = Math.floor(Math.random() * 16);
+        state.bits = [0, 0, 0, 0];
+        targetNumEl.textContent = String(state.target);
+        renderBits();
+        updateCurrentDisplay();
+        setMessage('新题已生成，试试把灯泡点成目标数字吧！', '');
+      }
+
+      function checkAnswer() {
+        const value = currentValue();
+        state.done += 1;
+        if (value === state.target) {
+          state.correct += 1;
+          state.score += 10;
+          setMessage(`答对了！${value} 的二进制是 ${toBinary4(value)}。+10 分`, 'ok');
+        } else {
+          state.score = Math.max(0, state.score - 4);
+          setMessage(`还差一点：你给的是 ${value}（${toBinary4(value)}），目标是 ${state.target}（${toBinary4(state.target)}）。`, 'bad');
+        }
+        updateStats();
+      }
+
+      document.getElementById('checkBtn').addEventListener('click', checkAnswer);
+      document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        state.bits = [0, 0, 0, 0];
+        renderBits();
+        updateCurrentDisplay();
+        setMessage('已重置本题灯泡状态。', '');
+      });
+
+      nextQuestion();
+      updateStats();
+    })();
+  </script>
+</body>
+</html>
