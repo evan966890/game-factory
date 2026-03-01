@@ -246,5 +246,11 @@
     "path": "games/spatial-equation-maze/index.html",
     "category": "数学+逻辑/空间",
     "createdAt": "2026-03-01T14:31:47.795Z"
+  },
+  {
+    "name": "词语分类冲刺",
+    "path": "games/word-sorter/index.html",
+    "category": "语言学习",
+    "createdAt": "2026-03-01T22:52:57.303416+08:00"
   }
 ]

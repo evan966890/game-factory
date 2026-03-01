@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>词语分类冲刺</title>
+  <style>
+    :root {
+      --bg: #f4f7ff;
+      --card: #ffffff;
+      --ink: #17223b;
+      --accent: #4f46e5;
+      --ok: #16a34a;
+      --bad: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #eef2ff, #f8fafc);
+      color: var(--ink);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(640px, 100%);
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(79, 70, 229, 0.12);
+      padding: 18px;
+    }
+    h1 { margin: 0 0 8px; font-size: 1.45rem; }
+    .sub { margin: 0 0 14px; opacity: .75; font-size: .95rem; }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .pill {
+      background: #eef2ff;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      font-weight: 600;
+    }
+    .word {
+      font-size: clamp(1.6rem, 7vw, 2.3rem);
+      text-align: center;
+      font-weight: 800;
+      letter-spacing: 1px;
+      margin: 14px 0;
+      min-height: 3rem;
+    }
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 13px 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      background: #e2e8f0;
+      color: #0f172a;
+      cursor: pointer;
+      transition: transform .06s ease, opacity .2s ease;
+    }
+    button:active { transform: scale(0.98); }
+    .start {
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      margin-top: 8px;
+    }
+    .ok { color: var(--ok); font-weight: 700; }
+    .bad { color: var(--bad); font-weight: 700; }
+    .msg { text-align: center; min-height: 1.5rem; margin-top: 10px; }
+    .footer { margin-top: 12px; font-size: .86rem; opacity: .7; text-align: center; }
+    .result {
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 12px;
+      text-align: center;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <main class="app" role="application" aria-label="词语分类冲刺">
+    <h1>词语分类冲刺</h1>
+    <p class="sub">30 秒内判断词语属于哪一类：动物、植物、交通工具或食物。</p>
+
+    <section class="hud" aria-live="polite">
+      <div class="pill">⏱️ 时间：<span id="time">30</span>s</div>
+      <div class="pill">⭐ 得分：<span id="score">0</span></div>
+      <div class="pill">🎯 题目：<span id="round">0</span></div>
+    </section>
+
+    <div class="word" id="word">点击开始挑战</div>
+
+    <section class="choices" id="choices" aria-label="分类按钮">
+      <button data-cat="动物" disabled>动物</button>
+      <button data-cat="植物" disabled>植物</button>
+      <button data-cat="交通工具" disabled>交通工具</button>
+      <button data-cat="食物" disabled>食物</button>
+    </section>
+
+    <div class="msg" id="msg"></div>
+    <button class="start" id="startBtn">开始 30 秒挑战</button>
+
+    <section class="result" id="result"></section>
+    <p class="footer">离线可玩 · 手机优先设计</p>
+  </main>
+
+  <script>
+    const bank = [
+      ["海豚", "动物"], ["狮子", "动物"], ["燕子", "动物"], ["乌龟", "动物"], ["孔雀", "动物"],
+      ["玫瑰", "植物"], ["松树", "植物"], ["竹子", "植物"], ["向日葵", "植物"], ["荷花", "植物"],
+      ["地铁", "交通工具"], ["轮船", "交通工具"], ["高铁", "交通工具"], ["直升机", "交通工具"], ["公交车", "交通工具"],
+      ["饺子", "食物"], ["西瓜", "食物"], ["牛奶", "食物"], ["豆腐", "食物"], ["面包", "食物"]
+    ];
+
+    const els = {
+      time: document.getElementById('time'),
+      score: document.getElementById('score'),
+      round: document.getElementById('round'),
+      word: document.getElementById('word'),
+      msg: document.getElementById('msg'),
+      result: document.getElementById('result'),
+      startBtn: document.getElementById('startBtn'),
+      buttons: [...document.querySelectorAll('#choices button')],
+    };
+
+    let current = null, score = 0, round = 0, remain = 30, timer = null, running = false;
+
+    function pick() {
+      const i = Math.floor(Math.random() * bank.length);
+      current = bank[i];
+      els.word.textContent = current[0];
+      round += 1;
+      els.round.textContent = round;
+    }
+
+    function setButtons(enabled) {
+      els.buttons.forEach(b => b.disabled = !enabled);
+    }
+
+    function feedback(ok, text) {
+      els.msg.className = 'msg ' + (ok ? 'ok' : 'bad');
+      els.msg.textContent = text;
+    }
+
+    function endGame() {
+      running = false;
+      clearInterval(timer);
+      timer = null;
+      setButtons(false);
+      els.word.textContent = '挑战结束';
+      els.startBtn.textContent = '再来一局';
+      els.result.style.display = 'block';
+      const level = score >= 10 ? '太棒了，分类达人！' : score >= 6 ? '不错，再练练更快！' : '继续加油，熟悉词语会更快！';
+      els.result.innerHTML = `本局得分：<strong>${score}</strong> 分（共 ${round} 题）<br>${level}`;
+    }
+
+    function startGame() {
+      score = 0; round = 0; remain = 30; running = true;
+      els.score.textContent = score;
+      els.round.textContent = round;
+      els.time.textContent = remain;
+      els.msg.textContent = '';
+      els.result.style.display = 'none';
+      els.startBtn.textContent = '挑战中...';
+      setButtons(true);
+      pick();
+      clearInterval(timer);
+      timer = setInterval(() => {
+        remain -= 1;
+        els.time.textContent = remain;
+        if (remain <= 0) endGame();
+      }, 1000);
+    }
+
+    els.buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!running || !current) return;
+        const isRight = btn.dataset.cat === current[1];
+        if (isRight) {
+          score += 1;
+          els.score.textContent = score;
+          feedback(true, '✅ 正确！');
+        } else {
+          feedback(false, `❌ 这题属于：${current[1]}`);
+        }
+        pick();
+      });
+    });
+
+    els.startBtn.addEventListener('click', () => {
+      if (!running) startGame();
+    });
+  </script>
+</body>
+</html>
