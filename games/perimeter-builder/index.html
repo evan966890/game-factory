@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>周长小工匠</title>
+  <style>
+    :root{--bg:#f3f8ff;--card:#fff;--text:#1f2a44;--ok:#22a06b;--bad:#d03a3a;--main:#3d7bff}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:680px;margin:0 auto;padding:16px}
+    .card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 10px 24px rgba(30,74,170,.08)}
+    h1{margin:4px 0 8px;font-size:1.45rem}
+    .sub{margin:0 0 10px;color:#5d6a86;font-size:.95rem}
+    .shape{display:grid;place-items:center;height:180px;border-radius:14px;background:linear-gradient(135deg,#eef4ff,#f7fbff);margin:10px 0 14px}
+    .board{position:relative;width:240px;height:140px}
+    .rect{position:absolute;left:0;top:0;right:0;bottom:0;border:4px solid #2d5ccc;border-radius:10px;background:rgba(61,123,255,.07)}
+    .lab{position:absolute;font-weight:700;background:#fff;border-radius:8px;padding:4px 8px;font-size:.95rem;box-shadow:0 4px 10px rgba(0,0,0,.08)}
+    .top{top:-16px;left:50%;transform:translateX(-50%)}
+    .left{left:-16px;top:50%;transform:translateY(-50%)}
+    .bottom{bottom:-16px;left:50%;transform:translateX(-50%)}
+    .right{right:-16px;top:50%;transform:translateY(-50%)}
+    .q{font-size:1.06rem;font-weight:700;margin-bottom:10px}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    input{width:140px;padding:10px 12px;border:2px solid #d4ddef;border-radius:10px;font-size:1rem}
+    button{border:0;background:var(--main);color:#fff;border-radius:10px;padding:10px 14px;font-size:.95rem;font-weight:600}
+    button.ghost{background:#e8efff;color:#244ba9}
+    .msg{min-height:24px;margin-top:10px;font-weight:700}
+    .ok{color:var(--ok)} .bad{color:var(--bad)}
+    .stats{display:flex;justify-content:space-between;margin-top:14px;background:#f7faff;border-radius:10px;padding:10px}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>周长小工匠</h1>
+      <p class="sub">根据边长计算图形周长（单位：cm）。每答对 8 题完成一轮训练。</p>
+      <div class="shape">
+        <div class="board" aria-label="矩形示意图">
+          <div class="rect"></div>
+          <div class="lab top" id="topLen">0 cm</div>
+          <div class="lab left" id="leftLen">0 cm</div>
+          <div class="lab bottom" id="bottomLen">0 cm</div>
+          <div class="lab right" id="rightLen">0 cm</div>
+        </div>
+      </div>
+      <div class="q" id="question">这个图形的周长是？</div>
+      <div class="row">
+        <label for="answer">你的答案：</label>
+        <input id="answer" type="number" inputmode="numeric" placeholder="输入数字" />
+        <button id="checkBtn">提交</button>
+        <button class="ghost" id="skipBtn">换一题</button>
+      </div>
+      <div id="msg" class="msg"></div>
+      <div class="stats">
+        <div>题目：<strong id="progress">1 / 8</strong></div>
+        <div>得分：<strong id="score">0</strong></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const topLen = document.getElementById('topLen');
+    const leftLen = document.getElementById('leftLen');
+    const bottomLen = document.getElementById('bottomLen');
+    const rightLen = document.getElementById('rightLen');
+    const answerInput = document.getElementById('answer');
+    const msg = document.getElementById('msg');
+    const scoreEl = document.getElementById('score');
+    const progressEl = document.getElementById('progress');
+
+    let a=0,b=0,correct=0,score=0,total=8;
+
+    function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+    function nextQuestion(){
+      a = rand(2,18); b = rand(2,14);
+      correct = 2*(a+b);
+      topLen.textContent = `${a} cm`;
+      bottomLen.textContent = `${a} cm`;
+      leftLen.textContent = `${b} cm`;
+      rightLen.textContent = `${b} cm`;
+      answerInput.value='';
+      answerInput.focus();
+      msg.textContent='';
+      msg.className='msg';
+      progressEl.textContent = `${Math.min(score+1,total)} / ${total}`;
+    }
+
+    function submit(){
+      const v = Number(answerInput.value);
+      if(!Number.isFinite(v)){
+        msg.textContent='先输入答案哦～'; msg.className='msg bad'; return;
+      }
+      if(v===correct){
+        score++;
+        msg.textContent=`✅ 正确！周长 = ${correct} cm`;
+        msg.className='msg ok';
+      }else{
+        msg.textContent=`❌ 再试试，正确答案是 ${correct} cm`;
+        msg.className='msg bad';
+      }
+      scoreEl.textContent = score;
+
+      if(score>=total){
+        progressEl.textContent = `${total} / ${total}`;
+        setTimeout(()=>{
+          alert(`恭喜通关！你在本轮答对 ${score} 题。继续挑战新一轮吧！`);
+          score = 0;
+          scoreEl.textContent = score;
+          nextQuestion();
+        }, 120);
+      }else{
+        setTimeout(nextQuestion, 420);
+      }
+    }
+
+    document.getElementById('checkBtn').addEventListener('click', submit);
+    document.getElementById('skipBtn').addEventListener('click', nextQuestion);
+    answerInput.addEventListener('keydown', e => { if(e.key==='Enter') submit(); });
+
+    nextQuestion();
+  </script>
+</body>
+</html>

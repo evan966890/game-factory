@@ -60,3 +60,6 @@
 - 新增教育游戏 `词语分类挑战`，文件路径：`games/word-category-sort/index.html`。
 - 游戏功能包含：词语类别快速判断（动物/植物/食物/交通工具）、连对加分机制、即时反馈、得分与准确率统计、下一题与重置。
 - 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。
+- 新增教育游戏 `周长小工匠`，文件路径：`games/perimeter-builder/index.html`。
+- 游戏功能包含：矩形边长可视化、周长计算输入判定、即时反馈、8 题通关循环、移动端友好交互。
+- 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。
