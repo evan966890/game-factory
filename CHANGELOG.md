@@ -27,3 +27,6 @@
 - 新增教育游戏 `分数大小比一比`，文件路径：`games/fraction-compare/index.html`。
 - 游戏功能包含：随机最简分数生成、`>`/`<`/`=` 关系判断、即时反馈、得分与准确率统计、下一题与重置。
 - 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。
+- 新增教育游戏 `图形配对大师`，文件路径：`games/shape-match/index.html`。
+- 游戏功能包含：图形记忆配对、多关卡进阶（配对数量递增）、即时对错反馈、得分与准确率统计、下一关与重置。
+- 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。

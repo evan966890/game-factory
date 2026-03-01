@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>图形配对大师</title>
+  <style>
+    :root { --bg:#f5f7ff; --card:#fff; --text:#1f2a44; --primary:#4f46e5; --ok:#16a34a; --bad:#dc2626; --muted:#64748b; }
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:16px}
+    .app{width:100%;max-width:680px;background:var(--card);border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(31,42,68,.1)} h1{margin:0 0 8px;font-size:1.45rem}.tip{margin:0 0 12px;color:var(--muted);font-size:.95rem}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}.stat{background:#eef2ff;border-radius:10px;padding:8px;text-align:center}.stat .k{display:block;font-size:.78rem;color:var(--muted)}.stat .v{font-size:1.1rem;font-weight:700}
+    .board{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}.shape{border:2px solid #dbe2ff;border-radius:12px;min-height:140px;background:#f8faff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s ease,border-color .12s ease;user-select:none;-webkit-tap-highlight-color:transparent}
+    .shape:active{transform:scale(.98)}.shape.selected{border-color:var(--primary)}.shape.done{opacity:.55;pointer-events:none}.msg{min-height:24px;font-weight:600;margin-top:10px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+    .actions{display:flex;gap:10px;margin-top:10px}button{flex:1;border:none;border-radius:10px;padding:12px;color:#fff;background:var(--primary);font-size:1rem;cursor:pointer}button.secondary{background:#64748b}
+    @media (max-width:420px){.stats{grid-template-columns:repeat(2,1fr)}.shape{min-height:120px}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>图形配对大师</h1>
+    <p class="tip">点击两个相同图形完成配对。全部配对成功即可过关！</p>
+    <section class="stats">
+      <div class="stat"><span class="k">关卡</span><span class="v" id="level">1</span></div>
+      <div class="stat"><span class="k">得分</span><span class="v" id="score">0</span></div>
+      <div class="stat"><span class="k">尝试</span><span class="v" id="tries">0</span></div>
+      <div class="stat"><span class="k">准确率</span><span class="v" id="acc">100%</span></div>
+    </section>
+    <section class="board" id="board"></section>
+    <div class="msg" id="message"></div>
+    <div class="actions"><button id="nextBtn">下一关</button><button class="secondary" id="resetBtn">重置</button></div>
+  </main>
+<script>
+(()=>{const S=["circle","square","triangle","diamond","star","hex"],C=["#ef4444","#3b82f6","#10b981","#f59e0b","#8b5cf6","#ec4899"];let level=1,score=0,tries=0,correct=0,first=null,lock=false;const board=document.getElementById("board"),levelEl=document.getElementById("level"),scoreEl=document.getElementById("score"),triesEl=document.getElementById("tries"),accEl=document.getElementById("acc"),msg=document.getElementById("message");
+const svg=(s,c)=>s==="circle"?`<svg width="80" height="80" viewBox="0 0 100 100"><circle cx="50" cy="50" r="32" fill="${c}"/></svg>`:s==="square"?`<svg width="80" height="80" viewBox="0 0 100 100"><rect x="18" y="18" width="64" height="64" rx="8" fill="${c}"/></svg>`:s==="triangle"?`<svg width="80" height="80" viewBox="0 0 100 100"><polygon points="50,14 86,82 14,82" fill="${c}"/></svg>`:s==="diamond"?`<svg width="80" height="80" viewBox="0 0 100 100"><polygon points="50,10 90,50 50,90 10,50" fill="${c}"/></svg>`:s==="star"?`<svg width="80" height="80" viewBox="0 0 100 100"><polygon points="50,10 61,37 90,37 66,54 75,83 50,66 25,83 34,54 10,37 39,37" fill="${c}"/></svg>`:`<svg width="80" height="80" viewBox="0 0 100 100"><polygon points="50,10 82,28 82,64 50,82 18,64 18,28" fill="${c}"/></svg>`;
+const pairs=()=>{const n=Math.min(2+level,6),idx=[...S.keys()].sort(()=>Math.random()-.5).slice(0,n),cards=[];idx.forEach(i=>{cards.push({k:S[i],c:C[i]});cards.push({k:S[i],c:C[i]})});return cards.sort(()=>Math.random()-.5)};
+const stat=()=>{levelEl.textContent=level;scoreEl.textContent=score;triesEl.textContent=tries;accEl.textContent=`${tries?Math.round(correct/tries*100):100}%`};
+const render=()=>{const cards=pairs();board.style.gridTemplateColumns=cards.length<=6?"repeat(2,1fr)":"repeat(3,1fr)";board.innerHTML="";first=null;lock=false;msg.textContent="";msg.className="msg";cards.forEach((x,i)=>{const b=document.createElement("button");b.className="shape";b.dataset.key=x.k;b.innerHTML=`<div>${svg(x.k,x.c)}</div>`;b.onclick=()=>pick(b);board.appendChild(b)});stat()};
+const pick=(b)=>{if(lock||b.classList.contains("done")||b===first)return;b.classList.add("selected");if(!first){first=b;return;}tries++;if(first.dataset.key===b.dataset.key){correct++;score+=10;first.classList.add("done");b.classList.add("done");first.classList.remove("selected");b.classList.remove("selected");first=null;msg.textContent="配对成功 +10";msg.className="msg ok";if([...board.children].every(n=>n.classList.contains("done"))){score+=20;msg.textContent="本关完成！奖励 +20，点击“下一关”";msg.className="msg ok"}}else{score=Math.max(0,score-3);msg.textContent="不匹配，再试一次";msg.className="msg bad";lock=true;setTimeout(()=>{first.classList.remove("selected");b.classList.remove("selected");first=null;lock=false},550)}stat()};
+document.getElementById("nextBtn").onclick=()=>{if(![...board.children].every(n=>n.classList.contains("done"))){msg.textContent="先完成当前关卡的全部配对哦";msg.className="msg bad";return;}level++;render()};
+document.getElementById("resetBtn").onclick=()=>{level=1;score=0;tries=0;correct=0;render()};render();})();
+</script>
+</body>
+</html>
