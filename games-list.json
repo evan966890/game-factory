@@ -390,5 +390,11 @@
     "path": "games/arithmetic-chain-relay/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T04:59:14.646648+08:00"
+  },
+  {
+    "name": "分数天平",
+    "path": "games/fraction-balance/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T21:18:58.397454Z"
   }
 ]

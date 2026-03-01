@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>分数天平</title>
+  <style>
+    :root{--bg:#f6fbff;--card:#fff;--ink:#17324d;--ok:#1a9b5f;--bad:#d64545;--pri:#2b7cff}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;background:linear-gradient(180deg,#eef8ff,#f9fcff);color:var(--ink)}
+    .wrap{max-width:680px;margin:0 auto;padding:16px}
+    .card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 6px 20px rgba(31,74,125,.12)}
+    h1{font-size:24px;margin:0 0 8px} .sub{opacity:.8;font-size:14px;margin-bottom:10px}
+    .score{display:flex;gap:12px;flex-wrap:wrap;font-weight:700;margin-bottom:12px}
+    .balance{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin:14px 0}
+    .pan{border:2px dashed #9ec4ee;border-radius:14px;padding:12px;min-height:88px;text-align:center;background:#f4faff}
+    .frac{font-size:30px;font-weight:800;line-height:1.1}
+    .line{height:2px;background:#355f8f;margin:4px auto;width:72px}
+    .vs{font-size:28px;font-weight:800;color:#4778af}
+    .opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    button{border:0;border-radius:12px;padding:12px 8px;font-size:18px;font-weight:700;background:#e9f2ff;color:#174677}
+    button:active{transform:scale(.98)}
+    .feedback{min-height:28px;margin:10px 0;font-weight:700}
+    .ok{color:var(--ok)} .bad{color:var(--bad)} .foot{font-size:13px;opacity:.75;margin-top:8px}
+    @media (max-width:420px){.frac{font-size:24px}.opts{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>⚖️ 分数天平</h1>
+      <div class="sub">判断左边分数和右边分数谁更大，30 秒内尽量多答对！</div>
+      <div class="score">
+        <div>⏱️ 时间：<span id="time">30</span>s</div>
+        <div>✅ 正确：<span id="ok">0</span></div>
+        <div>❌ 错误：<span id="bad">0</span></div>
+        <div>🏅 得分：<span id="score">0</span></div>
+      </div>
+
+      <div class="balance">
+        <div class="pan"><div id="left" class="frac"></div></div>
+        <div class="vs">?</div>
+        <div class="pan"><div id="right" class="frac"></div></div>
+      </div>
+
+      <div class="opts">
+        <button data-a="<">左边更大</button>
+        <button data-a="=">一样大</button>
+        <button data-a=">">右边更大</button>
+      </div>
+      <div id="fb" class="feedback"></div>
+      <div class="foot">提示：可约分的分数也要比较真实大小哦。</div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const state = { t:30, ok:0, bad:0, score:0, cur:null, lock:false };
+
+  function gcd(a,b){ while(b){ [a,b]=[b,a%b]; } return a; }
+  function makeFrac(){
+    let n = 1 + Math.floor(Math.random()*12);
+    let d = 2 + Math.floor(Math.random()*12);
+    if (Math.random() < 0.25) { // 1/4 概率制造可约分
+      const k = 2 + Math.floor(Math.random()*3);
+      n*=k; d*=k;
+    }
+    return {n,d,val:n/d};
+  }
+
+  function fmt(f){ return `${f.n}<div class="line"></div>${f.d}`; }
+
+  function nextQ(){
+    const l = makeFrac();
+    let r = makeFrac();
+    if (Math.random() < 0.25) { // 增加相等题
+      const g = gcd(l.n,l.d);
+      const rn = l.n/g, rd = l.d/g;
+      const k = 2 + Math.floor(Math.random()*4);
+      r = {n: rn*k, d: rd*k, val: l.val};
+    }
+    const ans = l.val > r.val ? '<' : (l.val < r.val ? '>' : '=');
+    state.cur = {l,r,ans};
+    $('left').innerHTML = fmt(l);
+    $('right').innerHTML = fmt(r);
+    $('fb').textContent = '';
+    $('fb').className = 'feedback';
+  }
+
+  function render(){
+    $('time').textContent = state.t;
+    $('ok').textContent = state.ok;
+    $('bad').textContent = state.bad;
+    $('score').textContent = state.score;
+  }
+
+  function choose(a){
+    if (state.lock || !state.cur || state.t<=0) return;
+    if (a === state.cur.ans){
+      state.ok++; state.score += 10;
+      $('fb').textContent = '答对啦！'; $('fb').classList.add('ok');
+    } else {
+      state.bad++; state.score = Math.max(0, state.score - 5);
+      $('fb').textContent = `答错了，正确答案是：${state.cur.ans === '<' ? '左边更大' : state.cur.ans === '>' ? '右边更大' : '一样大'}`;
+      $('fb').classList.add('bad');
+    }
+    render();
+    setTimeout(nextQ, 450);
+  }
+
+  document.querySelectorAll('button[data-a]').forEach(btn => {
+    btn.addEventListener('click', () => choose(btn.dataset.a));
+  });
+
+  nextQ(); render();
+  const timer = setInterval(() => {
+    state.t--; render();
+    if (state.t <= 0){
+      clearInterval(timer);
+      state.lock = true;
+      $('fb').textContent = `时间到！最终得分 ${state.score} 分（正确 ${state.ok} 题）`;
+      $('fb').className = 'feedback ok';
+    }
+  }, 1000);
+})();
+</script>
+</body>
+</html>
