@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>乘法天梯</title>
+  <style>
+    :root { --bg:#f4f8ff; --card:#fff; --accent:#3b82f6; --ok:#16a34a; --bad:#dc2626; --ink:#1f2937; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#eef4ff,#f9fbff);color:var(--ink);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:16px}
+    .app{width:min(680px,100%);background:var(--card);border-radius:18px;box-shadow:0 12px 36px rgba(59,130,246,.16);padding:16px}
+    h1{margin:0 0 8px;font-size:clamp(24px,6vw,34px)}
+    .sub{margin:0 0 14px;color:#475569;font-size:14px}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+    .box{background:#eff6ff;border:1px solid #dbeafe;border-radius:12px;padding:10px;text-align:center}
+    .box b{display:block;font-size:20px}
+    .panel{background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:14px}
+    .q{font-size:clamp(30px,8vw,42px);text-align:center;margin:4px 0 14px;font-weight:700}
+    .opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    button{border:none;border-radius:12px;padding:12px;font-size:18px;font-weight:700;background:#dbeafe;color:#1e3a8a;cursor:pointer;touch-action:manipulation}
+    button:active{transform:scale(.98)}
+    .feedback{min-height:28px;text-align:center;margin-top:12px;font-weight:700}
+    .ok{color:var(--ok)} .bad{color:var(--bad)}
+    .goal{margin-top:10px;text-align:center;color:#334155;font-size:14px}
+    .actions{display:flex;justify-content:center;gap:10px;margin-top:14px}
+    .secondary{background:#e2e8f0;color:#0f172a;font-size:15px;padding:10px 14px}
+    @media (max-width:520px){.stats{grid-template-columns:repeat(2,1fr)} .opts{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>乘法天梯</h1>
+    <p class="sub">30 秒上手：答对 10 题即可通关，每答对 3 题天梯上升一级！</p>
+
+    <section class="stats">
+      <div class="box">得分<b id="score">0</b></div>
+      <div class="box">连对<b id="streak">0</b></div>
+      <div class="box">进度<b id="progress">0/10</b></div>
+      <div class="box">关卡<b id="level">1</b></div>
+    </section>
+
+    <section class="panel">
+      <div class="q" id="question">2 × 3 = ?</div>
+      <div class="opts" id="options"></div>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <div class="goal" id="goal">目标：答对 10 题通关</div>
+    </section>
+
+    <div class="actions">
+      <button class="secondary" id="restart">重新开始</button>
+    </div>
+  </main>
+
+  <script>
+    const scoreEl = document.getElementById('score');
+    const streakEl = document.getElementById('streak');
+    const progressEl = document.getElementById('progress');
+    const levelEl = document.getElementById('level');
+    const qEl = document.getElementById('question');
+    const optsEl = document.getElementById('options');
+    const fbEl = document.getElementById('feedback');
+    const goalEl = document.getElementById('goal');
+
+    let score = 0, streak = 0, correct = 0, level = 1, answer = 0;
+
+    function rangeByLevel(lv){
+      if(lv<=2) return [2,6];
+      if(lv<=4) return [3,8];
+      return [4,9];
+    }
+
+    function makeQuestion(){
+      const [min,max] = rangeByLevel(level);
+      const a = Math.floor(Math.random()*(max-min+1))+min;
+      const b = Math.floor(Math.random()*(max-min+1))+min;
+      answer = a*b;
+      qEl.textContent = `${a} × ${b} = ?`;
+
+      const set = new Set([answer]);
+      while(set.size<4){
+        const delta = Math.floor(Math.random()*9)-4;
+        const n = Math.max(2, answer + delta * (Math.random()<0.5?1:2));
+        set.add(n);
+      }
+      const arr = [...set].sort(()=>Math.random()-0.5);
+      optsEl.innerHTML = '';
+      arr.forEach(v=>{
+        const btn = document.createElement('button');
+        btn.textContent = v;
+        btn.addEventListener('click',()=>check(v));
+        optsEl.appendChild(btn);
+      });
+    }
+
+    function update(){
+      scoreEl.textContent = score;
+      streakEl.textContent = streak;
+      progressEl.textContent = `${correct}/10`;
+      levelEl.textContent = level;
+    }
+
+    function check(v){
+      if(correct>=10) return;
+      if(v===answer){
+        streak++; correct++; score += 10;
+        if(streak>0 && streak%3===0){ level++; score += 5; }
+        fbEl.textContent = '✅ 正确！继续爬梯！';
+        fbEl.className = 'feedback ok';
+      }else{
+        streak = 0; score = Math.max(0, score-3);
+        fbEl.textContent = `❌ 再想想，正确答案是 ${answer}`;
+        fbEl.className = 'feedback bad';
+      }
+      if(correct>=10){
+        qEl.textContent = '🎉 通关成功！';
+        goalEl.textContent = `你最终得分 ${score}，达到天梯 ${level} 级！`;
+        optsEl.innerHTML = '';
+      }else{
+        makeQuestion();
+      }
+      update();
+    }
+
+    document.getElementById('restart').addEventListener('click',()=>{
+      score=0;streak=0;correct=0;level=1;
+      fbEl.textContent='';fbEl.className='feedback';
+      goalEl.textContent='目标：答对 10 题通关';
+      update();
+      makeQuestion();
+    });
+
+    update();
+    makeQuestion();
+  </script>
+</body>
+</html>

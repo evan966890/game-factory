@@ -174,5 +174,11 @@
     "path": "games/odd-even-rush/index.html",
     "category": "数学",
     "createdAt": "2026-03-01T18:31:21.588837+08:00"
+  },
+  {
+    "name": "乘法天梯",
+    "path": "games/multiplication-ladder/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T18:51:16.725699+08:00"
   }
 ]
