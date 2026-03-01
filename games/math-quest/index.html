@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>数学闯关岛</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --primary: #2d6cdf;
+      --ok: #1f9d55;
+      --bad: #d64545;
+      --text: #1e2430;
+      --muted: #677188;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #dff2ff, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+    .app {
+      width: 100%;
+      max-width: 760px;
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: 0 10px 26px rgba(45, 108, 223, 0.14);
+      padding: 16px;
+    }
+    .top {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .box {
+      background: #f4f8ff;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+    .box .k { font-size: 12px; color: var(--muted); }
+    .box .v { font-size: 20px; font-weight: 700; margin-top: 4px; }
+    .level-track {
+      margin: 10px 0 16px;
+      background: #eaf1ff;
+      border-radius: 999px;
+      height: 12px;
+      overflow: hidden;
+    }
+    .level-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #2d6cdf, #49a1ff);
+      transition: width .3s ease;
+    }
+    .question {
+      font-size: clamp(28px, 7vw, 44px);
+      text-align: center;
+      margin: 6px 0 12px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+    input, button, select {
+      width: 100%;
+      max-width: 280px;
+      font-size: 18px;
+      border-radius: 12px;
+      border: 1px solid #c9dafb;
+      padding: 10px 12px;
+      outline: none;
+    }
+    button {
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+    }
+    button:active { transform: scale(0.98); }
+    .sub {
+      background: #edf4ff;
+      color: #204aa2;
+    }
+    .msg {
+      min-height: 26px;
+      margin-top: 10px;
+      text-align: center;
+      font-weight: 700;
+    }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    @media (min-width: 720px) {
+      .top { grid-template-columns: repeat(4, 1fr); }
+      .controls { flex-direction: row; justify-content: center; flex-wrap: wrap; }
+      input, button, select { max-width: 180px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1 style="margin:6px 0 8px;text-align:center;font-size:26px;">数学闯关岛</h1>
+    <div class="top">
+      <div class="box"><div class="k">当前关卡</div><div id="level" class="v">1</div></div>
+      <div class="box"><div class="k">分数</div><div id="score" class="v">0</div></div>
+      <div class="box"><div class="k">正确率</div><div id="accuracy" class="v">0%</div></div>
+      <div class="box"><div class="k">题型</div><div id="modeNow" class="v">混合</div></div>
+    </div>
+
+    <div class="level-track"><div id="levelFill" class="level-fill"></div></div>
+
+    <div id="question" class="question">3 × 4 = ?</div>
+
+    <div class="controls">
+      <select id="mode">
+        <option value="mix">混合（乘/除）</option>
+        <option value="mul">仅乘法</option>
+        <option value="div">仅除法</option>
+      </select>
+      <input id="answer" type="number" inputmode="numeric" placeholder="输入答案" />
+      <button id="submit">提交答案</button>
+      <button id="next" class="sub">下一题</button>
+      <button id="reset" class="sub">重置</button>
+    </div>
+
+    <div id="msg" class="msg"></div>
+  </main>
+
+  <script>
+    const TOTAL_LEVELS = 6;
+    let state = {
+      level: 1,
+      score: 0,
+      total: 0,
+      correct: 0,
+      progressInLevel: 0,
+      targetInLevel: 5,
+      cur: null,
+      mode: 'mix'
+    };
+
+    const levelEl = document.getElementById('level');
+    const scoreEl = document.getElementById('score');
+    const accuracyEl = document.getElementById('accuracy');
+    const modeNowEl = document.getElementById('modeNow');
+    const levelFillEl = document.getElementById('levelFill');
+    const questionEl = document.getElementById('question');
+    const answerEl = document.getElementById('answer');
+    const msgEl = document.getElementById('msg');
+    const modeEl = document.getElementById('mode');
+
+    function rand(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function pickMode() {
+      if (state.mode === 'mul' || state.mode === 'div') return state.mode;
+      return Math.random() < 0.5 ? 'mul' : 'div';
+    }
+
+    function generateQuestion() {
+      const diff = state.level + 2;
+      const m = pickMode();
+      if (m === 'mul') {
+        const a = rand(1, diff + 3);
+        const b = rand(1, diff + 3);
+        state.cur = { text: `${a} × ${b} = ?`, answer: a * b };
+      } else {
+        const b = rand(1, diff + 3);
+        const ans = rand(1, diff + 3);
+        const a = b * ans;
+        state.cur = { text: `${a} ÷ ${b} = ?`, answer: ans };
+      }
+      questionEl.textContent = state.cur.text;
+      answerEl.value = '';
+      answerEl.focus();
+    }
+
+    function render() {
+      levelEl.textContent = state.level;
+      scoreEl.textContent = state.score;
+      const acc = state.total === 0 ? 0 : Math.round((state.correct / state.total) * 100);
+      accuracyEl.textContent = `${acc}%`;
+      modeNowEl.textContent = state.mode === 'mix' ? '混合' : (state.mode === 'mul' ? '乘法' : '除法');
+      const levelProgress = ((state.level - 1) * state.targetInLevel + state.progressInLevel) / (TOTAL_LEVELS * state.targetInLevel);
+      levelFillEl.style.width = `${Math.min(100, Math.round(levelProgress * 100))}%`;
+    }
+
+    function feedback(text, ok) {
+      msgEl.textContent = text;
+      msgEl.className = `msg ${ok ? 'ok' : 'bad'}`;
+    }
+
+    function levelUp() {
+      if (state.level < TOTAL_LEVELS) {
+        state.level += 1;
+        state.progressInLevel = 0;
+        feedback(`闯关成功！进入第 ${state.level} 关`, true);
+      } else {
+        feedback('恭喜通关数学闯关岛！', true);
+      }
+    }
+
+    function submit() {
+      const val = Number(answerEl.value);
+      if (Number.isNaN(val)) {
+        feedback('请先输入数字答案', false);
+        return;
+      }
+      state.total += 1;
+      if (val === state.cur.answer) {
+        state.correct += 1;
+        state.score += 10 + state.level;
+        state.progressInLevel += 1;
+        feedback('答对啦！+积分', true);
+        if (state.progressInLevel >= state.targetInLevel) levelUp();
+      } else {
+        state.score = Math.max(0, state.score - 4);
+        feedback(`再试试，正确答案是 ${state.cur.answer}`, false);
+      }
+      render();
+      generateQuestion();
+    }
+
+    function reset() {
+      state = { level: 1, score: 0, total: 0, correct: 0, progressInLevel: 0, targetInLevel: 5, cur: null, mode: modeEl.value };
+      feedback('已重置，开始新的挑战！', true);
+      render();
+      generateQuestion();
+    }
+
+    document.getElementById('submit').addEventListener('click', submit);
+    document.getElementById('next').addEventListener('click', generateQuestion);
+    document.getElementById('reset').addEventListener('click', reset);
+    modeEl.addEventListener('change', () => {
+      state.mode = modeEl.value;
+      render();
+      generateQuestion();
+    });
+    answerEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submit();
+    });
+
+    reset();
+  </script>
+</body>
+</html>

@@ -33,3 +33,6 @@
 - 新增教育游戏 `单词拼写挑战`，文件路径：`games/word-spell/index.html`。
 - 游戏功能包含：中文提示到英文拼写、字母选取交互、即时判定、得分统计、下一题与重置。
 - 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。
+- 新增教育游戏 `数学闯关岛`，文件路径：`games/math-quest/index.html`。
+- 游戏功能包含：乘法/除法模式切换（含混合模式）、即时反馈、多关卡进度条、得分统计、正确率统计、重置与下一题。
+- 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。
