@@ -372,5 +372,11 @@
     "path": "games/fraction-balance-lab/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T04:19:07.820446+08:00"
+  },
+  {
+    "name": "小数闯关小队",
+    "path": "games/decimal-adventure-grade3/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T20:39:22Z"
   }
 ]
