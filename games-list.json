@@ -36,5 +36,11 @@
     "path": "games/shape-match/index.html",
     "category": "education",
     "createdAt": "2026-03-01T03:59:02Z"
+  },
+  {
+    "name": "单词拼写挑战",
+    "path": "games/word-spell/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T03:59:40Z"
   }
 ]
