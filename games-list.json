@@ -204,5 +204,11 @@
     "path": "games/loop-path-coder/index.html",
     "category": "编程入门",
     "createdAt": "2026-03-01T20:11:20.295473+08:00"
+  },
+  {
+    "name": "规律侦探队",
+    "path": "games/pattern-detective/index.html",
+    "category": "逻辑推理",
+    "createdAt": "2026-03-01T20:31:16.155830+08:00"
   }
 ]

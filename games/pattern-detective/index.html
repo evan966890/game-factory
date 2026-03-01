@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>规律侦探队</title>
+  <style>
+    :root {
+      --bg: #f2f7ff;
+      --card: #ffffff;
+      --primary: #2f6df6;
+      --good: #16a34a;
+      --bad: #dc2626;
+      --text: #1f2937;
+      --muted: #64748b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #eef4ff, #f8fbff);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 14px;
+    }
+    .app {
+      width: 100%;
+      max-width: 720px;
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: 0 8px 28px rgba(47, 109, 246, 0.12);
+      padding: 16px;
+    }
+    h1 { margin: 0 0 8px; font-size: 1.45rem; }
+    .subtitle { margin: 0 0 14px; color: var(--muted); font-size: .95rem; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .stat {
+      background: #f8faff;
+      border: 1px solid #e5edff;
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+    }
+    .stat b { display: block; font-size: 1.1rem; }
+    .prompt {
+      background: #f8faff;
+      border: 1px solid #dbe7ff;
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 12px;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+    .sequence {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .cell {
+      aspect-ratio: 1/1;
+      border-radius: 10px;
+      background: #f1f5ff;
+      border: 2px dashed #c7d7ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      user-select: none;
+    }
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    button.choice {
+      border: 1px solid #d8e3ff;
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 1.6rem;
+      cursor: pointer;
+    }
+    button.choice:active { transform: scale(0.98); }
+    .msg {
+      min-height: 24px;
+      margin: 12px 0 2px;
+      font-weight: 600;
+    }
+    .good { color: var(--good); }
+    .bad { color: var(--bad); }
+    .actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-ghost { background: #eaf0ff; color: #1e40af; }
+    @media (max-width: 520px) {
+      .sequence { grid-template-columns: repeat(3, 1fr); }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-live="polite">
+    <h1>🕵️ 规律侦探队</h1>
+    <p class="subtitle">三年级-四年级逻辑训练：观察序列规律，选出缺失图形，闯过 3 个关卡！</p>
+
+    <section class="stats">
+      <div class="stat"><span>关卡</span><b id="level">1/3</b></div>
+      <div class="stat"><span>题号</span><b id="index">1/5</b></div>
+      <div class="stat"><span>得分</span><b id="score">0</b></div>
+      <div class="stat"><span>生命</span><b id="lives">❤❤❤</b></div>
+    </section>
+
+    <div class="prompt" id="prompt"></div>
+    <div class="sequence" id="sequence"></div>
+    <section class="choices" id="choices"></section>
+    <div class="msg" id="msg"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="nextBtn" hidden>下一题</button>
+      <button class="btn btn-ghost" id="restartBtn">重新开始</button>
+    </div>
+  </main>
+
+  <script>
+    const SHAPES = ['🔺', '🔵', '🟩', '⭐', '🟪', '🟠'];
+
+    const levels = [
+      {
+        name: '基础重复',
+        prompt: '找出重复规律中缺失的图形。',
+        generator() {
+          const a = pick(), b = pick(a);
+          const pattern = [a, b, a, b, a];
+          return makeQuestion(pattern, b);
+        }
+      },
+      {
+        name: '步进变化',
+        prompt: '每一步都按固定顺序变化，选出最后一个。',
+        generator() {
+          const start = Math.floor(Math.random() * SHAPES.length);
+          const step = Math.random() < 0.5 ? 1 : 2;
+          const seq = [];
+          for (let i = 0; i < 5; i++) seq.push(SHAPES[(start + i * step) % SHAPES.length]);
+          return makeQuestion(seq.slice(0, 5), seq[4]);
+        }
+      },
+      {
+        name: '镜像推理',
+        prompt: '前后对称（镜像）规律，找出问号位置。',
+        generator() {
+          const a = pick(), b = pick(a), c = pick(a, b);
+          const seq = [a, b, c, b, a];
+          return makeQuestion(seq, a);
+        }
+      }
+    ];
+
+    const state = {
+      level: 0,
+      q: 0,
+      score: 0,
+      lives: 3,
+      current: null,
+      lock: false
+    };
+
+    const el = id => document.getElementById(id);
+
+    function pick(...exclude) {
+      const pool = SHAPES.filter(s => !exclude.includes(s));
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function makeQuestion(pattern, answer) {
+      const seq = [...pattern];
+      seq[4] = '❓';
+      const distractors = shuffle(SHAPES.filter(s => s !== answer)).slice(0, 3);
+      const choices = shuffle([answer, ...distractors]);
+      return { sequence: seq, answer, choices };
+    }
+
+    function render() {
+      el('level').textContent = `${state.level + 1}/3`;
+      el('index').textContent = `${state.q + 1}/5`;
+      el('score').textContent = state.score;
+      el('lives').textContent = '❤'.repeat(state.lives) + '♡'.repeat(3 - state.lives);
+      el('prompt').textContent = `第${state.level + 1}关 · ${levels[state.level].name}：${levels[state.level].prompt}`;
+
+      el('sequence').innerHTML = state.current.sequence.map(s => `<div class="cell">${s}</div>`).join('');
+      el('choices').innerHTML = state.current.choices
+        .map(c => `<button class="choice" data-v="${c}" aria-label="选项 ${c}">${c}</button>`).join('');
+
+      el('msg').textContent = '';
+      el('msg').className = 'msg';
+      el('nextBtn').hidden = true;
+
+      document.querySelectorAll('.choice').forEach(btn => {
+        btn.addEventListener('click', () => onAnswer(btn.dataset.v));
+      });
+    }
+
+    function onAnswer(v) {
+      if (state.lock) return;
+      state.lock = true;
+      const ok = v === state.current.answer;
+      const msg = el('msg');
+
+      if (ok) {
+        state.score += 10 + state.level * 5;
+        msg.textContent = `✅ 回答正确！答案是 ${state.current.answer}`;
+        msg.className = 'msg good';
+      } else {
+        state.lives -= 1;
+        msg.textContent = `❌ 不对哦！正确答案是 ${state.current.answer}`;
+        msg.className = 'msg bad';
+      }
+
+      el('score').textContent = state.score;
+      el('lives').textContent = '❤'.repeat(Math.max(0, state.lives)) + '♡'.repeat(3 - Math.max(0, state.lives));
+
+      if (state.lives <= 0) {
+        el('nextBtn').hidden = false;
+        el('nextBtn').textContent = '重新闯关';
+      } else {
+        el('nextBtn').hidden = false;
+        el('nextBtn').textContent = (state.q === 4 && state.level === 2) ? '查看结果' : '下一题';
+      }
+    }
+
+    function next() {
+      if (state.lives <= 0) {
+        alert(`闯关失败！本次得分：${state.score} 分。再试一次吧！`);
+        restart();
+        return;
+      }
+
+      state.q += 1;
+      if (state.q >= 5) {
+        state.level += 1;
+        state.q = 0;
+      }
+
+      if (state.level >= 3) {
+        let stars = state.score >= 170 ? '⭐⭐⭐' : state.score >= 130 ? '⭐⭐' : '⭐';
+        alert(`通关成功！总分 ${state.score} 分 ${stars}\n你已经完成规律侦探队全部关卡！`);
+        restart();
+        return;
+      }
+
+      state.current = levels[state.level].generator();
+      state.lock = false;
+      render();
+    }
+
+    function restart() {
+      state.level = 0;
+      state.q = 0;
+      state.score = 0;
+      state.lives = 3;
+      state.current = levels[0].generator();
+      state.lock = false;
+      render();
+    }
+
+    el('nextBtn').addEventListener('click', next);
+    el('restartBtn').addEventListener('click', restart);
+
+    restart();
+  </script>
+</body>
+</html>
