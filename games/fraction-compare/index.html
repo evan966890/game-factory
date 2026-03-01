@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>分数大小比一比</title>
+  <style>
+    :root {
+      --bg: #f5fbff;
+      --card: #fff;
+      --text: #173047;
+      --muted: #5f788f;
+      --primary: #0b79a0;
+      --ok: #177a43;
+      --bad: #b73a3a;
+      --border: #d5e7f2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e6f7ff 0%, var(--bg) 55%, #f5fff3 100%);
+    }
+    .app {
+      width: min(100%, 620px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(11, 121, 160, 0.12);
+      padding: 18px;
+    }
+    h1 { margin: 0 0 8px; font-size: 1.45rem; }
+    .subtitle { margin: 0 0 14px; color: var(--muted); font-size: 0.95rem; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f9fdff;
+    }
+    .label { display: block; font-size: 0.82rem; color: var(--muted); }
+    .value { font-size: 1.06rem; font-weight: 700; }
+    .question {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fcfeff;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .fractions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .frac { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.1; min-width: 56px; }
+    .bar { width: 100%; border-top: 2px solid var(--text); margin: 3px 0; }
+    .choices { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .primary { background: var(--primary); color: #fff; }
+    .secondary { background: #e8f4fb; color: var(--text); border: 1px solid var(--border); }
+    .message { min-height: 1.5em; margin-top: 10px; text-align: center; font-weight: 600; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .actions { margin-top: 10px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+    @media (min-width: 640px) { .stats { grid-template-columns: repeat(5, 1fr); } .app { padding: 24px; } }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="分数比较游戏">
+    <h1>分数大小比一比</h1>
+    <p class="subtitle">看两个分数，选出正确关系（&gt;、&lt;、=）。适合小学分数入门。</p>
+
+    <section class="stats" aria-label="统计信息">
+      <div class="stat"><span class="label">总题数</span><span id="total" class="value">0</span></div>
+      <div class="stat"><span class="label">答对</span><span id="correct" class="value">0</span></div>
+      <div class="stat"><span class="label">答错</span><span id="wrong" class="value">0</span></div>
+      <div class="stat"><span class="label">得分</span><span id="score" class="value">0</span></div>
+      <div class="stat"><span class="label">准确率</span><span id="acc" class="value">0%</span></div>
+    </section>
+
+    <section class="question" aria-live="polite">
+      <div class="fractions">
+        <div class="frac"><span id="n1">1</span><span class="bar"></span><span id="d1">2</span></div>
+        <span> ? </span>
+        <div class="frac"><span id="n2">1</span><span class="bar"></span><span id="d2">3</span></div>
+      </div>
+      <div class="choices">
+        <button class="primary" data-op=">">&gt;</button>
+        <button class="primary" data-op="<">&lt;</button>
+        <button class="primary" data-op="=">=</button>
+      </div>
+      <div id="message" class="message"></div>
+      <div class="actions">
+        <button id="nextBtn" class="secondary" type="button">下一题</button>
+        <button id="resetBtn" class="secondary" type="button">重置</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const n1El = document.getElementById('n1');
+      const d1El = document.getElementById('d1');
+      const n2El = document.getElementById('n2');
+      const d2El = document.getElementById('d2');
+      const msgEl = document.getElementById('message');
+      const totalEl = document.getElementById('total');
+      const correctEl = document.getElementById('correct');
+      const wrongEl = document.getElementById('wrong');
+      const scoreEl = document.getElementById('score');
+      const accEl = document.getElementById('acc');
+
+      let n1 = 1, d1 = 2, n2 = 1, d2 = 3;
+      let total = 0, correct = 0, wrong = 0, score = 0;
+      let answered = false;
+
+      function r(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+      function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+      function newFraction() {
+        let n = r(1, 9), d = r(2, 10);
+        const g = gcd(n, d);
+        return [n / g, d / g];
+      }
+
+      function nextQuestion() {
+        [n1, d1] = newFraction();
+        [n2, d2] = newFraction();
+        answered = false;
+        n1El.textContent = n1;
+        d1El.textContent = d1;
+        n2El.textContent = n2;
+        d2El.textContent = d2;
+        msgEl.textContent = '';
+        msgEl.className = 'message';
+      }
+
+      function op() {
+        const left = n1 * d2;
+        const right = n2 * d1;
+        if (left > right) return '>';
+        if (left < right) return '<';
+        return '=';
+      }
+
+      function update() {
+        totalEl.textContent = String(total);
+        correctEl.textContent = String(correct);
+        wrongEl.textContent = String(wrong);
+        scoreEl.textContent = String(score);
+        accEl.textContent = (total ? Math.round(correct / total * 100) : 0) + '%';
+      }
+
+      function judge(choice) {
+        if (answered) return;
+        answered = true;
+        total += 1;
+        const expected = op();
+        if (choice === expected) {
+          correct += 1;
+          score += 10;
+          msgEl.textContent = '答对啦！' + n1 + '/' + d1 + ' ' + expected + ' ' + n2 + '/' + d2;
+          msgEl.className = 'message ok';
+        } else {
+          wrong += 1;
+          score = Math.max(0, score - 5);
+          msgEl.textContent = '答错了，正确是 “' + expected + '”。';
+          msgEl.className = 'message bad';
+        }
+        update();
+      }
+
+      document.querySelectorAll('[data-op]').forEach(btn => {
+        btn.addEventListener('click', function () { judge(this.getAttribute('data-op')); });
+      });
+      document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+      document.getElementById('resetBtn').addEventListener('click', function () {
+        total = 0; correct = 0; wrong = 0; score = 0;
+        update();
+        nextQuestion();
+      });
+
+      update();
+      nextQuestion();
+    })();
+  </script>
+</body>
+</html>

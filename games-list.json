@@ -24,5 +24,11 @@
     "category": "education",
     "createdAt": "2026-02-28T18:29:05Z",
     "updatedAt": "2026-03-01T03:37:00Z"
+  },
+  {
+    "name": "分数大小比一比",
+    "path": "games/fraction-compare/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T03:40:00Z"
   }
 ]

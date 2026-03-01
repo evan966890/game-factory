@@ -24,3 +24,6 @@
   - 新增准确率统计；
   - 保持整除出题，完善交互提示与重置流程。
 - 更新 `games-list.json`：为 `multiplication-practice` 与 `division-practice` 增加 `updatedAt` 字段。
+- 新增教育游戏 `分数大小比一比`，文件路径：`games/fraction-compare/index.html`。
+- 游戏功能包含：随机最简分数生成、`>`/`<`/`=` 关系判断、即时反馈、得分与准确率统计、下一题与重置。
+- 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。
