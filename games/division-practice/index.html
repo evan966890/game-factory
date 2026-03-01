@@ -3,19 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>乘法冒险岛（2-3年级）</title>
+  <title>除法练习（收尾版）</title>
   <style>
     :root {
-      --bg: #f3fbff;
+      --bg: #f7fcff;
       --card: #ffffff;
-      --text: #173047;
-      --muted: #60778f;
-      --primary: #0a7da3;
-      --primary-dark: #086584;
-      --ok: #16783f;
-      --bad: #b73939;
-      --accent: #ffb703;
-      --border: #d4e6f2;
+      --text: #1a3146;
+      --muted: #62788f;
+      --primary: #0b7894;
+      --primary-dark: #095f76;
+      --ok: #157b42;
+      --bad: #b23a3a;
+      --border: #d7e4ef;
       --radius: 16px;
     }
     * { box-sizing: border-box; }
@@ -28,18 +27,25 @@
       justify-content: center;
       font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
       color: var(--text);
-      background: linear-gradient(180deg, #e6f7ff 0%, var(--bg) 55%, #f3fff1 100%);
+      background: linear-gradient(180deg, #e8f6ff 0%, var(--bg) 52%, #f2fff8 100%);
     }
     .app {
-      width: min(100%, 620px);
+      width: min(100%, 600px);
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      box-shadow: 0 12px 30px rgba(8, 101, 132, 0.12);
+      box-shadow: 0 12px 32px rgba(9, 95, 118, 0.12);
       padding: 18px;
     }
     h1 { margin: 0 0 6px; font-size: 1.45rem; }
     .subtitle { margin: 0 0 14px; color: var(--muted); font-size: 0.95rem; }
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    select, button, input[type="number"] {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.96rem;
+    }
     .stats {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -49,12 +55,12 @@
     .stat {
       border: 1px solid var(--border);
       border-radius: 12px;
-      background: #f9fdff;
-      text-align: center;
       padding: 10px 8px;
+      text-align: center;
+      background: #f9fcff;
     }
     .label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 2px; }
-    .value { font-size: 1.08rem; font-weight: 700; }
+    .value { font-size: 1.06rem; font-weight: 700; }
     .question-box {
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -68,25 +74,17 @@
       font-weight: 700;
     }
     .answer-row { display: flex; gap: 10px; flex-wrap: wrap; }
-    input[type="number"] {
-      flex: 1;
-      min-width: 120px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 1rem;
-    }
+    input[type="number"] { flex: 1; min-width: 120px; }
     input[type="number"]:focus {
-      outline: 2px solid rgba(10, 125, 163, 0.25);
+      outline: 2px solid rgba(11, 120, 148, 0.24);
       border-color: var(--primary);
     }
     button {
       border: none;
       border-radius: 10px;
-      padding: 12px 14px;
-      font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
+      transition: transform 0.06s ease;
       touch-action: manipulation;
     }
     button:active { transform: scale(0.98); }
@@ -97,21 +95,11 @@
       color: var(--text);
       border: 1px solid var(--border);
     }
-    .message { margin-top: 10px; min-height: 1.5em; font-weight: 600; }
+    .actions { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .message { margin-top: 10px; min-height: 1.4em; font-weight: 600; }
     .message.ok { color: var(--ok); }
     .message.bad { color: var(--bad); }
     .hint { margin-top: 6px; color: var(--muted); font-size: 0.9rem; }
-    .actions { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; }
-    .reward {
-      margin-top: 10px;
-      border: 1px dashed #ffd979;
-      background: #fff9e8;
-      border-radius: 10px;
-      padding: 8px 10px;
-      color: #8a5c00;
-      font-size: 0.92rem;
-    }
-    .reward strong { color: #724900; }
     @media (min-width: 640px) {
       .app { padding: 24px; }
       .stats { grid-template-columns: repeat(5, 1fr); }
@@ -120,27 +108,35 @@
   </style>
 </head>
 <body>
-  <main class="app" aria-label="乘法冒险岛游戏">
-    <h1>乘法冒险岛</h1>
-    <p class="subtitle">2-3年级专属：每答对一题收集1颗星，连对有奖励！</p>
+  <main class="app" aria-label="除法练习游戏">
+    <h1>除法练习（收尾版）</h1>
+    <p class="subtitle">整除题训练，支持难度切换与准确率统计。</p>
+
+    <div class="toolbar">
+      <label for="level">难度：</label>
+      <select id="level" aria-label="难度选择">
+        <option value="easy">简单（1~6）</option>
+        <option value="normal" selected>普通（1~9）</option>
+        <option value="hard">进阶（1~12）</option>
+      </select>
+    </div>
 
     <section class="stats" aria-label="统计信息">
       <div class="stat"><span class="label">总题数</span><span id="total" class="value">0</span></div>
       <div class="stat"><span class="label">答对</span><span id="correct" class="value">0</span></div>
       <div class="stat"><span class="label">答错</span><span id="wrong" class="value">0</span></div>
       <div class="stat"><span class="label">得分</span><span id="score" class="value">0</span></div>
-      <div class="stat"><span class="label">星星</span><span id="stars" class="value">0 ⭐</span></div>
+      <div class="stat"><span class="label">准确率</span><span id="accuracy" class="value">0%</span></div>
     </section>
 
     <section class="question-box" aria-live="polite">
-      <p id="question" class="question">1 × 1 = ?</p>
+      <p id="question" class="question">0 ÷ 1 = ?</p>
       <div class="answer-row">
         <input id="answer" type="number" inputmode="numeric" autocomplete="off" placeholder="请输入答案" aria-label="答案输入框">
         <button id="checkBtn" class="btn-primary" type="button">提交答案</button>
       </div>
       <div id="message" class="message"></div>
-      <div id="reward" class="reward">当前连对：<strong id="streak">0</strong>，继续加油！</div>
-      <p class="hint">提示：按回车快速提交。题目范围 1~9 乘法，适合口算训练。</p>
+      <p class="hint">提示：按回车可快速提交，做完点击“下一题”。</p>
       <div class="actions">
         <button id="nextBtn" class="btn-secondary" type="button">下一题</button>
         <button id="resetBtn" class="btn-secondary" type="button">重置</button>
@@ -157,31 +153,36 @@
       const correctEl = document.getElementById('correct');
       const wrongEl = document.getElementById('wrong');
       const scoreEl = document.getElementById('score');
-      const starsEl = document.getElementById('stars');
-      const streakEl = document.getElementById('streak');
-      const checkBtn = document.getElementById('checkBtn');
-      const nextBtn = document.getElementById('nextBtn');
-      const resetBtn = document.getElementById('resetBtn');
+      const accuracyEl = document.getElementById('accuracy');
+      const levelEl = document.getElementById('level');
 
-      let left = 1;
-      let right = 1;
+      let dividend = 0;
+      let divisor = 1;
+      let quotient = 0;
       let total = 0;
       let correct = 0;
       let wrong = 0;
       let score = 0;
-      let stars = 0;
-      let streak = 0;
       let answeredCurrent = false;
 
       function randomInt(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
       }
 
+      function maxByLevel() {
+        const level = levelEl.value;
+        if (level === 'easy') return 6;
+        if (level === 'hard') return 12;
+        return 9;
+      }
+
       function nextQuestion() {
-        left = randomInt(1, 9);
-        right = randomInt(1, 9);
+        const max = maxByLevel();
+        divisor = randomInt(1, max);
+        quotient = randomInt(1, max);
+        dividend = divisor * quotient;
         answeredCurrent = false;
-        questionEl.textContent = left + ' × ' + right + ' = ?';
+        questionEl.textContent = dividend + ' ÷ ' + divisor + ' = ?';
         answerInput.value = '';
         messageEl.textContent = '';
         messageEl.className = 'message';
@@ -193,57 +194,43 @@
         correctEl.textContent = String(correct);
         wrongEl.textContent = String(wrong);
         scoreEl.textContent = String(score);
-        starsEl.textContent = stars + ' ⭐';
-        streakEl.textContent = String(streak);
-      }
-
-      function rewardText() {
-        if (streak >= 8) return '太厉害了！你是乘法小超人！';
-        if (streak >= 5) return '连续答对，奖励翻倍中！';
-        if (streak >= 3) return '连对3题，保持节奏！';
-        return '当前连对：' + streak + '，继续加油！';
+        const accuracy = total === 0 ? 0 : Math.round((correct / total) * 100);
+        accuracyEl.textContent = accuracy + '%';
       }
 
       function checkAnswer() {
         if (answeredCurrent) {
-          messageEl.textContent = '本题已作答，请点“下一题”。';
+          messageEl.textContent = '本题已作答，请点击“下一题”。';
           return;
         }
-
         const raw = answerInput.value.trim();
         if (!raw) {
           messageEl.textContent = '请先输入答案。';
           messageEl.className = 'message bad';
           return;
         }
-
         const userAnswer = Number(raw);
         if (!Number.isInteger(userAnswer)) {
-          messageEl.textContent = '请输入整数。';
+          messageEl.textContent = '请输入整数答案。';
           messageEl.className = 'message bad';
           return;
         }
 
-        const expected = left * right;
         answeredCurrent = true;
         total += 1;
 
-        if (userAnswer === expected) {
+        if (userAnswer === quotient) {
           correct += 1;
-          streak += 1;
-          stars += 1;
-          score += streak >= 5 ? 15 : 10;
-          messageEl.textContent = streak >= 5 ? '全对！连击奖励 +15 分！' : '回答正确！+10 分';
+          score += 10;
+          messageEl.textContent = '回答正确，加 10 分！';
           messageEl.className = 'message ok';
         } else {
           wrong += 1;
-          streak = 0;
           score = Math.max(0, score - 5);
-          messageEl.textContent = '答错啦，正确答案是 ' + expected + '。';
+          messageEl.textContent = '回答错误，正确答案是 ' + quotient + '。';
           messageEl.className = 'message bad';
         }
 
-        document.getElementById('reward').firstChild.textContent = rewardText();
         updateStats();
       }
 
@@ -252,19 +239,17 @@
         correct = 0;
         wrong = 0;
         score = 0;
-        stars = 0;
-        streak = 0;
         updateStats();
-        document.getElementById('reward').firstChild.textContent = rewardText();
         nextQuestion();
       }
 
-      checkBtn.addEventListener('click', checkAnswer);
-      nextBtn.addEventListener('click', nextQuestion);
-      resetBtn.addEventListener('click', resetGame);
+      document.getElementById('checkBtn').addEventListener('click', checkAnswer);
+      document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+      document.getElementById('resetBtn').addEventListener('click', resetGame);
       answerInput.addEventListener('keydown', function (event) {
         if (event.key === 'Enter') checkAnswer();
       });
+      levelEl.addEventListener('change', nextQuestion);
 
       updateStats();
       nextQuestion();

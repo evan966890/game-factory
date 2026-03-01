@@ -15,6 +15,14 @@
     "name": "乘法练习",
     "path": "games/multiplication-practice/index.html",
     "category": "education",
-    "createdAt": "2026-02-28T18:25:53Z"
+    "createdAt": "2026-02-28T18:25:53Z",
+    "updatedAt": "2026-03-01T03:37:00Z"
+  },
+  {
+    "name": "除法练习",
+    "path": "games/division-practice/index.html",
+    "category": "education",
+    "createdAt": "2026-02-28T18:29:05Z",
+    "updatedAt": "2026-03-01T03:37:00Z"
   }
 ]
