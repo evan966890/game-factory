@@ -138,5 +138,11 @@
     "path": "games/shape-angle-hunt/index.html",
     "category": "education",
     "createdAt": "2026-03-01T08:59:15Z"
+  },
+  {
+    "name": "质数猎手",
+    "path": "games/prime-hunter/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T09:20:17Z"
   }
 ]

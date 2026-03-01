@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>质数猎手</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --primary: #22d3ee;
+      --ok: #22c55e;
+      --bad: #ef4444;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(680px, 100%);
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    }
+    h1 { margin: 4px 0 8px; font-size: 1.55rem; }
+    .desc { color: var(--muted); margin: 0 0 14px; line-height: 1.5; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .stat {
+      background: #0b1220;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    .label { font-size: 0.75rem; color: var(--muted); }
+    .value { font-size: 1.2rem; font-weight: 700; margin-top: 2px; }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    button.num {
+      border: none;
+      border-radius: 10px;
+      min-height: 58px;
+      background: #1f2937;
+      color: var(--text);
+      font-size: 1.1rem;
+      font-weight: 700;
+      touch-action: manipulation;
+    }
+    button.num:active { transform: scale(0.98); }
+    button.num.correct { background: rgba(34, 197, 94, 0.25); outline: 2px solid var(--ok); }
+    button.num.wrong { background: rgba(239, 68, 68, 0.25); outline: 2px solid var(--bad); }
+    button.num.locked { opacity: 0.45; }
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .controls button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      color: #0f172a;
+      background: var(--primary);
+      flex: 1;
+      min-width: 120px;
+    }
+    .controls button.secondary {
+      background: #334155;
+      color: var(--text);
+    }
+    .hint { margin-top: 10px; min-height: 22px; color: #cbd5e1; }
+    @media (max-width: 480px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .board { grid-template-columns: repeat(4, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>🔢 质数猎手</h1>
+    <p class="desc">在 60 秒内，点击所有 <strong>质数</strong>！质数是只能被 1 和自己整除的自然数（大于 1）。</p>
+
+    <section class="stats">
+      <div class="stat"><div class="label">剩余时间</div><div class="value" id="time">60</div></div>
+      <div class="stat"><div class="label">得分</div><div class="value" id="score">0</div></div>
+      <div class="stat"><div class="label">已找质数</div><div class="value" id="found">0</div></div>
+      <div class="stat"><div class="label">正确率</div><div class="value" id="acc">0%</div></div>
+    </section>
+
+    <section class="board" id="board"></section>
+    <p class="hint" id="hint">准备好了吗？点击“开始游戏”！</p>
+
+    <div class="controls">
+      <button id="startBtn">开始游戏</button>
+      <button class="secondary" id="nextBtn">换一组数字</button>
+      <button class="secondary" id="resetBtn">重置</button>
+    </div>
+  </main>
+
+  <script>
+    const boardEl = document.getElementById('board');
+    const timeEl = document.getElementById('time');
+    const scoreEl = document.getElementById('score');
+    const foundEl = document.getElementById('found');
+    const accEl = document.getElementById('acc');
+    const hintEl = document.getElementById('hint');
+    const startBtn = document.getElementById('startBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const TOTAL_CELLS = 20;
+    const RANGE_MIN = 2;
+    const RANGE_MAX = 99;
+
+    let score = 0;
+    let found = 0;
+    let attempts = 0;
+    let timeLeft = 60;
+    let timer = null;
+    let running = false;
+
+    function isPrime(n) {
+      if (n < 2) return false;
+      if (n === 2) return true;
+      if (n % 2 === 0) return false;
+      const max = Math.sqrt(n);
+      for (let i = 3; i <= max; i += 2) {
+        if (n % i === 0) return false;
+      }
+      return true;
+    }
+
+    function updateStats() {
+      timeEl.textContent = timeLeft;
+      scoreEl.textContent = score;
+      foundEl.textContent = found;
+      accEl.textContent = attempts === 0 ? '0%' : `${Math.round((found / attempts) * 100)}%`;
+    }
+
+    function randomNumber() {
+      return Math.floor(Math.random() * (RANGE_MAX - RANGE_MIN + 1)) + RANGE_MIN;
+    }
+
+    function buildBoard() {
+      boardEl.innerHTML = '';
+      for (let i = 0; i < TOTAL_CELLS; i++) {
+        const value = randomNumber();
+        const btn = document.createElement('button');
+        btn.className = 'num';
+        btn.textContent = value;
+        btn.dataset.value = value;
+        btn.dataset.prime = String(isPrime(value));
+        btn.addEventListener('click', () => handlePick(btn));
+        boardEl.appendChild(btn);
+      }
+      hintEl.textContent = '新数字已生成：把所有质数都找出来！';
+    }
+
+    function lockBoard() {
+      boardEl.querySelectorAll('.num').forEach((btn) => btn.classList.add('locked'));
+    }
+
+    function handlePick(btn) {
+      if (!running || btn.classList.contains('locked')) return;
+
+      attempts++;
+      const prime = btn.dataset.prime === 'true';
+      btn.classList.add('locked');
+
+      if (prime) {
+        found++;
+        score += 10;
+        btn.classList.add('correct');
+        hintEl.textContent = `✅ ${btn.dataset.value} 是质数！`;
+      } else {
+        score = Math.max(0, score - 5);
+        btn.classList.add('wrong');
+        hintEl.textContent = `❌ ${btn.dataset.value} 不是质数。`;
+      }
+
+      updateStats();
+
+      const primesLeft = [...boardEl.querySelectorAll('.num:not(.locked)')]
+        .some((n) => n.dataset.prime === 'true');
+      if (!primesLeft) {
+        score += 15;
+        hintEl.textContent = '🎉 本轮质数全找到了！奖励 +15，点击“换一组数字”继续。';
+        updateStats();
+        lockBoard();
+      }
+    }
+
+    function startGame() {
+      if (running) return;
+      running = true;
+      hintEl.textContent = '游戏开始！快找质数！';
+      timer = setInterval(() => {
+        timeLeft--;
+        updateStats();
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          running = false;
+          lockBoard();
+          hintEl.textContent = `⏰ 时间到！最终得分 ${score} 分，正确率 ${accEl.textContent}。`;
+        }
+      }, 1000);
+    }
+
+    function nextRound() {
+      if (!running) {
+        hintEl.textContent = '请先点击“开始游戏”。';
+        return;
+      }
+      buildBoard();
+    }
+
+    function resetGame() {
+      clearInterval(timer);
+      running = false;
+      score = 0;
+      found = 0;
+      attempts = 0;
+      timeLeft = 60;
+      buildBoard();
+      updateStats();
+      hintEl.textContent = '已重置。点击“开始游戏”重新挑战！';
+    }
+
+    startBtn.addEventListener('click', startGame);
+    nextBtn.addEventListener('click', nextRound);
+    resetBtn.addEventListener('click', resetGame);
+
+    buildBoard();
+    updateStats();
+  </script>
+</body>
+</html>
