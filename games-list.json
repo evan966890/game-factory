@@ -96,5 +96,11 @@
     "path": "games/word-category-sort/index.html",
     "category": "education",
     "createdAt": "2026-03-01T05:11:05Z"
+  },
+  {
+    "name": "周长小工匠",
+    "path": "games/perimeter-builder/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T05:16:15.363Z"
   }
 ]
