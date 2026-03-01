@@ -276,5 +276,11 @@
     "path": "games/modulo-logic-arena/index.html",
     "category": "数学+逻辑",
     "createdAt": "2026-03-01T16:13:20.263562Z"
+  },
+  {
+    "name": "概率决策实验室",
+    "path": "games/probability-decision-lab/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-01T16:36:43.669Z"
   }
 ]
