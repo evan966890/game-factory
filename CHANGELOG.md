@@ -39,3 +39,9 @@
 - 新增教育游戏 `数字迷宫探险`，文件路径：`games/number-maze/index.html`。
 - 游戏功能包含：迷宫移动、答题解锁前进、关卡升级、步数与正确率统计、关卡重置。
 - 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。
+- 新增教育游戏 `角度分类训练营`，文件路径：`games/angle-classifier/index.html`。
+- 游戏功能包含：角度可视化题目（锐角/直角/钝角）、即时反馈、得分/正确数/准确率统计、下一题与重置。
+- 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。
+- 新增教育游戏 `行星排序实验室`，文件路径：`games/planet-order/index.html`。
+- 游戏功能包含：行星顺序拖拽排序（支持鼠标/触摸）、即时判定、得分与准确率统计、洗牌重开。
+- 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。
