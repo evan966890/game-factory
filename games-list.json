@@ -144,5 +144,11 @@
     "path": "games/prime-hunter/index.html",
     "category": "education",
     "createdAt": "2026-03-01T09:20:17Z"
+  },
+  {
+    "name": "分解因数挑战",
+    "path": "games/factorization-quiz/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T09:21:02Z"
   }
 ]

@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>分解因数挑战</title>
+  <style>
+    :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --muted:#64748b; --ok:#16a34a; --bad:#dc2626; --pri:#2563eb; }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#e2e8f0,#f8fafc);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--text);padding:14px}
+    .app{max-width:680px;margin:0 auto;background:var(--card);border-radius:16px;padding:16px;box-shadow:0 8px 24px rgba(15,23,42,.12)}
+    h1{margin:4px 0 8px;font-size:1.45rem}
+    .desc{margin:0 0 12px;color:var(--muted)}
+    .q{font-size:1.2rem;font-weight:700;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:12px;text-align:center;margin-bottom:12px}
+    .opts{display:grid;grid-template-columns:1fr;gap:8px}
+    .opt{border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:12px;font-size:1rem;text-align:left}
+    .opt.correct{border-color:var(--ok);background:#dcfce7}
+    .opt.wrong{border-color:var(--bad);background:#fee2e2}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+    .s{background:#f1f5f9;border-radius:10px;padding:8px;text-align:center}
+    .k{font-size:.73rem;color:var(--muted)}
+    .v{font-size:1.1rem;font-weight:700}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    button.ctrl{flex:1;min-width:120px;border:none;border-radius:10px;padding:10px 12px;font-weight:700;background:var(--pri);color:#fff}
+    button.secondary{background:#334155}
+    #msg{min-height:24px;margin-top:10px;color:#334155}
+    @media (max-width:480px){.stats{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>🧩 分解因数挑战</h1>
+    <p class="desc">判断哪个选项是目标数字的 <strong>质因数分解</strong>（例如 12 = 2×2×3）。</p>
+    <div class="q" id="question">准备开始</div>
+    <section class="opts" id="options"></section>
+
+    <section class="stats">
+      <div class="s"><div class="k">题号</div><div class="v" id="round">0/10</div></div>
+      <div class="s"><div class="k">得分</div><div class="v" id="score">0</div></div>
+      <div class="s"><div class="k">正确</div><div class="v" id="right">0</div></div>
+      <div class="s"><div class="k">正确率</div><div class="v" id="acc">0%</div></div>
+    </section>
+
+    <div class="row">
+      <button class="ctrl" id="next">下一题</button>
+      <button class="ctrl secondary" id="reset">重置</button>
+    </div>
+    <p id="msg">点击“下一题”开始练习。</p>
+  </main>
+
+  <script>
+    const PRIMES = [2,3,5,7,11,13];
+    const TOTAL = 10;
+    let round = 0, score = 0, right = 0, answered = false, current = null;
+
+    const el = (id)=>document.getElementById(id);
+    const qEl = el('question'), optsEl = el('options'), msgEl = el('msg');
+
+    function factorize(n){
+      const factors = [];
+      let x = n;
+      for(let p=2; p*p<=x; p++){
+        while(x%p===0){ factors.push(p); x/=p; }
+      }
+      if(x>1) factors.push(x);
+      return factors;
+    }
+
+    function formatFactors(arr){ return arr.join(' × '); }
+
+    function randomComposite(){
+      const a = PRIMES[Math.floor(Math.random()*4)];
+      const b = PRIMES[Math.floor(Math.random()*4)];
+      const c = Math.random()<0.35 ? PRIMES[Math.floor(Math.random()*3)] : 1;
+      return a*b*c;
+    }
+
+    function mutateFactors(factors){
+      const copy = factors.slice();
+      const i = Math.floor(Math.random()*copy.length);
+      copy[i] = PRIMES[Math.floor(Math.random()*PRIMES.length)];
+      copy.sort((a,b)=>a-b);
+      return copy;
+    }
+
+    function updateStats(){
+      el('round').textContent = `${round}/${TOTAL}`;
+      el('score').textContent = score;
+      el('right').textContent = right;
+      el('acc').textContent = round===0 ? '0%' : `${Math.round((right/round)*100)}%`;
+    }
+
+    function makeQuestion(){
+      let n = randomComposite();
+      while(n < 12 || n > 120) n = randomComposite();
+
+      const correct = factorize(n).sort((a,b)=>a-b);
+      const options = [formatFactors(correct)];
+      while(options.length < 4){
+        const wrong = formatFactors(mutateFactors(correct));
+        if(!options.includes(wrong)) options.push(wrong);
+      }
+      options.sort(()=>Math.random()-0.5);
+      return { n, correct: formatFactors(correct), options };
+    }
+
+    function renderQuestion(){
+      if(round >= TOTAL){
+        qEl.textContent = '🎉 本轮完成';
+        optsEl.innerHTML = '';
+        msgEl.textContent = `总分 ${score}，正确率 ${el('acc').textContent}。点击“重置”再来一轮。`;
+        return;
+      }
+
+      current = makeQuestion();
+      answered = false;
+      qEl.textContent = `把 ${current.n} 分解成质因数：`;
+      optsEl.innerHTML = '';
+
+      current.options.forEach(text=>{
+        const b = document.createElement('button');
+        b.className = 'opt';
+        b.textContent = text;
+        b.addEventListener('click', ()=>choose(b, text));
+        optsEl.appendChild(b);
+      });
+      msgEl.textContent = '请选择一个答案。';
+    }
+
+    function choose(btn, text){
+      if(answered || round >= TOTAL) return;
+      answered = true;
+      round++;
+
+      const all = [...document.querySelectorAll('.opt')];
+      const ok = text === current.correct;
+      if(ok){
+        right++; score += 10; btn.classList.add('correct'); msgEl.textContent = '✅ 正确！';
+      } else {
+        score = Math.max(0, score - 5);
+        btn.classList.add('wrong');
+        const c = all.find(x=>x.textContent===current.correct);
+        if(c) c.classList.add('correct');
+        msgEl.textContent = `❌ 正确答案：${current.correct}`;
+      }
+      all.forEach(x=>x.disabled = true);
+      updateStats();
+    }
+
+    document.getElementById('next').addEventListener('click', ()=>{
+      if(!current || answered){ renderQuestion(); }
+      else msgEl.textContent = '请先作答后再下一题。';
+    });
+
+    document.getElementById('reset').addEventListener('click', ()=>{
+      round = 0; score = 0; right = 0; current = null; answered = false;
+      qEl.textContent = '准备开始';
+      optsEl.innerHTML = '';
+      msgEl.textContent = '点击“下一题”开始练习。';
+      updateStats();
+    });
+
+    updateStats();
+  </script>
+</body>
+</html>
