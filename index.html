@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>游戏自动化工厂 · 已发布游戏</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #1f2d3d;
+      --muted: #637487;
+      --primary: #0b79d0;
+      --border: #d9e5ef;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #eaf5ff 0%, #f9fcff 100%);
+      color: var(--text);
+      padding: 24px 16px 32px;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.7rem;
+    }
+    .desc {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 680px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 6px 18px rgba(16, 78, 125, 0.08);
+    }
+    .title {
+      margin: 0 0 4px;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+    .meta {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      word-break: break-all;
+    }
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      background: var(--primary);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>🎮 游戏自动化工厂 · 已发布游戏</h1>
+    <p class="desc">点击「立即试玩」开始体验。所有游戏均为纯 HTML/CSS/JS，可在移动端浏览器直接打开。</p>
+
+    <section class="grid">
+      <article class="card">
+        <h2 class="title">加法练习</h2>
+        <p class="meta">games/addition-practice/index.html</p>
+        <a class="btn" href="games/addition-practice/index.html">立即试玩</a>
+      </article>
+
+      <article class="card">
+        <h2 class="title">减法练习</h2>
+        <p class="meta">games/subtraction-practice/index.html</p>
+        <a class="btn" href="games/subtraction-practice/index.html">立即试玩</a>
+      </article>
+
+      <article class="card">
+        <h2 class="title">乘法练习</h2>
+        <p class="meta">games/multiplication-practice/index.html</p>
+        <a class="btn" href="games/multiplication-practice/index.html">立即试玩</a>
+      </article>
+
+      <article class="card">
+        <h2 class="title">除法练习</h2>
+        <p class="meta">games/division-practice/index.html</p>
+        <a class="btn" href="games/division-practice/index.html">立即试玩</a>
+      </article>
+
+      <article class="card">
+        <h2 class="title">分数大小比一比</h2>
+        <p class="meta">games/fraction-compare/index.html</p>
+        <a class="btn" href="games/fraction-compare/index.html">立即试玩</a>
+      </article>
+
+      <article class="card">
+        <h2 class="title">图形配对大师</h2>
+        <p class="meta">games/shape-match/index.html</p>
+        <a class="btn" href="games/shape-match/index.html">立即试玩</a>
+      </article>
+
+      <article class="card">
+        <h2 class="title">单词拼写挑战</h2>
+        <p class="meta">games/word-spell/index.html</p>
+        <a class="btn" href="games/word-spell/index.html">立即试玩</a>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
