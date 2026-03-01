@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>余数快闪战</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --ok: #22c55e;
+      --bad: #ef4444;
+      --accent: #38bdf8;
+      --btn: #1f2937;
+      --btnActive: #334155;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 60%);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 14px;
+    }
+    .app {
+      width: min(720px, 100%);
+      background: rgba(17, 24, 39, 0.94);
+      border: 1px solid #334155;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 10px 26px rgba(0,0,0,.35);
+    }
+    h1 { margin: 0; font-size: clamp(1.4rem, 2.6vw, 1.9rem); }
+    .sub { margin-top: 4px; color: var(--muted); font-size: .95rem; }
+    .stats {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 10px;
+    }
+    .item {
+      background: #0b1220;
+      border: 1px solid #243244;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+    .item b { display: block; font-size: 1.15rem; margin-top: 4px; }
+    .question {
+      margin-top: 16px;
+      background: #0b1220;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+    }
+    .qtext {
+      font-size: clamp(1.15rem, 3.3vw, 1.8rem);
+      line-height: 1.35;
+      margin: 4px 0 10px;
+    }
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    button {
+      border: 1px solid #334155;
+      background: var(--btn);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 11px 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .15s;
+    }
+    button:active { transform: scale(.98); background: var(--btnActive); }
+    .feedback {
+      min-height: 28px;
+      margin-top: 12px;
+      font-weight: 700;
+    }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .actions {
+      display: flex;
+      justify-content: center;
+      margin-top: 14px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .primary { background: linear-gradient(135deg, #0284c7, #2563eb); border-color: #1d4ed8; }
+    .progress {
+      margin-top: 12px;
+      width: 100%;
+      height: 10px;
+      background: #0b1220;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid #243244;
+    }
+    .bar { height: 100%; width: 100%; background: linear-gradient(90deg, #38bdf8, #0ea5e9); transition: width .15s linear; }
+    @media (max-width: 560px) {
+      .stats, .choices { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      button { padding: 10px 6px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>余数快闪战</h1>
+    <div class="sub">60 秒高强度模运算挑战：判断余数，保持连击，冲击高分。</div>
+
+    <section class="stats">
+      <div class="item">剩余时间<b id="time">60</b></div>
+      <div class="item">得分<b id="score">0</b></div>
+      <div class="item">连击<b id="combo">0</b></div>
+      <div class="item">正确率<b id="acc">0%</b></div>
+    </section>
+
+    <div class="progress" aria-label="时间进度条"><div id="bar" class="bar"></div></div>
+
+    <section class="question" aria-live="polite">
+      <div class="qtext" id="qtext">点击“开始挑战”</div>
+      <div class="choices" id="choices"></div>
+      <div id="feedback" class="feedback"></div>
+    </section>
+
+    <div class="actions">
+      <button id="start" class="primary">开始挑战</button>
+      <button id="restart">再来一局</button>
+    </div>
+  </main>
+
+  <script>
+    const state = {
+      totalTime: 60,
+      timeLeft: 60,
+      score: 0,
+      combo: 0,
+      right: 0,
+      total: 0,
+      running: false,
+      timer: null,
+      answer: null,
+      locked: false
+    };
+
+    const el = {
+      time: document.getElementById('time'),
+      score: document.getElementById('score'),
+      combo: document.getElementById('combo'),
+      acc: document.getElementById('acc'),
+      qtext: document.getElementById('qtext'),
+      choices: document.getElementById('choices'),
+      feedback: document.getElementById('feedback'),
+      start: document.getElementById('start'),
+      restart: document.getElementById('restart'),
+      bar: document.getElementById('bar')
+    };
+
+    function rand(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function genQuestion() {
+      const divisor = rand(3, 12);
+      const quotient = rand(4, 25);
+      const remainder = rand(0, divisor - 1);
+      const dividend = divisor * quotient + remainder;
+
+      state.answer = remainder;
+      el.qtext.textContent = `${dividend} ÷ ${divisor} 的余数是？`;
+
+      const options = new Set([remainder]);
+      while (options.size < 4) {
+        options.add(rand(0, divisor - 1));
+      }
+
+      const shuffled = [...options].sort(() => Math.random() - 0.5);
+      el.choices.innerHTML = '';
+      shuffled.forEach(v => {
+        const btn = document.createElement('button');
+        btn.textContent = v;
+        btn.addEventListener('click', () => submit(v));
+        el.choices.appendChild(btn);
+      });
+    }
+
+    function updateStats() {
+      el.time.textContent = state.timeLeft;
+      el.score.textContent = state.score;
+      el.combo.textContent = state.combo;
+      const acc = state.total ? Math.round((state.right / state.total) * 100) : 0;
+      el.acc.textContent = `${acc}%`;
+      el.bar.style.width = `${Math.max(0, (state.timeLeft / state.totalTime) * 100)}%`;
+    }
+
+    function flash(msg, ok) {
+      el.feedback.textContent = msg;
+      el.feedback.className = `feedback ${ok ? 'ok' : 'bad'}`;
+    }
+
+    function submit(value) {
+      if (!state.running || state.locked) return;
+      state.locked = true;
+      state.total += 1;
+
+      if (value === state.answer) {
+        state.right += 1;
+        state.combo += 1;
+        state.score += 10 + Math.min(20, state.combo * 2);
+        flash(`✅ 正确！连击 +1，得分 +${10 + Math.min(20, state.combo * 2)}`, true);
+      } else {
+        state.combo = 0;
+        state.score = Math.max(0, state.score - 5);
+        flash(`❌ 错误，正确答案是 ${state.answer}（-5分）`, false);
+      }
+
+      updateStats();
+      setTimeout(() => {
+        if (state.running) {
+          genQuestion();
+          state.locked = false;
+          el.feedback.textContent = '';
+          el.feedback.className = 'feedback';
+        }
+      }, 350);
+    }
+
+    function endGame() {
+      state.running = false;
+      clearInterval(state.timer);
+      const acc = state.total ? Math.round((state.right / state.total) * 100) : 0;
+      el.qtext.innerHTML = `时间到！<br>最终得分：<b>${state.score}</b> ｜ 正确率：<b>${acc}%</b>`;
+      el.choices.innerHTML = '';
+      flash('点击“再来一局”，挑战更高分！', true);
+    }
+
+    function startGame() {
+      clearInterval(state.timer);
+      Object.assign(state, {
+        timeLeft: 60,
+        score: 0,
+        combo: 0,
+        right: 0,
+        total: 0,
+        running: true,
+        locked: false
+      });
+      el.feedback.textContent = '';
+      el.feedback.className = 'feedback';
+      updateStats();
+      genQuestion();
+
+      state.timer = setInterval(() => {
+        state.timeLeft -= 1;
+        updateStats();
+        if (state.timeLeft <= 0) endGame();
+      }, 1000);
+    }
+
+    el.start.addEventListener('click', startGame);
+    el.restart.addEventListener('click', startGame);
+    updateStats();
+  </script>
+</body>
+</html>

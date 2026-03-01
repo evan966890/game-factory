@@ -360,5 +360,11 @@
     "path": "games/matrix-rule-hunt/index.html",
     "category": "数学+逻辑",
     "createdAt": "2026-03-02T03:39:22.164409+08:00"
+  },
+  {
+    "name": "余数快闪战",
+    "path": "games/remainder-flash-battle/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-02T03:59:13.650100+08:00"
   }
 ]
