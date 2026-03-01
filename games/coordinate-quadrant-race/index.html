@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>坐标象限快跑</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--text:#e5e7eb;--ok:#22c55e;--bad:#ef4444;--accent:#38bdf8}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#020617,#111827 60%,#0f172a);color:var(--text);min-height:100vh;display:flex;justify-content:center}
+    .app{width:min(720px,100%);padding:16px}
+    .card{background:rgba(17,24,39,.9);border:1px solid #334155;border-radius:14px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    h1{font-size:1.5rem;margin:0 0 8px}.hint{color:#cbd5e1;font-size:.95rem;margin-bottom:12px}
+    .top{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.stat{background:#1e293b;border-radius:10px;padding:10px;text-align:center}
+    .label{font-size:.8rem;color:#94a3b8}.value{font-size:1.2rem;font-weight:700}
+    .question{font-size:1.25rem;font-weight:700;text-align:center;margin:12px 0}
+    .options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    button{border:0;border-radius:10px;padding:12px;font-size:1rem;font-weight:700;background:#334155;color:#f8fafc}
+    button:active{transform:scale(.98)}
+    .feedback{min-height:28px;text-align:center;font-weight:700;margin-top:10px}
+    .ok{color:var(--ok)}.bad{color:var(--bad)}
+    .grid{margin:14px auto 8px;max-width:320px;aspect-ratio:1;border:2px solid #475569;position:relative;border-radius:8px;background:#0b1220}
+    .axis-x,.axis-y{position:absolute;background:#64748b}.axis-x{height:2px;left:0;right:0;top:50%}.axis-y{width:2px;top:0;bottom:0;left:50%}
+    .dot{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--accent);transform:translate(-50%,-50%);box-shadow:0 0 12px rgba(56,189,248,.6)}
+    .restart{margin-top:10px;width:100%;background:#0ea5e9}
+    @media (max-width:480px){.options{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <h1>坐标象限快跑</h1>
+      <p class="hint">判断点所在象限（轴上点选“在坐标轴上”）。共 12 题，越快越准越高分。</p>
+      <div class="top">
+        <div class="stat"><div class="label">题号</div><div class="value" id="qNo">1 / 12</div></div>
+        <div class="stat"><div class="label">得分</div><div class="value" id="score">0</div></div>
+        <div class="stat"><div class="label">正确率</div><div class="value" id="acc">0%</div></div>
+      </div>
+      <div class="grid" id="grid"><div class="axis-x"></div><div class="axis-y"></div><div class="dot" id="dot"></div></div>
+      <div class="question" id="question">点 P(2, 3) 在哪个区域？</div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="restart" id="restart">重新开始</button>
+    </section>
+  </main>
+<script>
+(() => {
+  const total = 12;
+  const labels = ["第一象限","第二象限","第三象限","第四象限","在坐标轴上"];
+  const el = {
+    qNo: document.getElementById('qNo'), score: document.getElementById('score'), acc: document.getElementById('acc'),
+    question: document.getElementById('question'), options: document.getElementById('options'), feedback: document.getElementById('feedback'),
+    dot: document.getElementById('dot'), restart: document.getElementById('restart')
+  };
+  let idx=0, right=0, score=0, locked=false, cur={x:0,y:0,ans:""};
+
+  function pick(){
+    const pool=[-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9];
+    const x=pool[Math.floor(Math.random()*pool.length)], y=pool[Math.floor(Math.random()*pool.length)];
+    let ans='在坐标轴上';
+    if(x>0&&y>0) ans='第一象限'; else if(x<0&&y>0) ans='第二象限'; else if(x<0&&y<0) ans='第三象限'; else if(x>0&&y<0) ans='第四象限';
+    return {x,y,ans};
+  }
+
+  function renderDot(){
+    const px = ((cur.x+10)/20)*100, py=((10-cur.y)/20)*100;
+    el.dot.style.left = px + '%'; el.dot.style.top = py + '%';
+  }
+
+  function render(){
+    el.qNo.textContent = `${Math.min(idx+1,total)} / ${total}`;
+    el.score.textContent = score;
+    el.acc.textContent = idx===0 ? '0%' : Math.round(right/idx*100)+'%';
+    el.feedback.textContent = '';
+    cur = pick();
+    el.question.textContent = `点 P(${cur.x}, ${cur.y}) 在哪个区域？`;
+    renderDot();
+    el.options.innerHTML='';
+    labels.forEach(l=>{
+      const b=document.createElement('button'); b.textContent=l;
+      b.onclick=()=>answer(l); el.options.appendChild(b);
+    });
+    locked=false;
+  }
+
+  function finish(){
+    el.question.textContent = `完成！共答对 ${right}/${total} 题，最终得分 ${score}。`;
+    el.options.innerHTML='';
+    el.feedback.textContent = score>=100 ? '太棒了，坐标感很强！' : '再来一轮，稳步进步！';
+    el.feedback.className='feedback ok';
+  }
+
+  function answer(choice){
+    if(locked) return; locked=true;
+    idx++;
+    const ok = choice===cur.ans;
+    if(ok){ right++; score += 10; el.feedback.textContent='回答正确 +10'; el.feedback.className='feedback ok'; }
+    else { score = Math.max(0, score-4); el.feedback.textContent=`回答错误，正确答案：${cur.ans}`; el.feedback.className='feedback bad'; }
+    el.score.textContent=score; el.acc.textContent=Math.round(right/idx*100)+'%';
+    if(idx>=total){ setTimeout(finish,500); }
+    else setTimeout(render,500);
+  }
+
+  el.restart.onclick=()=>{ idx=0; right=0; score=0; render(); };
+  render();
+})();
+</script>
+</body>
+</html>

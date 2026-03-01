@@ -210,5 +210,11 @@
     "path": "games/pattern-detective/index.html",
     "category": "逻辑推理",
     "createdAt": "2026-03-01T20:31:16.155830+08:00"
+  },
+  {
+    "name": "坐标象限快跑",
+    "path": "games/coordinate-quadrant-race/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T12:51:10.956Z"
   }
 ]
