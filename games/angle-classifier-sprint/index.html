@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>角度分类冲刺</title>
+  <style>
+    :root {
+      --bg: #f6f9ff;
+      --card: #ffffff;
+      --ink: #1f2a44;
+      --accent: #4f7cff;
+      --ok: #16a34a;
+      --bad: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #eef4ff, var(--bg));
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 14px;
+    }
+    .app {
+      width: min(700px, 100%);
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: 0 12px 35px rgba(40, 80, 160, .14);
+      padding: 16px;
+    }
+    h1 { margin: 0 0 10px; font-size: clamp(22px, 4.6vw, 32px); }
+    .sub { margin: 0 0 14px; color: #4b5a78; }
+    .stats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .pill {
+      background: #edf2ff;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .board {
+      border: 2px dashed #cbd7ff;
+      border-radius: 16px;
+      background: #f8faff;
+      min-height: 220px;
+      display: grid;
+      place-items: center;
+      padding: 8px;
+      margin-bottom: 12px;
+    }
+    svg { width: min(320px, 90%); height: auto; }
+    .prompt { text-align: center; margin: 6px 0 10px; font-size: 18px; font-weight: 700; }
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      background: #e6edff;
+      color: #22408d;
+      cursor: pointer;
+    }
+    button:active { transform: translateY(1px); }
+    .msg { min-height: 22px; margin-top: 10px; font-weight: 700; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .footer { margin-top: 12px; display: flex; gap: 10px; }
+    .primary { background: var(--accent); color: white; flex: 1; }
+    .ghost { background: #eef2f7; color: #3f4b66; }
+    @media (max-width: 520px) { .choices { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>角度分类冲刺</h1>
+    <p class="sub">在 60 秒内判断角度类型：锐角 / 直角 / 钝角 / 平角</p>
+
+    <div class="stats">
+      <div class="pill">题目：<span id="qNo">1</span></div>
+      <div class="pill">得分：<span id="score">0</span></div>
+      <div class="pill">连对：<span id="combo">0</span></div>
+      <div class="pill">倒计时：<span id="time">60</span>s</div>
+    </div>
+
+    <section class="board" aria-live="polite">
+      <svg id="angleSvg" viewBox="0 0 240 240" role="img" aria-label="角度图"></svg>
+    </section>
+
+    <div class="prompt" id="prompt">这个角是？</div>
+
+    <section class="choices" id="choices"></section>
+
+    <div class="msg" id="msg"></div>
+
+    <div class="footer">
+      <button class="primary" id="startBtn">开始挑战</button>
+      <button class="ghost" id="resetBtn">重置</button>
+    </div>
+  </main>
+
+  <script>
+    const angleSvg = document.getElementById('angleSvg');
+    const qNoEl = document.getElementById('qNo');
+    const scoreEl = document.getElementById('score');
+    const comboEl = document.getElementById('combo');
+    const timeEl = document.getElementById('time');
+    const msgEl = document.getElementById('msg');
+    const choicesEl = document.getElementById('choices');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const labels = ['锐角', '直角', '钝角', '平角'];
+    let gameOn = false;
+    let timer = null;
+    let timeLeft = 60;
+    let score = 0;
+    let combo = 0;
+    let qNo = 1;
+    let current = null;
+
+    function classify(deg) {
+      if (deg < 90) return '锐角';
+      if (deg === 90) return '直角';
+      if (deg < 180) return '钝角';
+      return '平角';
+    }
+
+    function randAngle() {
+      const pool = [
+        Math.floor(Math.random() * 80) + 10,
+        90,
+        Math.floor(Math.random() * 80) + 100,
+        180,
+      ];
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function pointAt(deg, r = 88) {
+      const rad = (-deg) * Math.PI / 180;
+      const cx = 120, cy = 160;
+      return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+    }
+
+    function drawAngle(deg) {
+      const p1 = pointAt(0);
+      const p2 = pointAt(deg);
+      const arcR = 46;
+      const arcP = pointAt(deg, arcR);
+      const largeArc = deg > 180 ? 1 : 0;
+
+      angleSvg.innerHTML = `
+        <line x1="120" y1="160" x2="${p1.x}" y2="${p1.y}" stroke="#4f7cff" stroke-width="8" stroke-linecap="round"/>
+        <line x1="120" y1="160" x2="${p2.x}" y2="${p2.y}" stroke="#ff8b3d" stroke-width="8" stroke-linecap="round"/>
+        <path d="M 166 160 A ${arcR} ${arcR} 0 ${largeArc} 0 ${arcP.x} ${arcP.y}" fill="none" stroke="#8b9bc4" stroke-width="4"/>
+        <circle cx="120" cy="160" r="6" fill="#1f2a44"/>
+        <text x="120" y="38" text-anchor="middle" font-size="20" font-weight="700" fill="#334155">${deg}°</text>
+      `;
+    }
+
+    function showQuestion() {
+      const deg = randAngle();
+      current = { deg, answer: classify(deg) };
+      drawAngle(deg);
+      qNoEl.textContent = qNo;
+      msgEl.textContent = '';
+      msgEl.className = 'msg';
+    }
+
+    function answer(choice) {
+      if (!gameOn) return;
+      if (choice === current.answer) {
+        combo += 1;
+        score += 10 + Math.min(combo, 5) * 2;
+        msgEl.textContent = `✅ 正确！${current.deg}° 是${current.answer}`;
+        msgEl.className = 'msg ok';
+      } else {
+        combo = 0;
+        score = Math.max(0, score - 4);
+        msgEl.textContent = `❌ 再试试！${current.deg}° 实际是${current.answer}`;
+        msgEl.className = 'msg bad';
+      }
+      qNo += 1;
+      comboEl.textContent = combo;
+      scoreEl.textContent = score;
+      setTimeout(showQuestion, 420);
+    }
+
+    function setButtons(disabled) {
+      [...choicesEl.querySelectorAll('button')].forEach(b => b.disabled = disabled);
+    }
+
+    function endGame() {
+      gameOn = false;
+      clearInterval(timer);
+      setButtons(true);
+      msgEl.textContent = `时间到！本局得分 ${score} 分，共回答 ${Math.max(0, qNo - 1)} 题。`;
+      msgEl.className = 'msg';
+      startBtn.textContent = '再来一局';
+    }
+
+    function startGame() {
+      gameOn = true;
+      timeLeft = 60;
+      score = 0;
+      combo = 0;
+      qNo = 1;
+      scoreEl.textContent = score;
+      comboEl.textContent = combo;
+      timeEl.textContent = timeLeft;
+      setButtons(false);
+      showQuestion();
+      startBtn.textContent = '挑战中...';
+
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft -= 1;
+        timeEl.textContent = timeLeft;
+        if (timeLeft <= 0) endGame();
+      }, 1000);
+    }
+
+    function resetGame() {
+      clearInterval(timer);
+      gameOn = false;
+      timeLeft = 60;
+      score = 0;
+      combo = 0;
+      qNo = 1;
+      scoreEl.textContent = '0';
+      comboEl.textContent = '0';
+      timeEl.textContent = '60';
+      qNoEl.textContent = '1';
+      msgEl.textContent = '点击“开始挑战”后开始计时。';
+      msgEl.className = 'msg';
+      drawAngle(45);
+      setButtons(true);
+      startBtn.textContent = '开始挑战';
+    }
+
+    labels.forEach(label => {
+      const b = document.createElement('button');
+      b.textContent = label;
+      b.addEventListener('click', () => answer(label));
+      choicesEl.appendChild(b);
+    });
+
+    startBtn.addEventListener('click', () => {
+      if (!gameOn) startGame();
+    });
+    resetBtn.addEventListener('click', resetGame);
+
+    resetGame();
+  </script>
+</body>
+</html>

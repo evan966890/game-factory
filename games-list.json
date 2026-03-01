@@ -414,5 +414,11 @@
     "path": "games/fraction-common-denominator-quest/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T06:19:25.493239+08:00"
+  },
+  {
+    "name": "角度分类冲刺",
+    "path": "games/angle-classifier-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T06:39:09.630436+08:00"
   }
 ]
