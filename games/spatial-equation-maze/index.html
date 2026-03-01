@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>空间方程迷宫</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Noto Sans CJK SC",sans-serif;
+      background: radial-gradient(circle at top, #1f2a44, #0f1320 60%);
+      color: #ecf1ff;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 12px;
+    }
+    .app {
+      width: min(980px, 100%);
+      background: #141b2e;
+      border: 1px solid #2d3c65;
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+    }
+    h1 { margin: 0 0 8px; font-size: 1.35rem; }
+    .intro { margin: 0 0 10px; color: #b9c7f3; font-size: .95rem; line-height: 1.45; }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(4,minmax(0,1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .card {
+      background: #1a2440;
+      border: 1px solid #33487e;
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+      font-size: .88rem;
+    }
+    .card strong { display:block; font-size:1.15rem; margin-top:2px; color:#8fdbff; }
+    .main {
+      display: grid;
+      grid-template-columns: 1fr 290px;
+      gap: 12px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5,1fr);
+      gap: 6px;
+      background: #10182b;
+      border: 1px solid #344b80;
+      border-radius: 12px;
+      padding: 8px;
+      aspect-ratio: 1/1;
+    }
+    .cell {
+      border-radius: 10px;
+      border: 1px solid #384f86;
+      background: #1a2543;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 1rem;
+      min-height: 42px;
+      user-select: none;
+    }
+    .cell.start { background:#13454f; border-color:#1ea0b8; }
+    .cell.goal { background:#4f3f11; border-color:#f9c74f; color:#ffeeb3; }
+    .cell.wall { background:#2a2234; border-color:#6d5ea1; color:#ccb6ff; }
+    .cell.path { background:#204d39; border-color:#2ec27e; }
+    .cell.you { outline: 3px solid #8fdbff; }
+    .panel {
+      background: #10182b;
+      border: 1px solid #33487e;
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .target {
+      background:#1d2a4b;
+      border:1px solid #4862a5;
+      border-radius:10px;
+      padding:8px;
+      line-height:1.5;
+      font-size:.95rem;
+    }
+    .ops {
+      display:grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap:6px;
+    }
+    button {
+      appearance: none;
+      border: 1px solid #5673ba;
+      background: #24345f;
+      color: #ecf1ff;
+      border-radius: 10px;
+      padding: 9px;
+      font-size: .92rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:active { transform: scale(.98); }
+    .msg { min-height: 40px; font-size:.9rem; color:#c8d7ff; }
+    .good { color:#85f0bd; }
+    .bad { color:#ffb4b4; }
+    .actions { display:grid; grid-template-columns: 1fr 1fr; gap:6px; }
+    @media (max-width: 860px) {
+      .main { grid-template-columns: 1fr; }
+      .hud { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>空间方程迷宫</h1>
+    <p class="intro">每次移动会改变能量值 E。你需要在步数限制内到达终点，且最终 E 正好等于目标值。越往后关卡障碍越多、运算更复杂。</p>
+
+    <section class="hud">
+      <div class="card">关卡<strong id="level">1</strong></div>
+      <div class="card">步数剩余<strong id="steps">0</strong></div>
+      <div class="card">当前 E<strong id="energy">0</strong></div>
+      <div class="card">目标 E<strong id="target">0</strong></div>
+    </section>
+
+    <section class="main">
+      <div id="grid" class="grid" aria-label="迷宫棋盘"></div>
+      <aside class="panel">
+        <div class="target" id="rule">移动规则加载中...</div>
+        <div class="ops">
+          <button data-dir="up">↑ 上</button>
+          <button data-dir="right">→ 右</button>
+          <button data-dir="left">← 左</button>
+          <button data-dir="down">↓ 下</button>
+        </div>
+        <div class="actions">
+          <button id="restart">重开本关</button>
+          <button id="newGame">新一轮</button>
+        </div>
+        <div id="msg" class="msg">用方向键或按钮移动。</div>
+      </aside>
+    </section>
+  </div>
+
+  <script>
+    const levels = [
+      { start: 6, target: 18, limit: 8, op: [{t:'+3',f:v=>v+3},{t:'×2',f:v=>v*2},{t:'-4',f:v=>v-4},{t:'+5',f:v=>v+5}], walls:[7,8,13] },
+      { start: 9, target: 25, limit: 9, op: [{t:'+4',f:v=>v+4},{t:'-3',f:v=>v-3},{t:'×2',f:v=>v*2},{t:'÷2',f:v=>Math.floor(v/2)}], walls:[1,6,11,18] },
+      { start: 12, target: 31, limit: 10, op: [{t:'+7',f:v=>v+7},{t:'-5',f:v=>v-5},{t:'×2',f:v=>v*2},{t:'+1',f:v=>v+1}], walls:[2,7,12,17,21] },
+      { start: 15, target: 42, limit: 11, op: [{t:'+6',f:v=>v+6},{t:'-4',f:v=>v-4},{t:'×3',f:v=>v*3},{t:'÷2',f:v=>Math.floor(v/2)}], walls:[3,8,9,14,19,22] }
+    ];
+
+    const size = 5;
+    const startPos = 0;
+    const goalPos = size * size - 1;
+    const grid = document.getElementById('grid');
+    const levelEl = document.getElementById('level');
+    const stepsEl = document.getElementById('steps');
+    const energyEl = document.getElementById('energy');
+    const targetEl = document.getElementById('target');
+    const msgEl = document.getElementById('msg');
+    const ruleEl = document.getElementById('rule');
+
+    let levelIndex = 0;
+    let pos = startPos;
+    let energy = 0;
+    let steps = 0;
+    let won = 0;
+
+    function nextPos(current, dir) {
+      const row = Math.floor(current / size);
+      const col = current % size;
+      if (dir === 'up' && row > 0) return current - size;
+      if (dir === 'down' && row < size - 1) return current + size;
+      if (dir === 'left' && col > 0) return current - 1;
+      if (dir === 'right' && col < size - 1) return current + 1;
+      return current;
+    }
+
+    function currentLevel() { return levels[Math.min(levelIndex, levels.length - 1)]; }
+
+    function opForCell(index) {
+      if (index === startPos || index === goalPos) return null;
+      const ops = currentLevel().op;
+      return ops[index % ops.length];
+    }
+
+    function draw() {
+      grid.innerHTML = '';
+      const lv = currentLevel();
+      for (let i = 0; i < size * size; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        if (i === startPos) { cell.classList.add('start'); cell.textContent = '起点'; }
+        else if (i === goalPos) { cell.classList.add('goal'); cell.textContent = '终点'; }
+        else if (lv.walls.includes(i)) { cell.classList.add('wall'); cell.textContent = '障碍'; }
+        else {
+          const op = opForCell(i);
+          cell.textContent = op.t;
+          if (i === pos) cell.classList.add('path');
+        }
+        if (i === pos) cell.classList.add('you');
+        grid.appendChild(cell);
+      }
+      levelEl.textContent = String(levelIndex + 1);
+      stepsEl.textContent = String(steps);
+      energyEl.textContent = String(energy);
+      targetEl.textContent = String(lv.target);
+      ruleEl.textContent = `规则：进入格子后立即执行该格运算。到达终点且 E=${lv.target} 才算通关。已通关 ${won} 关。`;
+    }
+
+    function resetLevel(hardReset=false) {
+      const lv = currentLevel();
+      pos = startPos;
+      energy = lv.start;
+      steps = lv.limit;
+      if (hardReset) msg('新一轮开始，专注路径规划。');
+      else msg('本关重置，试试不同路线。');
+      draw();
+    }
+
+    function msg(text, type='') {
+      msgEl.className = `msg ${type}`.trim();
+      msgEl.textContent = text;
+    }
+
+    function move(dir) {
+      if (steps <= 0) return;
+      const lv = currentLevel();
+      const np = nextPos(pos, dir);
+      if (np === pos) { msg('撞墙边界，位置不变。', 'bad'); return; }
+      if (lv.walls.includes(np)) { msg('前方是障碍格，换个方向。', 'bad'); return; }
+      pos = np;
+      steps -= 1;
+      const op = opForCell(pos);
+      if (op) energy = op.f(energy);
+
+      if (pos === goalPos) {
+        if (energy === lv.target) {
+          won += 1;
+          levelIndex = (levelIndex + 1) % levels.length;
+          msg('通关成功！进入下一关。', 'good');
+          setTimeout(() => resetLevel(), 260);
+          return;
+        }
+        msg(`到达终点但 E=${energy}，未命中目标。`, 'bad');
+      } else {
+        msg(`已移动，E 变为 ${energy}。`);
+      }
+
+      if (steps === 0 && !(pos === goalPos && energy === lv.target)) {
+        msg('步数用尽！请重开本关。', 'bad');
+      }
+      draw();
+    }
+
+    document.querySelectorAll('[data-dir]').forEach(btn => btn.addEventListener('click', () => move(btn.dataset.dir)));
+    document.getElementById('restart').addEventListener('click', () => resetLevel());
+    document.getElementById('newGame').addEventListener('click', () => { levelIndex = 0; won = 0; resetLevel(true); });
+    window.addEventListener('keydown', e => {
+      const map = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' };
+      if (map[e.key]) { e.preventDefault(); move(map[e.key]); }
+    });
+
+    resetLevel(true);
+  </script>
+</body>
+</html>

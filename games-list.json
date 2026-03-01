@@ -240,5 +240,11 @@
     "path": "games/multiple-sprint/index.html",
     "category": "数学",
     "createdAt": "2026-03-01T14:11:16.910Z"
+  },
+  {
+    "name": "空间方程迷宫",
+    "path": "games/spatial-equation-maze/index.html",
+    "category": "数学+逻辑/空间",
+    "createdAt": "2026-03-01T14:31:47.795Z"
   }
 ]
