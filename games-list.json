@@ -126,5 +126,11 @@
     "path": "games/unit-conversion-rush/index.html",
     "category": "education",
     "createdAt": "2026-03-01T08:44:38Z"
+  },
+  {
+    "name": "时钟读数大冒险",
+    "path": "games/clock-reading-adventure/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T08:58:32Z"
   }
 ]

@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>时钟读数大冒险</title>
+  <style>
+    :root {
+      --bg: #f4f9ff;
+      --card: #fff;
+      --text: #1a2d45;
+      --muted: #5f748d;
+      --primary: #1565c0;
+      --ok: #1f8a4d;
+      --bad: #ba3e3e;
+      --border: #d8e5f2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100dvh; padding: 14px;
+      display: flex; justify-content: center; align-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #eaf4ff 0%, var(--bg) 45%, #f8fff8 100%);
+    }
+    .app {
+      width: min(100%, 700px);
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(13, 74, 130, .12); padding: 16px;
+    }
+    h1 { margin: 0 0 6px; font-size: 1.4rem; }
+    .sub { margin: 0 0 12px; color: var(--muted); font-size: .93rem; }
+    .levels, .stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .pill { padding: 7px 10px; border-radius: 999px; border: 1px solid var(--border); font-size: .88rem; background: #f7fbff; }
+    .level-btn {
+      border: 1px solid var(--border); border-radius: 10px; background: #fff; color: var(--text);
+      padding: 9px 12px; font-weight: 700; cursor: pointer;
+    }
+    .level-btn.active { background: var(--primary); color: #fff; border-color: transparent; }
+    .clock-wrap {
+      border: 1px solid var(--border); border-radius: 12px; background: #fbfdff; padding: 12px;
+      display: flex; justify-content: center; align-items: center;
+    }
+    canvas { max-width: 100%; height: auto; }
+    .prompt { text-align: center; font-size: 1.12rem; font-weight: 700; margin: 12px 0 10px; }
+    .options { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+    .opt {
+      border: 1px solid var(--border); border-radius: 10px; background: #fff;
+      padding: 10px; font-size: 1rem; font-weight: 700; color: var(--text); cursor: pointer;
+      touch-action: manipulation;
+    }
+    .opt:active { transform: scale(.98); }
+    .message { min-height: 1.6em; text-align: center; margin: 10px 0; font-weight: 700; }
+    .ok { color: var(--ok); } .bad { color: var(--bad); }
+    .actions { display: flex; gap: 10px; justify-content: center; }
+    .btn {
+      border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px;
+      background: #fff; color: var(--text); font-weight: 700; cursor: pointer;
+    }
+    .btn.primary { background: var(--primary); color: #fff; border-color: transparent; }
+    @media (max-width: 520px) {
+      .options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="时钟读数大冒险">
+    <h1>时钟读数大冒险</h1>
+    <p class="sub">看钟面选时间：1级整点，2级半点/一刻，3级任意分钟（5 的倍数）。</p>
+
+    <section class="levels" aria-label="难度等级">
+      <button id="lv1" class="level-btn active" type="button">Level 1 整点</button>
+      <button id="lv2" class="level-btn" type="button">Level 2 半点与一刻</button>
+      <button id="lv3" class="level-btn" type="button">Level 3 任意分钟</button>
+    </section>
+
+    <section class="stats" aria-label="统计">
+      <span class="pill">题目：<b id="total">0</b></span>
+      <span class="pill">答对：<b id="correct">0</b></span>
+      <span class="pill">得分：<b id="score">0</b></span>
+      <span class="pill">正确率：<b id="rate">0%</b></span>
+    </section>
+
+    <div class="clock-wrap">
+      <canvas id="clock" width="280" height="280" aria-label="模拟时钟"></canvas>
+    </div>
+
+    <p class="prompt">这个钟面显示的是哪一个时间？</p>
+    <section id="options" class="options" aria-label="答案选项"></section>
+    <div id="message" class="message" aria-live="polite"></div>
+
+    <div class="actions">
+      <button id="next" class="btn primary" type="button">下一题</button>
+      <button id="reset" class="btn" type="button">重置</button>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      const clock = document.getElementById('clock');
+      const ctx = clock.getContext('2d');
+      const optionsEl = document.getElementById('options');
+      const messageEl = document.getElementById('message');
+      const totalEl = document.getElementById('total');
+      const correctEl = document.getElementById('correct');
+      const scoreEl = document.getElementById('score');
+      const rateEl = document.getElementById('rate');
+      const lvBtns = { 1: document.getElementById('lv1'), 2: document.getElementById('lv2'), 3: document.getElementById('lv3') };
+
+      let level = 1;
+      let total = 0;
+      let correct = 0;
+      let score = 0;
+      let current = null;
+      let locked = false;
+
+      function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+      function choice(arr) { return arr[randInt(0, arr.length - 1)]; }
+      function pad2(n) { return String(n).padStart(2, '0'); }
+      function toText(h, m) { return `${pad2(h)}:${pad2(m)}`; }
+
+      function genTime() {
+        let h = randInt(1, 12), m = 0;
+        if (level === 1) m = 0;
+        if (level === 2) m = choice([0, 15, 30, 45]);
+        if (level === 3) m = choice([0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]);
+        return { h, m };
+      }
+
+      function drawClock(h, m) {
+        const cx = 140, cy = 140, r = 120;
+        ctx.clearRect(0, 0, 280, 280);
+
+        ctx.fillStyle = '#fff';
+        ctx.strokeStyle = '#c9dced';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+        for (let i = 1; i <= 12; i++) {
+          const a = (i / 12) * Math.PI * 2 - Math.PI / 2;
+          const tx = cx + Math.cos(a) * 90;
+          const ty = cy + Math.sin(a) * 90;
+          ctx.fillStyle = '#2f4660';
+          ctx.font = 'bold 18px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(String(i), tx, ty);
+        }
+
+        for (let i = 0; i < 60; i++) {
+          const a = (i / 60) * Math.PI * 2 - Math.PI / 2;
+          const outer = r - 8;
+          const inner = i % 5 === 0 ? r - 18 : r - 12;
+          ctx.strokeStyle = i % 5 === 0 ? '#7a9ab8' : '#b9cede';
+          ctx.lineWidth = i % 5 === 0 ? 2.2 : 1.2;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(a) * inner, cy + Math.sin(a) * inner);
+          ctx.lineTo(cx + Math.cos(a) * outer, cy + Math.sin(a) * outer);
+          ctx.stroke();
+        }
+
+        const minuteAngle = (m / 60) * Math.PI * 2 - Math.PI / 2;
+        const hourAngle = ((h % 12 + m / 60) / 12) * Math.PI * 2 - Math.PI / 2;
+
+        ctx.strokeStyle = '#1565c0';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(minuteAngle) * 85, cy + Math.sin(minuteAngle) * 85);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#1a2d45';
+        ctx.lineWidth = 7;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(hourAngle) * 58, cy + Math.sin(hourAngle) * 58);
+        ctx.stroke();
+
+        ctx.fillStyle = '#1a2d45';
+        ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+      }
+
+      function buildOptions(answer) {
+        const set = new Set([toText(answer.h, answer.m)]);
+        while (set.size < 4) {
+          let h = randInt(1, 12);
+          let m = level === 1 ? 0 : (level === 2 ? choice([0, 15, 30, 45]) : choice([0,5,10,15,20,25,30,35,40,45,50,55]));
+          set.add(toText(h, m));
+        }
+        return Array.from(set).sort(() => Math.random() - 0.5);
+      }
+
+      function updateStats() {
+        totalEl.textContent = total;
+        correctEl.textContent = correct;
+        scoreEl.textContent = score;
+        rateEl.textContent = total ? `${Math.round(correct * 100 / total)}%` : '0%';
+      }
+
+      function nextQuestion() {
+        locked = false;
+        messageEl.className = 'message';
+        messageEl.textContent = '';
+        current = genTime();
+        drawClock(current.h, current.m);
+        const options = buildOptions(current);
+        optionsEl.innerHTML = '';
+        options.forEach(txt => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'opt';
+          b.textContent = txt;
+          b.addEventListener('click', () => choose(txt));
+          optionsEl.appendChild(b);
+        });
+      }
+
+      function choose(txt) {
+        if (locked) return;
+        locked = true;
+        total += 1;
+        const ans = toText(current.h, current.m);
+        if (txt === ans) {
+          correct += 1;
+          score += level === 1 ? 10 : (level === 2 ? 12 : 15);
+          messageEl.textContent = `答对啦！正确时间是 ${ans}`;
+          messageEl.className = 'message ok';
+        } else {
+          score = Math.max(0, score - 4);
+          messageEl.textContent = `再试试，正确时间是 ${ans}`;
+          messageEl.className = 'message bad';
+        }
+        updateStats();
+      }
+
+      function setLevel(lv) {
+        level = lv;
+        Object.entries(lvBtns).forEach(([k, btn]) => btn.classList.toggle('active', Number(k) === lv));
+        nextQuestion();
+      }
+
+      function resetGame() {
+        total = 0; correct = 0; score = 0;
+        updateStats();
+        nextQuestion();
+      }
+
+      Object.entries(lvBtns).forEach(([k, btn]) => btn.addEventListener('click', () => setLevel(Number(k))));
+      document.getElementById('next').addEventListener('click', nextQuestion);
+      document.getElementById('reset').addEventListener('click', resetGame);
+
+      updateStats();
+      nextQuestion();
+    })();
+  </script>
+</body>
+</html>

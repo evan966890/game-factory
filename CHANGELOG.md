@@ -1,4 +1,6 @@
 # CHANGELOG
+- 2026-03-01: 新增《时钟读数大冒险》（3级难度：整点/一刻/5分钟刻度），接入 games-list。
+
 
 ## 2026-02-28
 - 新增教育游戏 `加法练习`，文件路径：`games/addition-practice/index.html`。
