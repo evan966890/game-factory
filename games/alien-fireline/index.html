@@ -1,0 +1,1085 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>异星开炮：合成防线</title>
+  <style>
+    :root {
+      --bg: #060b1a;
+      --panel: #0f1835;
+      --panel-2: #152349;
+      --line: #2b3f7a;
+      --text: #e8efff;
+      --muted: #9fb3e8;
+      --accent: #67c2ff;
+      --ok: #38d39f;
+      --warn: #ffd166;
+      --bad: #ff6b7a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(1000px 600px at 15% -10%, #1e2f66 0%, #060b1a 60%);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 14px;
+    }
+    .app {
+      width: min(980px, 100%);
+      background: linear-gradient(180deg, rgba(19, 33, 75, .9), rgba(10, 17, 40, .95));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 22px 46px rgba(0, 0, 0, .35);
+      position: relative;
+      overflow: hidden;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(1.15rem, 3.8vw, 1.6rem);
+    }
+    .sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: .94rem;
+    }
+    .hud {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .pill {
+      border: 1px solid var(--line);
+      background: rgba(18, 30, 67, .85);
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+    }
+    .pill .k {
+      color: var(--muted);
+      font-size: .78rem;
+    }
+    .pill .v {
+      margin-top: 3px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .3px;
+    }
+    .controls {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: #20366f;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: .95rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    button:active { transform: translateY(1px); }
+    .primary { background: linear-gradient(180deg, #2f59bb, #27499d); border-color: #4d73cf; }
+    .ghost { background: #1a2a59; }
+    .danger { background: #5a2540; border-color: #7a3455; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+
+    .cost {
+      color: var(--warn);
+      font-weight: 800;
+      margin-left: 4px;
+      font-size: .92rem;
+    }
+    .legend {
+      margin-left: auto;
+      font-size: .88rem;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .legend span {
+      border: 1px dashed #4360a8;
+      border-radius: 999px;
+      padding: 2px 8px;
+      white-space: nowrap;
+    }
+
+    .canvas-wrap {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #09132f;
+    }
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      touch-action: manipulation;
+    }
+
+    .note {
+      margin-top: 10px;
+      font-size: .9rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(4, 8, 20, .72);
+      backdrop-filter: blur(1px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 10;
+    }
+    .overlay.show { display: flex; }
+    .panel {
+      width: min(760px, 100%);
+      background: linear-gradient(180deg, #132252, #0f1b42);
+      border: 1px solid #3757a4;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+    }
+    .panel h2 { margin: 0 0 10px; font-size: 1.2rem; }
+    .buffs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .buff {
+      text-align: left;
+      min-height: 104px;
+      background: #172a62;
+      border: 1px solid #3d5eb4;
+      border-radius: 12px;
+      padding: 10px;
+      color: var(--text);
+    }
+    .buff b { display: block; font-size: 1rem; }
+    .buff small { color: var(--muted); line-height: 1.45; }
+
+    .summary {
+      background: #112152;
+      border: 1px dashed #4f72cb;
+      border-radius: 12px;
+      padding: 10px;
+      line-height: 1.5;
+      color: #cfe1ff;
+      font-size: .94rem;
+    }
+
+    @media (max-width: 860px) {
+      .hud { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .buffs { grid-template-columns: 1fr; }
+      .legend { width: 100%; margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>🚀 异星开炮：合成防线</h1>
+    <p class="sub">参考当前“塔防 + 轻成长 + 合成”热门思路制作：召唤炮塔、拖动合成升级、顶住异星潮汐。每过一波可选 1 个强化，通关 12 波即胜利。</p>
+
+    <section class="hud" aria-live="polite">
+      <article class="pill"><div class="k">波次</div><div class="v" id="wave">1 / 12</div></article>
+      <article class="pill"><div class="k">基地耐久</div><div class="v" id="baseHp">20</div></article>
+      <article class="pill"><div class="k">能量</div><div class="v" id="energy">90</div></article>
+      <article class="pill"><div class="k">得分</div><div class="v" id="score">0</div></article>
+      <article class="pill"><div class="k">击杀</div><div class="v" id="kills">0</div></article>
+      <article class="pill"><div class="k">连胜强化</div><div class="v" id="buffCount">0</div></article>
+    </section>
+
+    <section class="controls">
+      <button id="summonBtn" class="primary">召唤炮塔 <span class="cost" id="summonCost">-40</span></button>
+      <button id="pauseBtn" class="ghost">暂停</button>
+      <button id="restartBtn" class="danger">重开</button>
+      <div class="legend" id="legend"></div>
+    </section>
+
+    <div class="canvas-wrap">
+      <canvas id="game" width="940" height="560" aria-label="异星开炮游戏画面"></canvas>
+    </div>
+
+    <div class="note">
+      <span id="message">提示：点击左侧 4×4 炮塔格子可移动或合成同级同类炮塔。</span>
+      <span>操作：点选炮塔 → 点空格移动 / 点同类同级合成</span>
+    </div>
+
+    <div class="overlay" id="buffOverlay">
+      <div class="panel">
+        <h2>🧬 波次强化（3 选 1）</h2>
+        <div class="buffs" id="buffOptions"></div>
+      </div>
+    </div>
+
+    <div class="overlay" id="endOverlay">
+      <div class="panel">
+        <h2 id="endTitle">战斗结算</h2>
+        <div class="summary" id="endSummary"></div>
+        <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+          <button id="playAgain" class="primary">再来一局</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    "use strict";
+
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const els = {
+      wave: document.getElementById("wave"),
+      baseHp: document.getElementById("baseHp"),
+      energy: document.getElementById("energy"),
+      score: document.getElementById("score"),
+      kills: document.getElementById("kills"),
+      buffCount: document.getElementById("buffCount"),
+      summonBtn: document.getElementById("summonBtn"),
+      pauseBtn: document.getElementById("pauseBtn"),
+      restartBtn: document.getElementById("restartBtn"),
+      summonCost: document.getElementById("summonCost"),
+      message: document.getElementById("message"),
+      legend: document.getElementById("legend"),
+      buffOverlay: document.getElementById("buffOverlay"),
+      buffOptions: document.getElementById("buffOptions"),
+      endOverlay: document.getElementById("endOverlay"),
+      endTitle: document.getElementById("endTitle"),
+      endSummary: document.getElementById("endSummary"),
+      playAgain: document.getElementById("playAgain")
+    };
+
+    const LAYOUT = {
+      rows: 4,
+      cols: 4,
+      gridX: 28,
+      gridY: 116,
+      cell: 78,
+      gap: 10,
+      laneX: 434,
+      laneY: 116,
+      laneW: 468,
+      laneH: 78,
+      laneGap: 10
+    };
+
+    const MAX_WAVES = 12;
+
+    const TURRETS = [
+      {
+        id: "pulse",
+        name: "脉冲炮",
+        icon: "🔹",
+        color: "#67c2ff",
+        baseDmg: 8,
+        baseCd: 0.45,
+        bulletColor: "#7bd3ff",
+        desc: "高频稳定输出"
+      },
+      {
+        id: "rail",
+        name: "磁轨炮",
+        icon: "🟣",
+        color: "#c08cff",
+        baseDmg: 20,
+        baseCd: 1.05,
+        bulletColor: "#d0a9ff",
+        desc: "慢速高爆发"
+      },
+      {
+        id: "frost",
+        name: "霜冻炮",
+        icon: "🧊",
+        color: "#9be8ff",
+        baseDmg: 10,
+        baseCd: 0.72,
+        bulletColor: "#c4f3ff",
+        slow: 0.35,
+        slowTime: 1.4,
+        desc: "减速控场"
+      },
+      {
+        id: "burst",
+        name: "爆裂炮",
+        icon: "🔥",
+        color: "#ffb36b",
+        baseDmg: 13,
+        baseCd: 0.85,
+        bulletColor: "#ffc58f",
+        splash: 0.42,
+        desc: "范围溅射"
+      }
+    ];
+
+    const BUFFS = [
+      {
+        id: "dmg",
+        title: "火力校准",
+        desc: "全体炮塔伤害 +15%",
+        apply(state) { state.damageMul *= 1.15; }
+      },
+      {
+        id: "rate",
+        title: "超频供能",
+        desc: "全体炮塔射速 +15%",
+        apply(state) { state.fireMul *= 1.15; }
+      },
+      {
+        id: "regen",
+        title: "能量回路",
+        desc: "能量回复速度 +22%",
+        apply(state) { state.energyRegenMul *= 1.22; }
+      },
+      {
+        id: "cost",
+        title: "工厂折扣",
+        desc: "召唤费用 -5（最低 28）",
+        apply(state) { state.summonCost = Math.max(28, state.summonCost - 5); }
+      },
+      {
+        id: "heal",
+        title: "基地维修",
+        desc: "基地耐久 +4",
+        apply(state) { state.baseHp = Math.min(state.baseHpMax, state.baseHp + 4); }
+      },
+      {
+        id: "crit",
+        title: "暴击演算",
+        desc: "暴击率 +6%（双倍伤害）",
+        apply(state) { state.critChance = Math.min(0.45, state.critChance + 0.06); }
+      },
+      {
+        id: "reward",
+        title: "回收协议",
+        desc: "击杀回复能量 +20%",
+        apply(state) { state.killEnergyMul *= 1.2; }
+      }
+    ];
+
+    const state = {
+      wave: 1,
+      baseHp: 20,
+      baseHpMax: 20,
+      energy: 90,
+      energyMax: 220,
+      energyRegen: 13,
+      score: 0,
+      kills: 0,
+      buffs: 0,
+      summonCost: 40,
+      damageMul: 1,
+      fireMul: 1,
+      critChance: 0.05,
+      killEnergyMul: 1,
+      energyRegenMul: 1,
+      selected: null,
+      running: true,
+      ended: false,
+      intermission: false,
+      enemies: [],
+      shots: [],
+      turrets: [],
+      spawnPlan: null,
+      messageTimer: 0,
+      floatingTexts: []
+    };
+
+    function createGrid() {
+      state.turrets = Array.from({ length: LAYOUT.rows }, () =>
+        Array.from({ length: LAYOUT.cols }, () => null)
+      );
+    }
+
+    function resetGame() {
+      state.wave = 1;
+      state.baseHp = 20;
+      state.baseHpMax = 20;
+      state.energy = 90;
+      state.energyMax = 220;
+      state.energyRegen = 13;
+      state.score = 0;
+      state.kills = 0;
+      state.buffs = 0;
+      state.summonCost = 40;
+      state.damageMul = 1;
+      state.fireMul = 1;
+      state.critChance = 0.05;
+      state.killEnergyMul = 1;
+      state.energyRegenMul = 1;
+      state.selected = null;
+      state.running = true;
+      state.ended = false;
+      state.intermission = false;
+      state.enemies = [];
+      state.shots = [];
+      state.spawnPlan = null;
+      state.floatingTexts = [];
+      createGrid();
+      hideOverlays();
+      setMessage("战斗开始：第 1 波来袭！");
+      startWave(state.wave);
+      syncHUD();
+    }
+
+    function hideOverlays() {
+      els.buffOverlay.classList.remove("show");
+      els.endOverlay.classList.remove("show");
+    }
+
+    function startWave(wave) {
+      const count = 8 + wave * 2;
+      state.spawnPlan = {
+        remaining: count,
+        timer: 0.45,
+        interval: Math.max(0.32, 0.95 - wave * 0.035)
+      };
+      state.intermission = false;
+      els.wave.textContent = `${state.wave} / ${MAX_WAVES}`;
+      setMessage(`第 ${wave} 波开始，敌潮数量：${count}`);
+    }
+
+    function randomEnemy(lane, wave) {
+      const roll = Math.random();
+      let kind;
+      if (roll < 0.5) {
+        kind = { name: "侦察虫", hp: 30, speed: 1.15, reward: 8, dmg: 1, color: "#ff8fa2", r: 13 };
+      } else if (roll < 0.82) {
+        kind = { name: "重甲兽", hp: 62, speed: 0.72, reward: 12, dmg: 2, color: "#ffbf69", r: 16 };
+      } else {
+        kind = { name: "脉冲灵", hp: 40, speed: 0.95, reward: 10, dmg: 1, color: "#a2ffd6", r: 12 };
+      }
+
+      const hpMul = 1 + wave * 0.17;
+      const speedMul = 1 + wave * 0.025;
+
+      return {
+        lane,
+        x: 100,
+        hp: Math.round(kind.hp * hpMul),
+        maxHp: Math.round(kind.hp * hpMul),
+        speed: kind.speed * speedMul,
+        reward: Math.round(kind.reward * (1 + wave * 0.04)),
+        dmg: kind.dmg,
+        color: kind.color,
+        r: kind.r,
+        slowMul: 1,
+        slowTimer: 0
+      };
+    }
+
+    function spawnEnemy() {
+      const lane = Math.floor(Math.random() * LAYOUT.rows);
+      state.enemies.push(randomEnemy(lane, state.wave));
+    }
+
+    function levelDamage(turret) {
+      const tpl = TURRETS[turret.type];
+      return tpl.baseDmg * (1 + 0.66 * (turret.level - 1)) * state.damageMul;
+    }
+
+    function levelCooldown(turret) {
+      const tpl = TURRETS[turret.type];
+      const lvlBoost = 1 + 0.18 * (turret.level - 1);
+      return tpl.baseCd / (lvlBoost * state.fireMul);
+    }
+
+    function cellRect(row, col) {
+      return {
+        x: LAYOUT.gridX + col * (LAYOUT.cell + LAYOUT.gap),
+        y: LAYOUT.gridY + row * (LAYOUT.cell + LAYOUT.gap),
+        w: LAYOUT.cell,
+        h: LAYOUT.cell
+      };
+    }
+
+    function laneRect(row) {
+      return {
+        x: LAYOUT.laneX,
+        y: LAYOUT.laneY + row * (LAYOUT.laneH + LAYOUT.laneGap),
+        w: LAYOUT.laneW,
+        h: LAYOUT.laneH
+      };
+    }
+
+    function enemyToCanvas(enemy) {
+      const lane = laneRect(enemy.lane);
+      return {
+        x: lane.x + (enemy.x / 100) * lane.w,
+        y: lane.y + lane.h / 2
+      };
+    }
+
+    function turretToCanvas(row, col) {
+      const lane = laneRect(row);
+      const px = lane.x - 14 - (LAYOUT.cols - 1 - col) * 8;
+      const py = lane.y + lane.h / 2;
+      return { x: px, y: py };
+    }
+
+    function setMessage(text) {
+      els.message.textContent = text;
+      state.messageTimer = 2.4;
+    }
+
+    function addFloatText(x, y, text, color = "#ffffff") {
+      state.floatingTexts.push({ x, y, text, color, ttl: 0.8 });
+    }
+
+    function summonTurret() {
+      if (state.ended || state.intermission) return;
+      if (state.energy < state.summonCost) {
+        setMessage("能量不足，先顶住敌潮或等待能量回复。");
+        return;
+      }
+
+      const empty = [];
+      for (let r = 0; r < LAYOUT.rows; r++) {
+        for (let c = 0; c < LAYOUT.cols; c++) {
+          if (!state.turrets[r][c]) empty.push({ r, c });
+        }
+      }
+      if (!empty.length) {
+        setMessage("炮塔槽位已满，先合成或移动炮塔。");
+        return;
+      }
+
+      const slot = empty[Math.floor(Math.random() * empty.length)];
+      const type = Math.floor(Math.random() * TURRETS.length);
+      state.turrets[slot.r][slot.c] = { type, level: 1, cd: 0 };
+      state.energy -= state.summonCost;
+      syncHUD();
+      setMessage(`已部署 ${TURRETS[type].name}，尝试合成升阶提升火力。`);
+    }
+
+    function handleCellClick(row, col) {
+      if (state.ended || state.intermission) return;
+
+      const clicked = state.turrets[row][col];
+      const sel = state.selected;
+
+      if (!sel) {
+        if (clicked) {
+          state.selected = { row, col };
+          setMessage(`已选中 ${TURRETS[clicked.type].name} Lv.${clicked.level}`);
+        }
+        return;
+      }
+
+      if (sel.row === row && sel.col === col) {
+        state.selected = null;
+        return;
+      }
+
+      const src = state.turrets[sel.row][sel.col];
+      const dst = state.turrets[row][col];
+      if (!src) {
+        state.selected = null;
+        return;
+      }
+
+      if (!dst) {
+        state.turrets[row][col] = src;
+        state.turrets[sel.row][sel.col] = null;
+        state.selected = { row, col };
+        setMessage("炮塔已移动。可继续点同类同级炮塔进行合成。");
+        return;
+      }
+
+      if (src.type === dst.type && src.level === dst.level) {
+        dst.level = Math.min(7, dst.level + 1);
+        dst.cd = Math.min(dst.cd, src.cd);
+        state.turrets[sel.row][sel.col] = null;
+        state.selected = { row, col };
+        state.score += 12 * dst.level;
+        syncHUD();
+        setMessage(`合成成功！${TURRETS[dst.type].name} 升至 Lv.${dst.level}`);
+      } else {
+        state.selected = { row, col };
+        setMessage("已切换选中炮塔。仅同类同级可合成。");
+      }
+    }
+
+    function updateEnemies(dt) {
+      for (let i = state.enemies.length - 1; i >= 0; i--) {
+        const e = state.enemies[i];
+        if (e.slowTimer > 0) {
+          e.slowTimer -= dt;
+          if (e.slowTimer <= 0) {
+            e.slowMul = 1;
+            e.slowTimer = 0;
+          }
+        }
+
+        e.x -= e.speed * e.slowMul * dt * 12;
+
+        if (e.x <= 0) {
+          state.baseHp -= e.dmg;
+          state.enemies.splice(i, 1);
+          setMessage(`基地受到攻击！耐久 -${e.dmg}`);
+          if (state.baseHp <= 0) {
+            state.baseHp = 0;
+            endGame(false);
+            return;
+          }
+        }
+      }
+    }
+
+    function damageEnemy(enemy, dmg, lane, hitX) {
+      enemy.hp -= dmg;
+      if (enemy.hp <= 0) {
+        const gain = Math.round(enemy.reward * state.killEnergyMul);
+        state.energy = Math.min(state.energyMax, state.energy + gain);
+        state.score += enemy.reward * 10;
+        state.kills += 1;
+        const idx = state.enemies.indexOf(enemy);
+        if (idx >= 0) state.enemies.splice(idx, 1);
+        addFloatText(hitX.x, hitX.y - 20, `+${enemy.reward * 10}`, "#7cf7bd");
+      }
+    }
+
+    function updateTurrets(dt) {
+      for (let r = 0; r < LAYOUT.rows; r++) {
+        const laneEnemies = state.enemies.filter((e) => e.lane === r).sort((a, b) => a.x - b.x);
+        if (!laneEnemies.length) continue;
+
+        for (let c = 0; c < LAYOUT.cols; c++) {
+          const turret = state.turrets[r][c];
+          if (!turret) continue;
+
+          turret.cd -= dt;
+          if (turret.cd > 0) continue;
+
+          const target = laneEnemies[0];
+          if (!target) continue;
+
+          turret.cd = levelCooldown(turret);
+          let dmg = levelDamage(turret);
+          const crit = Math.random() < state.critChance;
+          if (crit) dmg *= 2;
+
+          const tpl = TURRETS[turret.type];
+          const from = turretToCanvas(r, c);
+          const to = enemyToCanvas(target);
+
+          state.shots.push({
+            lane: r,
+            fromX: from.x,
+            fromY: from.y,
+            toX: to.x,
+            toY: to.y,
+            color: tpl.bulletColor,
+            ttl: 0.12
+          });
+
+          if (tpl.slow) {
+            target.slowMul = Math.max(0.45, 1 - tpl.slow);
+            target.slowTimer = Math.max(target.slowTimer, tpl.slowTime);
+          }
+
+          damageEnemy(target, dmg, r, to);
+          if (crit) addFloatText(to.x, to.y - 12, "暴击!", "#ffe98a");
+
+          if (tpl.splash) {
+            const splashRange = 11 + turret.level * 1.6;
+            const splashDamage = dmg * tpl.splash;
+            for (const e of laneEnemies) {
+              if (e === target) continue;
+              if (Math.abs(e.x - target.x) <= splashRange) {
+                const pos = enemyToCanvas(e);
+                damageEnemy(e, splashDamage, r, pos);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    function maybeFinishWave() {
+      if (!state.spawnPlan) return;
+      if (state.spawnPlan.remaining > 0) return;
+      if (state.enemies.length > 0) return;
+
+      if (state.wave >= MAX_WAVES) {
+        endGame(true);
+        return;
+      }
+
+      state.intermission = true;
+      state.spawnPlan = null;
+      showBuffChoice();
+    }
+
+    function pickBuffOptions(n = 3) {
+      const pool = [...BUFFS];
+      const out = [];
+      while (pool.length && out.length < n) {
+        const idx = Math.floor(Math.random() * pool.length);
+        out.push(pool.splice(idx, 1)[0]);
+      }
+      return out;
+    }
+
+    function showBuffChoice() {
+      const options = pickBuffOptions(3);
+      els.buffOptions.innerHTML = "";
+      options.forEach((buff) => {
+        const btn = document.createElement("button");
+        btn.className = "buff";
+        btn.innerHTML = `<b>${buff.title}</b><small>${buff.desc}</small>`;
+        btn.addEventListener("click", () => {
+          buff.apply(state);
+          state.buffs += 1;
+          state.wave += 1;
+          syncHUD();
+          els.buffOverlay.classList.remove("show");
+          state.intermission = false;
+          startWave(state.wave);
+        });
+        els.buffOptions.appendChild(btn);
+      });
+      els.buffOverlay.classList.add("show");
+      setMessage("选择一项强化后进入下一波。");
+    }
+
+    function endGame(win) {
+      state.ended = true;
+      state.running = false;
+      state.intermission = false;
+      els.buffOverlay.classList.remove("show");
+
+      const acc = state.kills > 0 ? Math.min(100, Math.round((state.wave / MAX_WAVES) * 100)) : 0;
+      els.endTitle.textContent = win ? "🏆 防线守住了！" : "💥 防线失守";
+      els.endSummary.innerHTML = [
+        `结算波次：<b>${Math.min(state.wave, MAX_WAVES)} / ${MAX_WAVES}</b>`,
+        `总得分：<b>${state.score}</b>`,
+        `击杀数量：<b>${state.kills}</b>`,
+        `强化选择：<b>${state.buffs}</b>`,
+        `基地剩余耐久：<b>${state.baseHp}</b>`,
+        win ? "评价：<b style='color:#7cf7bd'>完成精品通关</b>" : "建议：优先合成到 Lv3+，并提高减速/射速强化"
+      ].join("<br>");
+      els.endOverlay.classList.add("show");
+      syncHUD();
+    }
+
+    function drawBackground() {
+      const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      g.addColorStop(0, "#0b1330");
+      g.addColorStop(1, "#091129");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // subtle stars
+      ctx.save();
+      ctx.globalAlpha = 0.15;
+      for (let i = 0; i < 60; i++) {
+        const x = (i * 157) % canvas.width;
+        const y = (i * 97) % canvas.height;
+        ctx.fillStyle = "#d0e2ff";
+        ctx.fillRect(x, y, 2, 2);
+      }
+      ctx.restore();
+
+      ctx.strokeStyle = "#2b3f7a";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(14, 74, 390, 442);
+      ctx.strokeRect(420, 74, 494, 442);
+
+      ctx.fillStyle = "#93a9dc";
+      ctx.font = "700 15px sans-serif";
+      ctx.fillText("炮塔矩阵（4×4）", 26, 66);
+      ctx.fillText("异星入侵通道", 432, 66);
+    }
+
+    function drawGrid() {
+      for (let r = 0; r < LAYOUT.rows; r++) {
+        for (let c = 0; c < LAYOUT.cols; c++) {
+          const rect = cellRect(r, c);
+          const turret = state.turrets[r][c];
+          const selected = state.selected && state.selected.row === r && state.selected.col === c;
+
+          ctx.fillStyle = selected ? "#284b9a" : "#13224b";
+          ctx.strokeStyle = selected ? "#7ab7ff" : "#38579c";
+          ctx.lineWidth = selected ? 3 : 1.5;
+          roundRect(rect.x, rect.y, rect.w, rect.h, 10, true, true);
+
+          if (turret) {
+            const t = TURRETS[turret.type];
+            ctx.fillStyle = t.color;
+            roundRect(rect.x + 8, rect.y + 8, rect.w - 16, rect.h - 16, 10, true, false);
+
+            ctx.font = "700 24px sans-serif";
+            ctx.fillStyle = "#0d1736";
+            ctx.textAlign = "center";
+            ctx.fillText(t.icon, rect.x + rect.w / 2, rect.y + 39);
+
+            ctx.font = "700 14px sans-serif";
+            ctx.fillStyle = "#0d1736";
+            ctx.fillText(`Lv.${turret.level}`, rect.x + rect.w / 2, rect.y + 62);
+          } else {
+            ctx.font = "600 12px sans-serif";
+            ctx.fillStyle = "#5f76ad";
+            ctx.textAlign = "center";
+            ctx.fillText("空槽", rect.x + rect.w / 2, rect.y + 45);
+          }
+        }
+
+        ctx.textAlign = "left";
+        ctx.font = "700 12px sans-serif";
+        ctx.fillStyle = "#8ea4d8";
+        ctx.fillText(`L${r + 1}`, LAYOUT.gridX - 20, cellRect(r, 0).y + 45);
+      }
+      ctx.textAlign = "left";
+    }
+
+    function drawLanes() {
+      for (let r = 0; r < LAYOUT.rows; r++) {
+        const lane = laneRect(r);
+        ctx.fillStyle = "#0f1d43";
+        roundRect(lane.x, lane.y, lane.w, lane.h, 10, true, false);
+
+        ctx.strokeStyle = "#304d97";
+        ctx.lineWidth = 1.2;
+        roundRect(lane.x, lane.y, lane.w, lane.h, 10, false, true);
+
+        // base gate at lane start
+        ctx.fillStyle = "#27498f";
+        roundRect(lane.x - 14, lane.y + 12, 12, lane.h - 24, 5, true, false);
+      }
+    }
+
+    function drawEnemies() {
+      for (const e of state.enemies) {
+        const p = enemyToCanvas(e);
+        ctx.fillStyle = e.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, e.r, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(0,0,0,.35)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // hp bar
+        const bw = 36;
+        const ratio = Math.max(0, e.hp) / e.maxHp;
+        ctx.fillStyle = "rgba(0,0,0,.45)";
+        ctx.fillRect(p.x - bw / 2, p.y - e.r - 10, bw, 5);
+        ctx.fillStyle = "#6dffb1";
+        ctx.fillRect(p.x - bw / 2, p.y - e.r - 10, bw * ratio, 5);
+
+        if (e.slowTimer > 0) {
+          ctx.strokeStyle = "#a6f1ff";
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, e.r + 3, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawShots(dt) {
+      for (let i = state.shots.length - 1; i >= 0; i--) {
+        const s = state.shots[i];
+        s.ttl -= dt;
+        if (s.ttl <= 0) {
+          state.shots.splice(i, 1);
+          continue;
+        }
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, s.ttl / 0.12);
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(s.fromX, s.fromY);
+        ctx.lineTo(s.toX, s.toY);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function drawFloatingTexts(dt) {
+      for (let i = state.floatingTexts.length - 1; i >= 0; i--) {
+        const f = state.floatingTexts[i];
+        f.ttl -= dt;
+        f.y -= dt * 26;
+        if (f.ttl <= 0) {
+          state.floatingTexts.splice(i, 1);
+          continue;
+        }
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, f.ttl / 0.8);
+        ctx.fillStyle = f.color;
+        ctx.font = "700 14px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(f.text, f.x, f.y);
+        ctx.restore();
+      }
+      ctx.textAlign = "left";
+    }
+
+    function roundRect(x, y, w, h, r, fill, stroke) {
+      const rr = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.lineTo(x + w - rr, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+      ctx.lineTo(x + w, y + h - rr);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+      ctx.lineTo(x + rr, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+      ctx.lineTo(x, y + rr);
+      ctx.quadraticCurveTo(x, y, x + rr, y);
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    function syncHUD() {
+      els.wave.textContent = `${Math.min(state.wave, MAX_WAVES)} / ${MAX_WAVES}`;
+      els.baseHp.textContent = `${state.baseHp}`;
+      els.energy.textContent = `${Math.floor(state.energy)}`;
+      els.score.textContent = `${state.score}`;
+      els.kills.textContent = `${state.kills}`;
+      els.buffCount.textContent = `${state.buffs}`;
+      els.summonCost.textContent = `-${state.summonCost}`;
+      els.pauseBtn.textContent = state.running ? "暂停" : "继续";
+      els.summonBtn.disabled = state.ended || state.intermission;
+      els.pauseBtn.disabled = state.ended || state.intermission;
+    }
+
+    function updateSpawn(dt) {
+      if (!state.spawnPlan) return;
+      state.spawnPlan.timer -= dt;
+
+      while (state.spawnPlan.remaining > 0 && state.spawnPlan.timer <= 0) {
+        spawnEnemy();
+        state.spawnPlan.remaining -= 1;
+        state.spawnPlan.timer += state.spawnPlan.interval * (0.82 + Math.random() * 0.36);
+      }
+    }
+
+    function update(dt) {
+      if (!state.running || state.ended || state.intermission) return;
+
+      state.energy = Math.min(
+        state.energyMax,
+        state.energy + state.energyRegen * state.energyRegenMul * dt
+      );
+
+      updateSpawn(dt);
+      updateEnemies(dt);
+      updateTurrets(dt);
+      maybeFinishWave();
+
+      if (state.messageTimer > 0) state.messageTimer -= dt;
+      syncHUD();
+    }
+
+    function render(dt) {
+      drawBackground();
+      drawLanes();
+      drawGrid();
+      drawEnemies();
+      drawShots(dt);
+      drawFloatingTexts(dt);
+
+      // wave remain hint
+      if (state.spawnPlan) {
+        ctx.fillStyle = "#9eb6f2";
+        ctx.font = "700 14px sans-serif";
+        ctx.fillText(`本波剩余敌人：${state.spawnPlan.remaining + state.enemies.length}`, 432, 534);
+      }
+
+      if (state.messageTimer > 0) {
+        ctx.fillStyle = "rgba(9,16,38,.75)";
+        roundRect(250, 20, 440, 34, 10, true, false);
+        ctx.fillStyle = "#d9e7ff";
+        ctx.font = "700 14px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(els.message.textContent, 470, 42);
+        ctx.textAlign = "left";
+      }
+    }
+
+    function pickCellFromCanvas(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (clientX - rect.left) * (canvas.width / rect.width);
+      const y = (clientY - rect.top) * (canvas.height / rect.height);
+
+      for (let r = 0; r < LAYOUT.rows; r++) {
+        for (let c = 0; c < LAYOUT.cols; c++) {
+          const box = cellRect(r, c);
+          if (x >= box.x && x <= box.x + box.w && y >= box.y && y <= box.y + box.h) {
+            return { row: r, col: c };
+          }
+        }
+      }
+      return null;
+    }
+
+    canvas.addEventListener("click", (ev) => {
+      const cell = pickCellFromCanvas(ev.clientX, ev.clientY);
+      if (cell) {
+        handleCellClick(cell.row, cell.col);
+      } else {
+        state.selected = null;
+      }
+    });
+
+    els.summonBtn.addEventListener("click", summonTurret);
+
+    els.pauseBtn.addEventListener("click", () => {
+      if (state.ended || state.intermission) return;
+      state.running = !state.running;
+      syncHUD();
+      setMessage(state.running ? "战斗继续。" : "已暂停。可继续调整炮塔。");
+    });
+
+    els.restartBtn.addEventListener("click", resetGame);
+    els.playAgain.addEventListener("click", resetGame);
+
+    function buildLegend() {
+      els.legend.innerHTML = "";
+      for (const t of TURRETS) {
+        const span = document.createElement("span");
+        span.textContent = `${t.icon} ${t.name}`;
+        els.legend.appendChild(span);
+      }
+    }
+
+    let last = performance.now();
+    function loop(now) {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      update(dt);
+      render(dt);
+      requestAnimationFrame(loop);
+    }
+
+    buildLegend();
+    resetGame();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

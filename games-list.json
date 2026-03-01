@@ -312,5 +312,11 @@
     "path": "games/function-mapper-arena/index.html",
     "category": "数学+逻辑",
     "createdAt": "2026-03-02T01:58:53.728108+08:00"
+  },
+  {
+    "name": "异星开炮：合成防线",
+    "path": "games/alien-fireline/index.html",
+    "category": "策略生存",
+    "createdAt": "2026-03-01T18:09:11.611473Z"
   }
 ]
