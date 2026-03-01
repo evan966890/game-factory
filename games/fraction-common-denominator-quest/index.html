@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>通分比大小闯关</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --soft: #1f2937;
+      --text: #e5e7eb;
+      --accent: #38bdf8;
+      --ok: #22c55e;
+      --bad: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app { width: min(720px, 100%); }
+    .card {
+      background: rgba(17, 24, 39, 0.92);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+    }
+    h1, h2 { margin: 0 0 12px; }
+    p { line-height: 1.5; }
+    .hide { display: none; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      color: white;
+      background: #0ea5e9;
+      min-height: 46px;
+    }
+    button.secondary { background: #4b5563; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .stat { background: var(--soft); border-radius: 12px; padding: 10px; text-align: center; }
+    .fraction-box {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+      margin: 12px 0 8px;
+      text-align: center;
+    }
+    .fraction {
+      font-size: clamp(28px, 6vw, 40px);
+      font-weight: 800;
+      background: #0b1220;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .hint { color: #cbd5e1; font-size: 14px; }
+    .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+    .choice { background: #1d4ed8; }
+    .feedback { min-height: 26px; margin-top: 12px; font-weight: 700; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .kbd { background:#334155; border-radius:8px; padding:2px 8px; font-size:13px; }
+    @media (max-width: 560px) {
+      .choices { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="start" class="card">
+      <h1>通分比大小闯关</h1>
+      <p>四年级分数挑战：比较两个分数大小，部分题目需要先通分。每局 10 题，答对得 10 分，连续答对有奖励。</p>
+      <p class="hint">操作：点击按钮，或使用键盘 <span class="kbd">←</span> / <span class="kbd">↑</span> / <span class="kbd">→</span> 选择 <b>&lt;</b>、<b>=</b>、<b>&gt;</b>。</p>
+      <div class="row">
+        <button id="startBtn">开始闯关</button>
+      </div>
+    </section>
+
+    <section id="game" class="card hide">
+      <div class="stats">
+        <div class="stat">第 <span id="qIdx">1</span>/10 题</div>
+        <div class="stat">得分：<span id="score">0</span></div>
+        <div class="stat">连对：<span id="streak">0</span></div>
+      </div>
+
+      <h2>比较两个分数</h2>
+      <div class="fraction-box">
+        <div id="leftFrac" class="fraction">1/2</div>
+        <div style="font-size:24px;opacity:.8;">?</div>
+        <div id="rightFrac" class="fraction">3/4</div>
+      </div>
+      <p id="guide" class="hint">小提示：先找最小公倍数再比较。</p>
+
+      <div class="choices">
+        <button class="choice" data-op="<">&lt;（左边更小）</button>
+        <button class="choice" data-op="=">=（一样大）</button>
+        <button class="choice" data-op=">">&gt;（左边更大）</button>
+      </div>
+      <div id="feedback" class="feedback"></div>
+    </section>
+
+    <section id="end" class="card hide">
+      <h2>本局完成！</h2>
+      <p>最终得分：<b id="finalScore">0</b></p>
+      <p>正确题数：<b id="correctCount">0</b>/10</p>
+      <p id="comment"></p>
+      <div class="row">
+        <button id="restartBtn">再玩一次</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const totalQuestions = 10;
+    const startEl = document.getElementById('start');
+    const gameEl = document.getElementById('game');
+    const endEl = document.getElementById('end');
+
+    const qIdxEl = document.getElementById('qIdx');
+    const scoreEl = document.getElementById('score');
+    const streakEl = document.getElementById('streak');
+    const leftFracEl = document.getElementById('leftFrac');
+    const rightFracEl = document.getElementById('rightFrac');
+    const guideEl = document.getElementById('guide');
+    const feedbackEl = document.getElementById('feedback');
+
+    let questions = [];
+    let current = 0;
+    let score = 0;
+    let streak = 0;
+    let correct = 0;
+    let locked = false;
+
+    const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+    const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+    const lcm = (a, b) => (a * b) / gcd(a, b);
+
+    function simplify(n, d) {
+      const g = gcd(Math.abs(n), Math.abs(d));
+      return [n / g, d / g];
+    }
+
+    function makeQuestion() {
+      // 70% 需要通分，30% 可直接判断或相等
+      const mode = Math.random() < 0.7 ? 'common' : 'easy';
+      let aN, aD, bN, bD;
+
+      if (mode === 'common') {
+        const baseA = rand(2, 9);
+        const baseB = rand(2, 9);
+        aD = [2,3,4,5,6,8,9][rand(0,6)];
+        bD = [3,4,5,6,7,8,9,10][rand(0,7)];
+        aN = rand(1, Math.max(1, aD - 1));
+        bN = rand(1, Math.max(1, bD - 1));
+        if (rand(1, 4) === 1) {
+          // 制造可约分情况
+          aN *= baseA; aD *= baseA;
+        }
+        if (rand(1, 4) === 1) {
+          bN *= baseB; bD *= baseB;
+        }
+      } else {
+        aD = rand(2, 12);
+        bD = aD;
+        aN = rand(1, aD - 1);
+        bN = rand(1, bD - 1);
+        if (rand(1, 5) === 1) {
+          const k = rand(1, aD - 1);
+          aN = k; bN = k; // 相等题
+          bD = aD;
+        }
+      }
+
+      const [saN, saD] = simplify(aN, aD);
+      const [sbN, sbD] = simplify(bN, bD);
+
+      const left = saN / saD;
+      const right = sbN / sbD;
+      const answer = left < right ? '<' : left > right ? '>' : '=';
+
+      const needCommon = lcm(saD, sbD) !== saD && lcm(saD, sbD) !== sbD;
+
+      return {
+        left: `${saN}/${saD}`,
+        right: `${sbN}/${sbD}`,
+        answer,
+        hint: needCommon ? '这题建议先通分再比较。' : '这题可直接比较分子或观察是否相等。'
+      };
+    }
+
+    function buildQuestions() {
+      questions = [];
+      while (questions.length < totalQuestions) {
+        questions.push(makeQuestion());
+      }
+    }
+
+    function render() {
+      const q = questions[current];
+      qIdxEl.textContent = String(current + 1);
+      scoreEl.textContent = String(score);
+      streakEl.textContent = String(streak);
+      leftFracEl.textContent = q.left;
+      rightFracEl.textContent = q.right;
+      guideEl.textContent = `小提示：${q.hint}`;
+      feedbackEl.textContent = '';
+      feedbackEl.className = 'feedback';
+      locked = false;
+    }
+
+    function answer(op) {
+      if (locked) return;
+      locked = true;
+      const q = questions[current];
+      if (op === q.answer) {
+        correct += 1;
+        streak += 1;
+        const bonus = streak >= 3 ? 5 : 0;
+        score += 10 + bonus;
+        feedbackEl.textContent = bonus ? `✅ 正确！连对奖励 +${bonus}` : '✅ 正确！';
+        feedbackEl.classList.add('ok');
+      } else {
+        streak = 0;
+        feedbackEl.textContent = `❌ 再想想！正确答案是 ${q.answer}`;
+        feedbackEl.classList.add('bad');
+      }
+
+      scoreEl.textContent = String(score);
+      streakEl.textContent = String(streak);
+
+      setTimeout(() => {
+        current += 1;
+        if (current >= totalQuestions) {
+          showEnd();
+        } else {
+          render();
+        }
+      }, 700);
+    }
+
+    function showEnd() {
+      gameEl.classList.add('hide');
+      endEl.classList.remove('hide');
+      document.getElementById('finalScore').textContent = String(score);
+      document.getElementById('correctCount').textContent = String(correct);
+
+      const comment = document.getElementById('comment');
+      if (score >= 120) comment.textContent = '太棒了！你已经是通分比较小高手！';
+      else if (score >= 90) comment.textContent = '表现不错！再练几局会更稳。';
+      else comment.textContent = '继续加油，记住先通分再比较。';
+    }
+
+    function startGame() {
+      current = 0;
+      score = 0;
+      streak = 0;
+      correct = 0;
+      buildQuestions();
+      startEl.classList.add('hide');
+      endEl.classList.add('hide');
+      gameEl.classList.remove('hide');
+      render();
+    }
+
+    document.getElementById('startBtn').addEventListener('click', startGame);
+    document.getElementById('restartBtn').addEventListener('click', () => {
+      startEl.classList.remove('hide');
+      endEl.classList.add('hide');
+      gameEl.classList.add('hide');
+    });
+
+    document.querySelectorAll('.choice').forEach(btn => {
+      btn.addEventListener('click', () => answer(btn.dataset.op));
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (gameEl.classList.contains('hide')) return;
+      if (e.key === 'ArrowLeft') answer('<');
+      if (e.key === 'ArrowUp') answer('=');
+      if (e.key === 'ArrowRight') answer('>');
+    });
+  </script>
+</body>
+</html>

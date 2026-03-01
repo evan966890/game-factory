@@ -408,5 +408,11 @@
     "path": "games/fraction-number-line-dash/index.html",
     "category": "数学",
     "createdAt": "2026-03-01T21:59:03Z"
+  },
+  {
+    "name": "通分比大小闯关",
+    "path": "games/fraction-common-denominator-quest/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T06:19:25.493239+08:00"
   }
 ]
