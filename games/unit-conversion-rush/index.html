@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>单位换算冲刺</title>
+  <style>
+    :root {
+      --bg: #f5f9ff;
+      --card: #ffffff;
+      --text: #1f3046;
+      --muted: #62758a;
+      --primary: #0e77c7;
+      --primary-dark: #0a5e9d;
+      --ok: #1a7a45;
+      --bad: #b43c3c;
+      --border: #d8e5f2;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #eaf4ff 0%, var(--bg) 45%, #f7fff9 100%);
+    }
+
+    .app {
+      width: min(100%, 660px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(12, 84, 145, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.44rem;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .level-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f8fcff;
+    }
+
+    .level-label {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .level-btn {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+      background: #fff;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.06s ease;
+    }
+
+    .level-btn:active { transform: scale(0.98); }
+    .level-btn.active {
+      background: var(--primary);
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f9fcff;
+      text-align: center;
+      padding: 10px 6px;
+    }
+
+    .label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .value {
+      display: block;
+      font-size: 1.06rem;
+      font-weight: 700;
+    }
+
+    .question-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fcfeff;
+      padding: 14px;
+    }
+
+    .question {
+      margin: 0 0 12px;
+      text-align: center;
+      font-size: 1.36rem;
+      font-weight: 700;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .hint {
+      margin: 0 0 10px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .answer-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .answer-row input {
+      width: min(220px, 100%);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 12px;
+      font-size: 1rem;
+      color: var(--text);
+      background: #fff;
+    }
+
+    .answer-row input:focus {
+      outline: 2px solid rgba(14, 119, 199, 0.2);
+      border-color: var(--primary);
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.94rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: #fff;
+      color: var(--text);
+      transition: transform 0.06s ease, background 0.2s ease;
+      touch-action: manipulation;
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn.primary {
+      border-color: transparent;
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn.primary:hover { background: var(--primary-dark); }
+
+    .message {
+      margin-top: 12px;
+      min-height: 1.5em;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .message.ok { color: var(--ok); }
+    .message.bad { color: var(--bad); }
+
+    .actions {
+      margin-top: 12px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 580px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .question { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="单位换算冲刺游戏">
+    <h1>单位换算冲刺</h1>
+    <p class="subtitle">按题目完成单位换算。可切换「基础」和「进阶」难度，进阶档会出现小数答案。</p>
+
+    <section class="level-box" aria-label="难度选择">
+      <span class="level-label">难度：</span>
+      <button id="easyBtn" class="level-btn active" type="button">基础档</button>
+      <button id="hardBtn" class="level-btn" type="button">进阶档</button>
+      <span id="levelNote" class="level-label">基础档：整数换算</span>
+    </section>
+
+    <section class="stats" aria-label="统计信息">
+      <div class="stat"><span class="label">总题数</span><span id="total" class="value">0</span></div>
+      <div class="stat"><span class="label">答对</span><span id="correct" class="value">0</span></div>
+      <div class="stat"><span class="label">得分</span><span id="score" class="value">0</span></div>
+      <div class="stat"><span class="label">正确率</span><span id="accuracy" class="value">0%</span></div>
+    </section>
+
+    <section class="question-box" aria-live="polite">
+      <p id="question" class="question">5 米 = ? 厘米</p>
+      <p class="hint">提示：进阶档可输入小数，最多保留 3 位。</p>
+
+      <div class="answer-row">
+        <input id="answerInput" type="number" inputmode="decimal" placeholder="请输入答案" />
+        <button id="checkBtn" class="btn primary" type="button">提交答案</button>
+      </div>
+
+      <div id="message" class="message"></div>
+
+      <div class="actions">
+        <button id="nextBtn" class="btn primary" type="button">下一题</button>
+        <button id="resetBtn" class="btn" type="button">重置</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const easyTemplates = [
+        { from: '米', to: '厘米', factor: 100, min: 1, max: 30, step: 1 },
+        { from: '厘米', to: '米', factor: 0.01, min: 100, max: 3000, step: 100 },
+        { from: '千克', to: '克', factor: 1000, min: 1, max: 20, step: 1 },
+        { from: '克', to: '千克', factor: 0.001, min: 1000, max: 15000, step: 500 },
+        { from: '小时', to: '分钟', factor: 60, min: 1, max: 24, step: 1 },
+        { from: '分钟', to: '小时', factor: 1 / 60, min: 60, max: 600, step: 30 },
+        { from: '升', to: '毫升', factor: 1000, min: 1, max: 12, step: 1 },
+        { from: '毫升', to: '升', factor: 0.001, min: 1000, max: 9000, step: 500 }
+      ];
+
+      const hardTemplates = [
+        { from: '厘米', to: '米', factor: 0.01, min: 25, max: 975, step: 5, precision: 3 },
+        { from: '克', to: '千克', factor: 0.001, min: 120, max: 9860, step: 20, precision: 3 },
+        { from: '分钟', to: '小时', factor: 1 / 60, min: 15, max: 355, step: 5, precision: 3 },
+        { from: '毫升', to: '升', factor: 0.001, min: 50, max: 4950, step: 25, precision: 3 },
+        { from: '米', to: '千米', factor: 0.001, min: 150, max: 9850, step: 50, precision: 3 },
+        { from: '千米', to: '米', factor: 1000, min: 0.2, max: 9.8, step: 0.1, precision: 0 }
+      ];
+
+      const questionEl = document.getElementById('question');
+      const answerInput = document.getElementById('answerInput');
+      const messageEl = document.getElementById('message');
+      const totalEl = document.getElementById('total');
+      const correctEl = document.getElementById('correct');
+      const scoreEl = document.getElementById('score');
+      const accuracyEl = document.getElementById('accuracy');
+      const easyBtn = document.getElementById('easyBtn');
+      const hardBtn = document.getElementById('hardBtn');
+      const levelNote = document.getElementById('levelNote');
+      const checkBtn = document.getElementById('checkBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      let level = 'easy';
+      let total = 0;
+      let correct = 0;
+      let score = 0;
+      let answered = false;
+      let current = null;
+
+      function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function randomChoice(arr) {
+        return arr[randomInt(0, arr.length - 1)];
+      }
+
+      function pickByStep(min, max, step) {
+        if (step < 1) {
+          const count = Math.round((max - min) / step);
+          const idx = randomInt(0, count);
+          return Number((min + idx * step).toFixed(3));
+        }
+        const count = Math.floor((max - min) / step);
+        const idx = randomInt(0, count);
+        return min + idx * step;
+      }
+
+      function formatNumber(num, precision) {
+        const p = typeof precision === 'number' ? precision : 3;
+        return Number(num.toFixed(p)).toString();
+      }
+
+      function makeQuestion() {
+        const t = randomChoice(level === 'easy' ? easyTemplates : hardTemplates);
+        const left = pickByStep(t.min, t.max, t.step);
+        const answer = left * t.factor;
+        const precision = typeof t.precision === 'number' ? t.precision : (level === 'easy' ? 0 : 3);
+
+        return {
+          text: `${formatNumber(left, 3)} ${t.from} = ? ${t.to}`,
+          answer,
+          precision
+        };
+      }
+
+      function updateStats() {
+        totalEl.textContent = String(total);
+        correctEl.textContent = String(correct);
+        scoreEl.textContent = String(score);
+        const rate = total === 0 ? 0 : Math.round((correct / total) * 100);
+        accuracyEl.textContent = rate + '%';
+      }
+
+      function setLevel(newLevel) {
+        level = newLevel;
+        easyBtn.classList.toggle('active', newLevel === 'easy');
+        hardBtn.classList.toggle('active', newLevel === 'hard');
+        levelNote.textContent = newLevel === 'easy' ? '基础档：整数换算' : '进阶档：可能出现小数答案';
+        nextQuestion();
+      }
+
+      function nextQuestion() {
+        current = makeQuestion();
+        answered = false;
+        questionEl.textContent = current.text;
+        answerInput.value = '';
+        messageEl.textContent = '';
+        messageEl.className = 'message';
+        answerInput.focus();
+      }
+
+      function checkAnswer() {
+        if (answered) {
+          messageEl.textContent = '本题已提交，请点击“下一题”。';
+          messageEl.className = 'message';
+          return;
+        }
+
+        const raw = answerInput.value.trim();
+        if (!raw) {
+          messageEl.textContent = '请先输入答案。';
+          messageEl.className = 'message bad';
+          return;
+        }
+
+        const user = Number(raw);
+        if (!Number.isFinite(user)) {
+          messageEl.textContent = '请输入有效数字。';
+          messageEl.className = 'message bad';
+          return;
+        }
+
+        answered = true;
+        total += 1;
+
+        const tolerance = level === 'easy' ? 1e-9 : 1e-3;
+        if (Math.abs(user - current.answer) <= tolerance) {
+          correct += 1;
+          score += level === 'easy' ? 10 : 12;
+          messageEl.textContent = level === 'easy' ? '太棒了！换算正确 🎉' : '优秀！进阶题也答对了 🌟';
+          messageEl.className = 'message ok';
+        } else {
+          score = Math.max(0, score - 5);
+          messageEl.textContent = `答错了，正确答案是 ${formatNumber(current.answer, current.precision)}。`;
+          messageEl.className = 'message bad';
+        }
+
+        updateStats();
+      }
+
+      function resetGame() {
+        total = 0;
+        correct = 0;
+        score = 0;
+        updateStats();
+        nextQuestion();
+      }
+
+      easyBtn.addEventListener('click', () => setLevel('easy'));
+      hardBtn.addEventListener('click', () => setLevel('hard'));
+      checkBtn.addEventListener('click', checkAnswer);
+      nextBtn.addEventListener('click', nextQuestion);
+      resetBtn.addEventListener('click', resetGame);
+      answerInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') checkAnswer();
+      });
+
+      updateStats();
+      setLevel('easy');
+    })();
+  </script>
+</body>
+</html>

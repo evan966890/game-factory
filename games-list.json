@@ -120,5 +120,11 @@
     "path": "games/fraction-level-compare/index.html",
     "category": "education",
     "createdAt": "2026-03-01T07:19:28Z"
+  },
+  {
+    "name": "单位换算冲刺",
+    "path": "games/unit-conversion-rush/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T08:44:38Z"
   }
 ]
