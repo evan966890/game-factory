@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>分数闯关比大小</title>
+  <style>
+    :root {
+      --bg: #f5f9ff;
+      --card: #ffffff;
+      --text: #1f3047;
+      --muted: #5f7288;
+      --primary: #1575c9;
+      --primary-dark: #0f5ca0;
+      --ok: #1b7c46;
+      --bad: #b53b3b;
+      --warn: #c47e0f;
+      --border: #d9e6f2;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e8f3ff 0%, var(--bg) 48%, #f6fff9 100%);
+    }
+
+    .app {
+      width: min(100%, 680px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(12, 80, 140, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.45rem;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f8fcff;
+      text-align: center;
+      padding: 10px 6px;
+    }
+
+    .label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .value {
+      display: block;
+      font-size: 1.06rem;
+      font-weight: 700;
+    }
+
+    .status {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      background: #fbfdff;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .status strong { color: var(--text); }
+    .status .practice { color: var(--warn); font-weight: 700; }
+
+    .question-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fcfeff;
+      padding: 14px;
+    }
+
+    .question {
+      margin: 0 0 14px;
+      text-align: center;
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .frac {
+      display: inline-grid;
+      grid-template-rows: 1fr auto 1fr;
+      justify-items: center;
+      align-items: center;
+      width: 2.4em;
+      margin: 0 0.12em;
+      vertical-align: middle;
+    }
+
+    .frac .line {
+      width: 100%;
+      border-top: 2px solid #304963;
+      margin: 2px 0;
+    }
+
+    .choice-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .choice {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      font-size: 1.2rem;
+      font-weight: 800;
+      padding: 12px 8px;
+      cursor: pointer;
+      transition: transform 0.06s ease, background 0.2s ease;
+      touch-action: manipulation;
+    }
+
+    .choice:hover { background: #f0f7ff; }
+    .choice:active { transform: scale(0.98); }
+    .choice:disabled { opacity: 0.72; cursor: not-allowed; }
+
+    .choice.correct {
+      background: #e9f9f0;
+      border-color: #a9e1bf;
+      color: var(--ok);
+    }
+
+    .choice.wrong {
+      background: #fff0f0;
+      border-color: #f2bcbc;
+      color: var(--bad);
+    }
+
+    .message {
+      min-height: 1.5em;
+      margin-top: 12px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .message.ok { color: var(--ok); }
+    .message.bad { color: var(--bad); }
+
+    .actions {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.94rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .btn.primary {
+      border-color: transparent;
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn.primary:hover { background: var(--primary-dark); }
+
+    @media (max-width: 600px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .choice-row { grid-template-columns: 1fr; }
+      .question { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="分数闯关比大小游戏">
+    <h1>分数闯关比大小</h1>
+    <p class="subtitle">选择「左边分数」与「右边分数」的大小关系。每关 5 题，错题会进入再练环节。</p>
+
+    <section class="stats" aria-label="统计信息">
+      <div class="stat"><span class="label">当前关卡</span><span id="level" class="value">1</span></div>
+      <div class="stat"><span class="label">关卡进度</span><span id="progress" class="value">0/5</span></div>
+      <div class="stat"><span class="label">总题数</span><span id="total" class="value">0</span></div>
+      <div class="stat"><span class="label">答对</span><span id="correct" class="value">0</span></div>
+      <div class="stat"><span class="label">得分</span><span id="score" class="value">0</span></div>
+    </section>
+
+    <div class="status" id="statusText">模式：<strong>闯关模式</strong>，完成每关 5 题后会自动进入下一关。</div>
+
+    <section class="question-box" aria-live="polite">
+      <p class="question" id="question"></p>
+
+      <div class="choice-row" id="choices">
+        <button class="choice" type="button" data-value=">">&gt;</button>
+        <button class="choice" type="button" data-value="=">=</button>
+        <button class="choice" type="button" data-value="<">&lt;</button>
+      </div>
+
+      <div id="message" class="message"></div>
+
+      <div class="actions">
+        <button id="nextBtn" class="btn primary" type="button">下一题</button>
+        <button id="resetBtn" class="btn" type="button">重置</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const QUESTIONS_PER_LEVEL = 5;
+
+      const levelEl = document.getElementById('level');
+      const progressEl = document.getElementById('progress');
+      const totalEl = document.getElementById('total');
+      const correctEl = document.getElementById('correct');
+      const scoreEl = document.getElementById('score');
+      const statusTextEl = document.getElementById('statusText');
+      const questionEl = document.getElementById('question');
+      const messageEl = document.getElementById('message');
+      const nextBtn = document.getElementById('nextBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const choiceBtns = Array.from(document.querySelectorAll('.choice'));
+
+      let level = 1;
+      let levelAsked = 0;
+      let total = 0;
+      let correct = 0;
+      let score = 0;
+      let answered = false;
+      let inPractice = false;
+      let wrongQueue = [];
+      let currentQuestion = null;
+
+      function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function gcd(a, b) {
+        while (b !== 0) {
+          const t = a % b;
+          a = b;
+          b = t;
+        }
+        return Math.abs(a);
+      }
+
+      function simplify(n, d) {
+        const g = gcd(n, d);
+        return { n: n / g, d: d / g };
+      }
+
+      function makeLevelQuestion() {
+        const maxDen = Math.min(6 + level * 2, 16);
+        const makeFrac = () => {
+          const d = randomInt(2, maxDen);
+          const n = randomInt(1, d - 1);
+          return simplify(n, d);
+        };
+
+        let left = makeFrac();
+        let right = makeFrac();
+
+        // 约 20% 概率出“相等”题
+        if (Math.random() < 0.2) {
+          right = { ...left };
+        }
+
+        const cmp = left.n * right.d - right.n * left.d;
+        const answer = cmp > 0 ? '>' : cmp < 0 ? '<' : '=';
+
+        return {
+          left,
+          right,
+          answer,
+          key: `${left.n}/${left.d}_${right.n}/${right.d}_${answer}`
+        };
+      }
+
+      function renderFractionHTML(frac) {
+        return `<span class="frac"><span>${frac.n}</span><span class="line"></span><span>${frac.d}</span></span>`;
+      }
+
+      function updateStats() {
+        levelEl.textContent = String(level);
+        progressEl.textContent = `${Math.min(levelAsked, QUESTIONS_PER_LEVEL)}/${QUESTIONS_PER_LEVEL}`;
+        totalEl.textContent = String(total);
+        correctEl.textContent = String(correct);
+        scoreEl.textContent = String(score);
+      }
+
+      function updateStatus() {
+        if (inPractice) {
+          statusTextEl.innerHTML = `模式：<span class="practice">错题再练</span>，剩余 <strong>${wrongQueue.length}</strong> 题，全部答对后进入下一关。`;
+        } else {
+          statusTextEl.innerHTML = `模式：<strong>闯关模式</strong>，本关已完成 <strong>${levelAsked}</strong>/${QUESTIONS_PER_LEVEL} 题。`;
+        }
+      }
+
+      function setChoicesEnabled(enabled) {
+        choiceBtns.forEach((btn) => {
+          btn.disabled = !enabled;
+          btn.classList.remove('correct', 'wrong');
+        });
+      }
+
+      function nextQuestion() {
+        answered = false;
+        messageEl.textContent = '';
+        messageEl.className = 'message';
+
+        if (inPractice) {
+          currentQuestion = wrongQueue[0];
+        } else {
+          currentQuestion = makeLevelQuestion();
+        }
+
+        questionEl.innerHTML = `${renderFractionHTML(currentQuestion.left)} ? ${renderFractionHTML(currentQuestion.right)}`;
+        setChoicesEnabled(true);
+        updateStats();
+        updateStatus();
+      }
+
+      function completeLevelIfNeeded() {
+        if (!inPractice && levelAsked >= QUESTIONS_PER_LEVEL) {
+          if (wrongQueue.length > 0) {
+            inPractice = true;
+            messageEl.textContent = `本关闯关完成！先把 ${wrongQueue.length} 道错题做对再进入下一关。`;
+            messageEl.className = 'message bad';
+          } else {
+            level += 1;
+            levelAsked = 0;
+            messageEl.textContent = `恭喜通关！进入第 ${level} 关。`;
+            messageEl.className = 'message ok';
+          }
+        }
+
+        if (inPractice && wrongQueue.length === 0) {
+          inPractice = false;
+          level += 1;
+          levelAsked = 0;
+          messageEl.textContent = `错题全部攻克！进入第 ${level} 关。`;
+          messageEl.className = 'message ok';
+        }
+      }
+
+      function onChoose(choiceValue, btn) {
+        if (answered) return;
+        answered = true;
+        total += 1;
+
+        setChoicesEnabled(false);
+
+        if (choiceValue === currentQuestion.answer) {
+          correct += 1;
+          score += inPractice ? 8 : 10;
+          btn.classList.add('correct');
+
+          if (inPractice) {
+            wrongQueue.shift();
+            messageEl.textContent = '错题攻克成功！继续加油。';
+          } else {
+            messageEl.textContent = '回答正确，+10 分！';
+          }
+          messageEl.className = 'message ok';
+        } else {
+          score = Math.max(0, score - 5);
+          btn.classList.add('wrong');
+          const rightBtn = choiceBtns.find((b) => b.dataset.value === currentQuestion.answer);
+          if (rightBtn) rightBtn.classList.add('correct');
+
+          if (inPractice) {
+            // 错题再练答错，移到队尾继续练
+            wrongQueue.push(wrongQueue.shift());
+            messageEl.textContent = `再练一次：正确答案是 ${currentQuestion.answer}`;
+          } else {
+            wrongQueue.push({ ...currentQuestion });
+            levelAsked += 1;
+            messageEl.textContent = `回答错误，正确答案是 ${currentQuestion.answer}。已加入错题再练。`;
+          }
+          messageEl.className = 'message bad';
+
+          updateStats();
+          updateStatus();
+          completeLevelIfNeeded();
+          return;
+        }
+
+        if (!inPractice) {
+          levelAsked += 1;
+        }
+
+        updateStats();
+        completeLevelIfNeeded();
+        updateStatus();
+      }
+
+      function resetGame() {
+        level = 1;
+        levelAsked = 0;
+        total = 0;
+        correct = 0;
+        score = 0;
+        inPractice = false;
+        wrongQueue = [];
+        updateStats();
+        updateStatus();
+        nextQuestion();
+      }
+
+      choiceBtns.forEach((btn) => {
+        btn.addEventListener('click', () => onChoose(btn.dataset.value, btn));
+      });
+
+      nextBtn.addEventListener('click', () => {
+        completeLevelIfNeeded();
+        nextQuestion();
+      });
+
+      resetBtn.addEventListener('click', resetGame);
+
+      updateStats();
+      updateStatus();
+      nextQuestion();
+    })();
+  </script>
+</body>
+</html>

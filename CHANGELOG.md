@@ -69,3 +69,6 @@
 - 新增教育游戏 `物态分类实验室`，文件路径：`games/matter-classifier/index.html`。
 - 游戏功能包含：物品物态判断（固体/液体/气体）、即时反馈、得分与正确率统计、下一题与重置。
 - 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。
+- 新增教育游戏 `分数闯关比大小`，文件路径：`games/fraction-level-compare/index.html`。
+- 游戏功能包含：分数大小判断（> / < / =）、关卡闯关机制、错题再练、即时反馈、得分统计与重置。
+- 更新 `games-list.json`，注册新游戏条目（`name/path/category/createdAt`）。

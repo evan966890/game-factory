@@ -114,5 +114,11 @@
     "path": "games/matter-classifier/index.html",
     "category": "education",
     "createdAt": "2026-03-01T06:27:33Z"
+  },
+  {
+    "name": "分数闯关比大小",
+    "path": "games/fraction-level-compare/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T07:19:28Z"
   }
 ]
