@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>函数映射竞技场</title>
+  <style>
+    :root{--bg:#0b1020;--card:#121a32;--accent:#60a5fa;--ok:#22c55e;--bad:#ef4444;--text:#e5e7eb;--muted:#9ca3af}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(circle at 20% 0%,#1d2a52,var(--bg));color:var(--text);min-height:100dvh;display:flex;justify-content:center;padding:14px}
+    .app{width:min(760px,100%);background:rgba(18,26,50,.92);border:1px solid rgba(156,163,175,.25);border-radius:16px;padding:16px;box-shadow:0 14px 34px rgba(0,0,0,.35)}
+    h1{margin:4px 0 8px;font-size:1.5rem}.desc{margin:0 0 12px;color:var(--muted);line-height:1.45}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+    .stat{background:#0c1328;border-radius:10px;padding:10px;text-align:center}.label{font-size:.76rem;color:var(--muted)}.value{font-size:1.18rem;font-weight:700}
+    .card{background:#0c1328;border-radius:12px;padding:14px;margin-bottom:10px}
+    .rule{font-size:1.2rem;font-weight:700}.q{margin-top:6px;font-size:1.05rem}
+    .opts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    .opt{border:none;border-radius:10px;min-height:52px;background:#1b2547;color:var(--text);font-size:1rem;font-weight:700;touch-action:manipulation}
+    .opt:active{transform:scale(.98)} .opt.ok{background:rgba(34,197,94,.22);outline:2px solid var(--ok)} .opt.bad{background:rgba(239,68,68,.22);outline:2px solid var(--bad)}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.controls button{flex:1;min-width:120px;border:none;border-radius:10px;padding:10px 12px;font-weight:700}
+    .primary{background:var(--accent);color:#071022}.secondary{background:#334155;color:var(--text)}
+    .hint{min-height:22px;margin-top:10px;color:#cbd5e1}
+    @media (max-width:520px){.stats{grid-template-columns:repeat(2,1fr)}.opts{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>📈 函数映射竞技场</h1>
+    <p class="desc">目标：在 90 秒内尽可能多地解出函数映射题。每题会给出一个一次函数规则 <strong>f(x)=ax+b</strong>，从 4 个选项中选出正确的 f(x) 值。</p>
+
+    <section class="stats">
+      <div class="stat"><div class="label">剩余时间</div><div class="value" id="time">90</div></div>
+      <div class="stat"><div class="label">得分</div><div class="value" id="score">0</div></div>
+      <div class="stat"><div class="label">连击</div><div class="value" id="streak">0</div></div>
+      <div class="stat"><div class="label">正确率</div><div class="value" id="acc">0%</div></div>
+    </section>
+
+    <section class="card">
+      <div class="rule" id="rule">f(x) = 2x + 1</div>
+      <div class="q" id="question">当 x = 3 时，f(x) = ?</div>
+    </section>
+
+    <section class="opts" id="options"></section>
+    <p class="hint" id="hint">点击“开始挑战”，冲击高分！</p>
+
+    <div class="controls">
+      <button class="primary" id="startBtn">开始挑战</button>
+      <button class="secondary" id="skipBtn">跳过此题</button>
+      <button class="secondary" id="resetBtn">重置</button>
+    </div>
+  </main>
+
+<script>
+const timeEl = document.getElementById('time');
+const scoreEl = document.getElementById('score');
+const streakEl = document.getElementById('streak');
+const accEl = document.getElementById('acc');
+const ruleEl = document.getElementById('rule');
+const questionEl = document.getElementById('question');
+const optionsEl = document.getElementById('options');
+const hintEl = document.getElementById('hint');
+const startBtn = document.getElementById('startBtn');
+const skipBtn = document.getElementById('skipBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+let timer = null, running = false;
+let timeLeft = 90, score = 0, streak = 0, right = 0, total = 0;
+let answer = 0;
+
+function rnd(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=rnd(0,i); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+
+function updateStats(){
+  timeEl.textContent = timeLeft;
+  scoreEl.textContent = score;
+  streakEl.textContent = streak;
+  accEl.textContent = total ? `${Math.round((right/total)*100)}%` : '0%';
+}
+
+function genQuestion(){
+  let a = rnd(-6, 6), b = rnd(-12, 12), x = rnd(-9, 12);
+  if(a===0) a = rnd(1,6) * (Math.random()<0.5?1:-1);
+  answer = a*x + b;
+  ruleEl.textContent = `f(x) = ${a===1?'':a===-1?'-':a}x ${b>=0?'+':'-'} ${Math.abs(b)}`;
+  questionEl.textContent = `当 x = ${x} 时，f(x) = ?`;
+
+  const pool = new Set([answer]);
+  while(pool.size < 4){
+    const delta = rnd(1, 9) * (Math.random()<0.5?1:-1);
+    pool.add(answer + delta);
+  }
+
+  optionsEl.innerHTML = '';
+  shuffle([...pool]).forEach(v => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = v;
+    btn.addEventListener('click', () => choose(btn, v));
+    optionsEl.appendChild(btn);
+  });
+}
+
+function lockOptions(){ optionsEl.querySelectorAll('button').forEach(b=>b.disabled=true); }
+
+function choose(btn, value){
+  if(!running) return;
+  total++;
+  if(value === answer){
+    right++; streak++; score += 10 + Math.min(20, streak*2);
+    btn.classList.add('ok');
+    hintEl.textContent = `✅ 正确！连击 +${streak}，本题得分 ${10 + Math.min(20, streak*2)}。`;
+  } else {
+    streak = 0; score = Math.max(0, score - 6);
+    btn.classList.add('bad');
+    [...optionsEl.children].forEach(b=>{ if(Number(b.textContent)===answer) b.classList.add('ok'); });
+    hintEl.textContent = `❌ 错误，正确答案是 ${answer}。`;
+  }
+  updateStats();
+  lockOptions();
+  setTimeout(() => { if(running) genQuestion(); }, 550);
+}
+
+function start(){
+  if(running) return;
+  running = true;
+  hintEl.textContent = '挑战开始！保持连击拿高分！';
+  genQuestion();
+  timer = setInterval(()=>{
+    timeLeft--; updateStats();
+    if(timeLeft<=0){
+      clearInterval(timer); running=false; lockOptions();
+      hintEl.textContent = `⏱️ 时间到！最终得分 ${score}，正确率 ${accEl.textContent}。点击“开始挑战”再来一局。`;
+    }
+  },1000);
+}
+
+function reset(){
+  clearInterval(timer); running=false;
+  timeLeft=90; score=0; streak=0; right=0; total=0;
+  updateStats(); optionsEl.innerHTML='';
+  ruleEl.textContent='f(x) = 2x + 1'; questionEl.textContent='当 x = 3 时，f(x) = ?';
+  hintEl.textContent='数据已重置，点击“开始挑战”重新开始。';
+}
+
+startBtn.addEventListener('click', start);
+skipBtn.addEventListener('click', () => {
+  if(!running) return;
+  streak = 0; score = Math.max(0, score - 3); updateStats();
+  hintEl.textContent = `↪️ 已跳过，参考答案 ${answer}，连击中断。`;
+  genQuestion();
+});
+resetBtn.addEventListener('click', reset);
+updateStats();
+</script>
+</body>
+</html>

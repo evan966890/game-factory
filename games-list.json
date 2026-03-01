@@ -306,5 +306,11 @@
     "path": "games/mental-math-relay/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T01:38:33.873571+08:00"
+  },
+  {
+    "name": "函数映射竞技场",
+    "path": "games/function-mapper-arena/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-02T01:58:53.728108+08:00"
   }
 ]
