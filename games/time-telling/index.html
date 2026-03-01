@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>读钟小达人</title>
+  <style>
+    :root {
+      --bg: #f4fbff;
+      --card: #ffffff;
+      --primary: #1f7ae0;
+      --ok: #1b9c5a;
+      --bad: #d64545;
+      --text: #1c2b3a;
+      --muted: #62768b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #eaf5ff 0%, #f9fcff 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      padding: 16px;
+    }
+    .app { max-width: 760px; margin: 0 auto; }
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 10px 24px rgba(25, 90, 145, 0.12);
+      margin-bottom: 14px;
+    }
+    h1 { margin: 0 0 6px; font-size: 1.5rem; }
+    .tip { margin: 0; color: var(--muted); font-size: .95rem; }
+    .clock-wrap { display: grid; place-items: center; padding: 8px 0 4px; }
+    .clock {
+      width: min(78vw, 300px);
+      height: min(78vw, 300px);
+      border: 6px solid #2e4761;
+      border-radius: 50%;
+      position: relative;
+      background: radial-gradient(circle at center, #fff 0%, #f8fcff 75%);
+    }
+    .num {
+      position: absolute; inset: 0;
+      display: grid; place-items: center;
+      font-weight: 700; color: #2a3b4d;
+      transform: rotate(var(--r));
+    }
+    .num span { transform: rotate(calc(-1 * var(--r))); }
+    .hand {
+      position: absolute;
+      left: 50%;
+      bottom: 50%;
+      transform-origin: center bottom;
+      border-radius: 8px;
+    }
+    .hour { width: 8px; height: 74px; background: #2f3f50; margin-left: -4px; }
+    .minute { width: 6px; height: 108px; background: #1f7ae0; margin-left: -3px; }
+    .center {
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #1f7ae0;
+      left: 50%; top: 50%; transform: translate(-50%, -50%);
+    }
+    .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 1.02rem;
+      font-weight: 700;
+      background: #edf4ff;
+      color: #1e3348;
+    }
+    button:active { transform: scale(0.98); }
+    .actions { display: flex; gap: 10px; margin-top: 12px; }
+    .primary { background: var(--primary); color: #fff; }
+    .ghost { background: #e9eef5; }
+    .stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; color: var(--muted); font-size: .95rem; }
+    .msg { margin-top: 10px; font-weight: 700; min-height: 1.5em; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <h1>🕒 读钟小达人</h1>
+      <p class="tip">看钟面，选出正确时间。每题 4 选 1，答对立刻加分！</p>
+    </section>
+
+    <section class="card">
+      <div class="clock-wrap">
+        <div class="clock" id="clock">
+          <div class="hand hour" id="hourHand"></div>
+          <div class="hand minute" id="minuteHand"></div>
+          <div class="center"></div>
+        </div>
+      </div>
+      <div class="choices" id="choices"></div>
+      <div class="msg" id="message"></div>
+      <div class="actions">
+        <button class="primary" id="nextBtn">下一题</button>
+        <button class="ghost" id="resetBtn">重置</button>
+      </div>
+      <div class="stats" id="stats"></div>
+    </section>
+  </main>
+
+  <script>
+    const hourHand = document.getElementById('hourHand');
+    const minuteHand = document.getElementById('minuteHand');
+    const choicesEl = document.getElementById('choices');
+    const msgEl = document.getElementById('message');
+    const statsEl = document.getElementById('stats');
+
+    let total = 0;
+    let correct = 0;
+    let score = 0;
+    let current = null;
+    let locked = false;
+
+    function addNumbers() {
+      const clock = document.getElementById('clock');
+      for (let i = 1; i <= 12; i++) {
+        const item = document.createElement('div');
+        item.className = 'num';
+        const deg = i * 30;
+        item.style.setProperty('--r', deg + 'deg');
+        item.innerHTML = `<span style="transform: translateY(-128px) rotate(${-deg}deg)">${i}</span>`;
+        clock.appendChild(item);
+      }
+    }
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function renderClock(hour, minute) {
+      const minuteDeg = minute * 6;
+      const hourDeg = (hour % 12) * 30 + minute * 0.5;
+      hourHand.style.transform = `rotate(${hourDeg}deg)`;
+      minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
+    }
+
+    function formatTime(h, m) {
+      return `${pad(h)}:${pad(m)}`;
+    }
+
+    function randomTime() {
+      const hour = Math.floor(Math.random() * 12) + 1;
+      const minute = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55][Math.floor(Math.random() * 12)];
+      return { hour, minute };
+    }
+
+    function buildOptions(answer) {
+      const set = new Set([formatTime(answer.hour, answer.minute)]);
+      while (set.size < 4) {
+        const t = randomTime();
+        set.add(formatTime(t.hour, t.minute));
+      }
+      return Array.from(set).sort(() => Math.random() - 0.5);
+    }
+
+    function updateStats() {
+      const acc = total ? Math.round((correct / total) * 100) : 0;
+      statsEl.textContent = `得分：${score} ｜ 已答：${total} ｜ 答对：${correct} ｜ 准确率：${acc}%`;
+    }
+
+    function newQuestion() {
+      locked = false;
+      msgEl.textContent = '';
+      msgEl.className = 'msg';
+      current = randomTime();
+      renderClock(current.hour, current.minute);
+      const right = formatTime(current.hour, current.minute);
+      const options = buildOptions(current);
+      choicesEl.innerHTML = '';
+      options.forEach((t) => {
+        const btn = document.createElement('button');
+        btn.textContent = t;
+        btn.addEventListener('click', () => {
+          if (locked) return;
+          locked = true;
+          total += 1;
+          if (t === right) {
+            correct += 1;
+            score += 10;
+            msgEl.textContent = `✅ 太棒了！正确答案是 ${right}`;
+            msgEl.className = 'msg ok';
+          } else {
+            score = Math.max(0, score - 4);
+            msgEl.textContent = `❌ 再试试！正确答案是 ${right}`;
+            msgEl.className = 'msg bad';
+          }
+          updateStats();
+        });
+        choicesEl.appendChild(btn);
+      });
+    }
+
+    document.getElementById('nextBtn').addEventListener('click', newQuestion);
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      total = 0;
+      correct = 0;
+      score = 0;
+      updateStats();
+      newQuestion();
+    });
+
+    addNumbers();
+    updateStats();
+    newQuestion();
+  </script>
+</body>
+</html>

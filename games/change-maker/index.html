@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>找零小掌柜</title>
+  <style>
+    :root {
+      --bg: #fff9f0;
+      --card: #ffffff;
+      --text: #3a2a1c;
+      --muted: #7e6a58;
+      --primary: #d97706;
+      --ok: #1f9d55;
+      --bad: #dc2626;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#fff3dc 0%,#fffaf2 100%);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--text);padding:16px}
+    .app{max-width:760px;margin:0 auto}
+    .card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 10px 24px rgba(132,83,33,.12);margin-bottom:14px}
+    h1{margin:0 0 8px;font-size:1.5rem}
+    .tip{margin:0;color:var(--muted)}
+    .bill{font-size:1.15rem;font-weight:700;line-height:1.8}
+    .opt{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    button{border:none;border-radius:12px;padding:11px;font-size:1rem;font-weight:700;background:#fff1df;color:#4a2f1a}
+    button:active{transform:scale(.98)}
+    .actions{display:flex;gap:10px;margin-top:12px}
+    .primary{background:var(--primary);color:#fff}
+    .ghost{background:#efe7dc}
+    .msg{margin-top:10px;font-weight:700;min-height:1.5em}
+    .ok{color:var(--ok)}
+    .bad{color:var(--bad)}
+    .stats{margin-top:6px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <h1>💰 找零小掌柜</h1>
+      <p class="tip">已知商品总价和顾客付款，选出应该找回多少钱。</p>
+    </section>
+    <section class="card">
+      <div class="bill" id="bill"></div>
+      <div class="opt" id="options"></div>
+      <div class="msg" id="msg"></div>
+      <div class="actions">
+        <button class="primary" id="next">下一题</button>
+        <button class="ghost" id="reset">重置</button>
+      </div>
+      <div class="stats" id="stats"></div>
+    </section>
+  </main>
+
+  <script>
+    const billEl = document.getElementById('bill');
+    const optionsEl = document.getElementById('options');
+    const msgEl = document.getElementById('msg');
+    const statsEl = document.getElementById('stats');
+
+    let question = null;
+    let total = 0;
+    let correct = 0;
+    let score = 0;
+    let locked = false;
+
+    function r(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    function createQuestion() {
+      const price = r(5, 88);
+      const payCandidates = [10, 20, 50, 100];
+      const pay = payCandidates.filter(v => v > price)[r(0, payCandidates.filter(v => v > price).length - 1)];
+      return { price, pay, change: pay - price };
+    }
+
+    function createOptions(answer) {
+      const set = new Set([answer]);
+      while (set.size < 4) {
+        const delta = r(-15, 15);
+        const val = Math.max(0, answer + delta);
+        set.add(val);
+      }
+      return Array.from(set).sort(() => Math.random() - 0.5);
+    }
+
+    function updateStats() {
+      const acc = total ? Math.round(correct / total * 100) : 0;
+      statsEl.textContent = `得分：${score} ｜ 已答：${total} ｜ 答对：${correct} ｜ 准确率：${acc}%`;
+    }
+
+    function nextQuestion() {
+      locked = false;
+      msgEl.textContent = '';
+      msgEl.className = 'msg';
+      question = createQuestion();
+      billEl.textContent = `商品总价：${question.price} 元 ｜ 顾客付款：${question.pay} 元`;
+      const opts = createOptions(question.change);
+      optionsEl.innerHTML = '';
+      opts.forEach(v => {
+        const btn = document.createElement('button');
+        btn.textContent = `${v} 元`;
+        btn.addEventListener('click', () => {
+          if (locked) return;
+          locked = true;
+          total += 1;
+          if (v === question.change) {
+            correct += 1;
+            score += 10;
+            msgEl.textContent = `✅ 回答正确！应找 ${question.change} 元`;
+            msgEl.className = 'msg ok';
+          } else {
+            score = Math.max(0, score - 4);
+            msgEl.textContent = `❌ 不对哦，应找 ${question.change} 元`;
+            msgEl.className = 'msg bad';
+          }
+          updateStats();
+        });
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    document.getElementById('next').addEventListener('click', nextQuestion);
+    document.getElementById('reset').addEventListener('click', () => {
+      total = 0; correct = 0; score = 0;
+      updateStats();
+      nextQuestion();
+    });
+
+    updateStats();
+    nextQuestion();
+  </script>
+</body>
+</html>
