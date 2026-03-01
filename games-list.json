@@ -264,5 +264,11 @@
     "path": "games/truth-lie-detective/index.html",
     "category": "逻辑推理",
     "createdAt": "2026-03-01T23:33:21.751332+08:00"
+  },
+  {
+    "name": "布尔电路冲刺",
+    "path": "games/boolean-circuit-sprint/index.html",
+    "category": "逻辑推理",
+    "createdAt": "2026-03-01T15:53:15Z"
   }
 ]

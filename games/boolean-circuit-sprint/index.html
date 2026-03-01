@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>布尔电路冲刺</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --good: #22c55e;
+      --bad: #ef4444;
+      --accent: #38bdf8;
+      --btn: #1e293b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .wrap {
+      width: min(720px, 100%);
+      background: rgba(17,24,39,.9);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.35);
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(22px, 5vw, 30px); }
+    .sub { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .stat {
+      background: #0b1220;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    .stat b { display: block; font-size: 20px; margin-top: 4px; color: var(--accent); }
+    .card {
+      border: 1px solid #334155;
+      border-radius: 12px;
+      background: #0b1220;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .vars {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+    .expr {
+      font-size: clamp(22px, 5.5vw, 34px);
+      font-weight: 800;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+    .btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    button {
+      border: 1px solid #334155;
+      border-radius: 12px;
+      background: var(--btn);
+      color: var(--text);
+      font-size: 20px;
+      font-weight: 800;
+      padding: 14px 10px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    button:active { transform: translateY(1px); }
+    #resetBtn { width: 100%; font-size: 16px; padding: 11px; }
+    .feedback {
+      min-height: 24px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .good { color: var(--good); }
+    .bad { color: var(--bad); }
+    .goal {
+      color: #cbd5e1;
+      font-size: 14px;
+      border-top: 1px dashed #334155;
+      padding-top: 10px;
+      margin-top: 8px;
+    }
+    @media (max-width: 540px) {
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .wrap { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>布尔电路冲刺</h1>
+    <p class="sub">12 题限时挑战：根据变量值判断逻辑表达式结果（0/1），练习 AND(∧) / OR(∨) / NOT(¬)。</p>
+
+    <section class="stats" aria-label="游戏统计">
+      <div class="stat">题号<b id="round">1/12</b></div>
+      <div class="stat">得分<b id="score">0</b></div>
+      <div class="stat">连对<b id="streak">0</b></div>
+      <div class="stat">正确率<b id="acc">0%</b></div>
+    </section>
+
+    <section class="card" aria-live="polite">
+      <div class="vars" id="vars"></div>
+      <div class="expr" id="expr"></div>
+    </section>
+
+    <div class="btns">
+      <button id="btn0" aria-label="答案 0">结果 = 0</button>
+      <button id="btn1" aria-label="答案 1">结果 = 1</button>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+    <button id="resetBtn">重新开始</button>
+
+    <p class="goal">目标：正确率 ≥ 85% 且连对 ≥ 5。错题会即时显示正确结果，可重复挑战刷新最高分。</p>
+  </main>
+
+  <script>
+    (() => {
+      const TOTAL = 12;
+      const roundEl = document.getElementById('round');
+      const scoreEl = document.getElementById('score');
+      const streakEl = document.getElementById('streak');
+      const accEl = document.getElementById('acc');
+      const varsEl = document.getElementById('vars');
+      const exprEl = document.getElementById('expr');
+      const fbEl = document.getElementById('feedback');
+      const btn0 = document.getElementById('btn0');
+      const btn1 = document.getElementById('btn1');
+      const resetBtn = document.getElementById('resetBtn');
+
+      let round = 1;
+      let score = 0;
+      let streak = 0;
+      let correct = 0;
+      let answered = 0;
+      let current = null;
+
+      const randBit = () => (Math.random() < 0.5 ? 0 : 1);
+      const bit = (v) => (v ? 1 : 0);
+
+      const templates = [
+        {
+          text: '¬A ∨ (B ∧ C)',
+          fn: ({A,B,C}) => bit((!A) || (B && C))
+        },
+        {
+          text: '(A ∨ B) ∧ ¬C',
+          fn: ({A,B,C}) => bit((A || B) && (!C))
+        },
+        {
+          text: '(¬A ∧ B) ∨ C',
+          fn: ({A,B,C}) => bit(((!A) && B) || C)
+        },
+        {
+          text: '¬(A ∧ B) ∨ C',
+          fn: ({A,B,C}) => bit((!(A && B)) || C)
+        },
+        {
+          text: '(A ∧ ¬B) ∨ (¬A ∧ C)',
+          fn: ({A,B,C}) => bit((A && (!B)) || ((!A) && C))
+        },
+        {
+          text: '(A ∨ ¬B) ∧ (B ∨ C)',
+          fn: ({A,B,C}) => bit((A || (!B)) && (B || C))
+        }
+      ];
+
+      function updateStats() {
+        roundEl.textContent = `${Math.min(round, TOTAL)}/${TOTAL}`;
+        scoreEl.textContent = score;
+        streakEl.textContent = streak;
+        accEl.textContent = answered ? `${Math.round(correct / answered * 100)}%` : '0%';
+      }
+
+      function buildQuestion() {
+        const vars = { A: randBit(), B: randBit(), C: randBit() };
+        const t = templates[Math.floor(Math.random() * templates.length)];
+        const answer = t.fn(vars);
+        current = { vars, expr: t.text, answer };
+
+        varsEl.textContent = `A=${vars.A}   B=${vars.B}   C=${vars.C}`;
+        exprEl.textContent = t.text;
+      }
+
+      function setButtons(enabled) {
+        btn0.disabled = !enabled;
+        btn1.disabled = !enabled;
+        btn0.style.opacity = enabled ? '1' : '.65';
+        btn1.style.opacity = enabled ? '1' : '.65';
+      }
+
+      function finish() {
+        setButtons(false);
+        const acc = answered ? Math.round(correct / answered * 100) : 0;
+        let rank = '继续练习';
+        if (acc >= 95) rank = '逻辑大神';
+        else if (acc >= 85) rank = '电路高手';
+        else if (acc >= 70) rank = '思维进步中';
+
+        fbEl.className = 'feedback good';
+        fbEl.textContent = `挑战结束！正确率 ${acc}%，你的评级：${rank}。`;
+      }
+
+      function answer(value) {
+        if (!current || round > TOTAL) return;
+        answered += 1;
+        const ok = value === current.answer;
+
+        if (ok) {
+          correct += 1;
+          streak += 1;
+          score += 10 + Math.min(streak, 6);
+          fbEl.className = 'feedback good';
+          fbEl.textContent = `✅ 正确！表达式结果为 ${current.answer}。`;
+        } else {
+          streak = 0;
+          score = Math.max(0, score - 4);
+          fbEl.className = 'feedback bad';
+          fbEl.textContent = `❌ 错误，正确结果是 ${current.answer}。`;
+        }
+
+        round += 1;
+        updateStats();
+
+        if (round > TOTAL) {
+          finish();
+          return;
+        }
+
+        setButtons(false);
+        setTimeout(() => {
+          buildQuestion();
+          setButtons(true);
+        }, 450);
+      }
+
+      function reset() {
+        round = 1;
+        score = 0;
+        streak = 0;
+        correct = 0;
+        answered = 0;
+        fbEl.className = 'feedback';
+        fbEl.textContent = '准备好了吗？目标是高正确率和长连对！';
+        buildQuestion();
+        updateStats();
+        setButtons(true);
+      }
+
+      btn0.addEventListener('click', () => answer(0));
+      btn1.addEventListener('click', () => answer(1));
+      resetBtn.addEventListener('click', reset);
+
+      reset();
+    })();
+  </script>
+</body>
+</html>
