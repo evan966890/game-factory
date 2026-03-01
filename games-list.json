@@ -426,5 +426,11 @@
     "path": "games/multiple-hunter-arena/index.html",
     "category": "数学",
     "createdAt": "2026-03-01T22:59:21Z"
+  },
+  {
+    "name": "比值调配实验室",
+    "path": "games/ratio-mixer-lab/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T07:19:19.291268+08:00"
   }
 ]

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>比值调配实验室</title>
+  <style>
+    :root {
+      --bg:#0f172a;
+      --card:#111827;
+      --accent:#22d3ee;
+      --ok:#34d399;
+      --bad:#fb7185;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#020617,#0f172a 45%,#111827);color:var(--text);min-height:100vh}
+    .app{max-width:760px;margin:0 auto;padding:16px}
+    .card{background:rgba(17,24,39,.86);border:1px solid rgba(148,163,184,.2);border-radius:16px;padding:16px;backdrop-filter:blur(6px)}
+    h1{margin:0 0 8px;font-size:clamp(22px,5vw,32px)}
+    p{margin:8px 0;color:var(--muted);line-height:1.5}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+    .stat{background:#0b1220;border-radius:12px;padding:10px;text-align:center}
+    .stat b{display:block;color:var(--accent);font-size:20px;margin-top:4px}
+    .mix{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin:14px 0}
+    .tube{background:#0b1220;border:1px solid rgba(148,163,184,.25);border-radius:12px;padding:12px;text-align:center}
+    .tube h3{margin:4px 0 6px;font-size:16px}
+    .tube .amount{font-size:26px;font-weight:700;color:#f8fafc;margin:6px 0}
+    .ratio{font-size:22px;font-weight:700;color:#fbbf24}
+    .controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+    button{border:0;border-radius:10px;padding:10px 14px;background:#1f2937;color:var(--text);font-weight:600;min-width:52px}
+    button:active{transform:translateY(1px)}
+    .options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .opt{padding:12px;border-radius:12px;background:#0b1220;border:1px solid rgba(148,163,184,.24);font-size:18px}
+    .opt.correct{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok) inset}
+    .opt.wrong{border-color:var(--bad);box-shadow:0 0 0 1px var(--bad) inset}
+    .feedback{min-height:24px;margin-top:10px;font-weight:700}
+    .feedback.ok{color:var(--ok)}
+    .feedback.bad{color:var(--bad)}
+    .footer{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+    .footer button{flex:1;background:#0891b2}
+    .footer button.secondary{background:#374151}
+    @media (max-width:560px){
+      .options{grid-template-columns:1fr}
+      .mix{grid-template-columns:1fr;}
+      .ratio{order:-1}
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <h1>🧪 比值调配实验室</h1>
+      <p>根据目标比值调配蓝液和黄液，选择正确的当前比值。10题一局，适合四到六年级比例感训练。</p>
+
+      <div class="stats">
+        <div class="stat">题目<b id="qNo">1/10</b></div>
+        <div class="stat">得分<b id="score">0</b></div>
+        <div class="stat">连对<b id="combo">0</b></div>
+      </div>
+
+      <div class="mix">
+        <div class="tube">
+          <h3>🔵 蓝液 A</h3>
+          <div class="amount" id="aVal">6</div>
+          <div class="controls">
+            <button data-act="a-2">-2</button><button data-act="a-1">-1</button>
+            <button data-act="a+1">+1</button><button data-act="a+2">+2</button>
+          </div>
+        </div>
+        <div class="ratio" id="target">目标 2:3</div>
+        <div class="tube">
+          <h3>🟡 黄液 B</h3>
+          <div class="amount" id="bVal">9</div>
+          <div class="controls">
+            <button data-act="b-2">-2</button><button data-act="b-1">-1</button>
+            <button data-act="b+1">+1</button><button data-act="b+2">+2</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+
+      <div class="footer">
+        <button id="checkBtn">提交答案</button>
+        <button class="secondary" id="nextBtn">下一题</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const total = 10;
+    let idx = 0, score = 0, combo = 0;
+    let state = null, locked = false;
+
+    const $ = id => document.getElementById(id);
+    const gcd = (a,b)=>b?gcd(b,a%b):a;
+    const simp = (a,b)=>{const g=gcd(a,b); return [a/g,b/g];};
+    const rand = (min,max)=>Math.floor(Math.random()*(max-min+1))+min;
+
+    function makeQuestion(){
+      const baseA = rand(1,6);
+      const baseB = rand(1,6);
+      const m = rand(2,4);
+      const n = rand(2,5);
+      const targetA = baseA * m;
+      const targetB = baseB * m;
+      let a = baseA * n + rand(-2,2);
+      let b = baseB * n + rand(-2,2);
+      a = Math.max(1, Math.min(24, a));
+      b = Math.max(1, Math.min(24, b));
+      const correct = simp(a,b).join(':');
+
+      const wrongSet = new Set();
+      while (wrongSet.size < 3) {
+        const wa = Math.max(1, a + rand(-3,3));
+        const wb = Math.max(1, b + rand(-3,3));
+        const w = simp(wa, wb).join(':');
+        if (w !== correct) wrongSet.add(w);
+      }
+
+      const all = [correct, ...Array.from(wrongSet)].sort(()=>Math.random()-0.5);
+      state = { targetA, targetB, a, b, correct, options: all, chosen: null };
+      locked = false;
+      render();
+    }
+
+    function render(){
+      $('qNo').textContent = `${idx+1}/${total}`;
+      $('score').textContent = score;
+      $('combo').textContent = combo;
+      $('target').textContent = `目标 ${simp(state.targetA,state.targetB).join(':')}`;
+      $('aVal').textContent = state.a;
+      $('bVal').textContent = state.b;
+      $('feedback').textContent = '';
+      $('feedback').className = 'feedback';
+
+      const box = $('options');
+      box.innerHTML = '';
+      state.options.forEach(v=>{
+        const btn = document.createElement('button');
+        btn.className = 'opt';
+        btn.textContent = v;
+        btn.onclick = ()=>{ if (locked) return; state.chosen = v; [...box.children].forEach(c=>c.style.outline='none'); btn.style.outline='2px solid #22d3ee'; };
+        box.appendChild(btn);
+      });
+    }
+
+    function adjust(type,delta){
+      if (locked) return;
+      if (type==='a') state.a = Math.min(24, Math.max(1, state.a + delta));
+      else state.b = Math.min(24, Math.max(1, state.b + delta));
+      state.correct = simp(state.a,state.b).join(':');
+      render();
+    }
+
+    function check(){
+      if (locked) return;
+      if (!state.chosen) {
+        $('feedback').textContent = '请先点选一个比值答案。';
+        $('feedback').classList.add('bad');
+        return;
+      }
+      locked = true;
+      const buttons = [...$('options').children];
+      buttons.forEach(btn=>{
+        if (btn.textContent === state.correct) btn.classList.add('correct');
+        if (btn.textContent === state.chosen && state.chosen !== state.correct) btn.classList.add('wrong');
+      });
+
+      if (state.chosen === state.correct) {
+        combo += 1;
+        score += 10 + Math.min(10, combo * 2);
+        $('feedback').textContent = `答对！当前真实比值就是 ${state.correct}`;
+        $('feedback').classList.add('ok');
+      } else {
+        combo = 0;
+        $('feedback').textContent = `答错了，正确答案是 ${state.correct}`;
+        $('feedback').classList.add('bad');
+      }
+      $('score').textContent = score;
+      $('combo').textContent = combo;
+    }
+
+    function next(){
+      if (!locked && idx > 0) return;
+      idx += 1;
+      if (idx >= total) {
+        alert(`闯关完成！\n总分：${score}\n平均每题：${Math.round(score/total)} 分`);
+        idx = 0; score = 0; combo = 0;
+      }
+      makeQuestion();
+    }
+
+    document.querySelectorAll('[data-act]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const v = btn.dataset.act;
+        const type = v[0];
+        const delta = parseInt(v.slice(1),10);
+        adjust(type, delta);
+      });
+    });
+    $('checkBtn').onclick = check;
+    $('nextBtn').onclick = next;
+
+    makeQuestion();
+  </script>
+</body>
+</html>
