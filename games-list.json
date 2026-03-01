@@ -84,5 +84,11 @@
     "path": "games/change-maker/index.html",
     "category": "education",
     "createdAt": "2026-03-01T04:59:22.753Z"
+  },
+  {
+    "name": "重力落体实验室",
+    "path": "games/gravity-drop/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T05:06:03Z"
   }
 ]

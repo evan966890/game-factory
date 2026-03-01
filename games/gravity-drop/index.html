@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>重力落体实验室</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --ok: #22c55e;
+      --bad: #ef4444;
+      --accent: #38bdf8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #020617, #0f172a);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(760px, 100%);
+      background: rgba(17, 24, 39, 0.94);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      padding: 16px;
+    }
+    h1 { font-size: 1.4rem; margin: 0 0 8px; }
+    p { margin: 0; color: var(--muted); }
+    .panel { margin-top: 14px; display: grid; gap: 10px; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; }
+    .card { background: var(--card); border: 1px solid #1f2937; border-radius: 10px; padding: 8px; text-align: center; }
+    .label { color: var(--muted); font-size: 0.85rem; }
+    .value { font-weight: 700; font-size: 1.1rem; margin-top: 3px; }
+    .question {
+      background: #0b1220;
+      border: 1px dashed #334155;
+      border-radius: 12px;
+      padding: 14px;
+      line-height: 1.5;
+      font-size: 1rem;
+    }
+    .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button {
+      border: 1px solid #334155;
+      border-radius: 10px;
+      background: #1e293b;
+      color: var(--text);
+      padding: 12px;
+      font-size: 1rem;
+      touch-action: manipulation;
+      cursor: pointer;
+    }
+    button.primary { background: #0ea5e9; border-color: #0284c7; color: #082f49; font-weight: 700; }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    .msg { min-height: 1.4em; font-weight: 600; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .controls { display: flex; gap: 8px; flex-wrap: wrap; }
+    @media (max-width: 560px) {
+      .stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .opts { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>重力落体实验室</h1>
+    <p>科学小实验：忽略空气阻力，同一高度下谁先落地？再估算落地时间（g≈9.8m/s²）。</p>
+
+    <section class="panel">
+      <div class="stats">
+        <div class="card"><div class="label">题号</div><div class="value" id="qNo">1</div></div>
+        <div class="card"><div class="label">得分</div><div class="value" id="score">0</div></div>
+        <div class="card"><div class="label">正确</div><div class="value" id="correct">0</div></div>
+        <div class="card"><div class="label">正确率</div><div class="value" id="acc">0%</div></div>
+      </div>
+
+      <div class="question" id="question"></div>
+      <div class="opts" id="options"></div>
+      <div class="msg" id="msg"></div>
+
+      <div class="controls">
+        <button class="primary" id="nextBtn" disabled>下一题</button>
+        <button id="resetBtn">重置</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const qNoEl = $('qNo');
+    const scoreEl = $('score');
+    const correctEl = $('correct');
+    const accEl = $('acc');
+    const questionEl = $('question');
+    const optionsEl = $('options');
+    const msgEl = $('msg');
+    const nextBtn = $('nextBtn');
+    const resetBtn = $('resetBtn');
+
+    let qNo = 1, score = 0, correct = 0, total = 0, answered = false;
+    let answer = '';
+
+    const objects = ['铁球', '羽毛球', '木球', '橡胶球', '玻璃球'];
+
+    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function makeQuestion() {
+      answered = false;
+      nextBtn.disabled = true;
+      msgEl.className = 'msg';
+      msgEl.textContent = '';
+      optionsEl.innerHTML = '';
+
+      const type = Math.random() < 0.5 ? 'who-first' : 'time';
+
+      if (type === 'who-first') {
+        const a = objects[rand(0, objects.length - 1)];
+        let b = objects[rand(0, objects.length - 1)];
+        while (b === a) b = objects[rand(0, objects.length - 1)];
+        questionEl.textContent = `实验：${a} 和 ${b} 从同一高度同时下落（忽略空气阻力），结果更接近哪项？`;
+        answer = '同时落地';
+        const options = shuffle(['同时落地', `${a}先落地`, `${b}先落地`, '无法判断']);
+        renderOptions(options);
+      } else {
+        const h = rand(5, 45); // 米
+        const t = Math.sqrt((2 * h) / 9.8);
+        const right = `${t.toFixed(1)}秒`;
+        questionEl.textContent = `估算：物体从 ${h} 米高处自由下落，落地时间约是多少？`;
+        answer = right;
+
+        const fake = new Set();
+        while (fake.size < 3) {
+          const delta = [ -0.8, -0.5, 0.5, 0.8, 1.0 ][rand(0, 4)];
+          const v = Math.max(0.4, t + delta).toFixed(1) + '秒';
+          if (v !== right) fake.add(v);
+        }
+        const options = shuffle([right, ...fake]);
+        renderOptions(options);
+      }
+    }
+
+    function renderOptions(opts) {
+      opts.forEach(text => {
+        const btn = document.createElement('button');
+        btn.textContent = text;
+        btn.addEventListener('click', () => check(text, btn));
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    function check(choice, btn) {
+      if (answered) return;
+      answered = true;
+      total += 1;
+
+      const allBtns = optionsEl.querySelectorAll('button');
+      allBtns.forEach(b => b.disabled = true);
+
+      if (choice === answer) {
+        score += 10;
+        correct += 1;
+        msgEl.textContent = `回答正确！标准答案：${answer}`;
+        msgEl.classList.add('ok');
+        btn.style.outline = '2px solid #22c55e';
+      } else {
+        score = Math.max(0, score - 5);
+        msgEl.textContent = `回答错误。标准答案：${answer}`;
+        msgEl.classList.add('bad');
+        btn.style.outline = '2px solid #ef4444';
+      }
+
+      nextBtn.disabled = false;
+      updateStats();
+    }
+
+    function updateStats() {
+      qNoEl.textContent = qNo;
+      scoreEl.textContent = score;
+      correctEl.textContent = correct;
+      const acc = total === 0 ? 0 : Math.round((correct / total) * 100);
+      accEl.textContent = `${acc}%`;
+    }
+
+    nextBtn.addEventListener('click', () => {
+      qNo += 1;
+      updateStats();
+      makeQuestion();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      qNo = 1; score = 0; correct = 0; total = 0;
+      updateStats();
+      makeQuestion();
+    });
+
+    updateStats();
+    makeQuestion();
+  </script>
+</body>
+</html>
