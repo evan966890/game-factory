@@ -300,5 +300,11 @@
     "path": "games/proposition-truth-arena/index.html",
     "category": "数学+逻辑",
     "createdAt": "2026-03-01T17:35:09.165882Z"
+  },
+  {
+    "name": "心算接力赛",
+    "path": "games/mental-math-relay/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T01:38:33.873571+08:00"
   }
 ]
