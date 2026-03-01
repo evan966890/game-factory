@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>向量密室：Vector Vault</title>
+  <style>
+    :root{--bg:#0f1220;--card:#1b2140;--ok:#32d296;--bad:#ff6b6b;--text:#eef2ff;--muted:#a9b2d0;--accent:#7aa2ff}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#0b0f1d,#131a34);color:var(--text)}
+    .wrap{max-width:920px;margin:0 auto;padding:14px}
+    .card{background:var(--card);border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 8px 22px rgba(0,0,0,.28)}
+    h1{font-size:1.25rem;margin:0 0 8px}.sub{color:var(--muted);font-size:.93rem;line-height:1.45}
+    .top{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.metric{background:#131936;border-radius:12px;padding:10px;text-align:center}
+    .metric b{display:block;font-size:1.1rem}
+    .arena{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+    .cell{background:#121733;border:1px solid #2a346b;border-radius:8px;padding:9px 0;text-align:center;font-weight:700;min-height:40px;display:flex;align-items:center;justify-content:center}
+    .goal{border-color:#4a63d9;background:#111a43}
+    .opts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    button{border:0;border-radius:10px;padding:11px 8px;font-size:1rem;font-weight:700;background:#28388b;color:#fff}
+    button:active{transform:scale(.98)} button[disabled]{opacity:.55}
+    .ok{color:var(--ok)} .bad{color:var(--bad)}
+    .hint{font-size:.9rem;color:#d9e1ff;background:#0f173f;border-radius:10px;padding:10px;line-height:1.45}
+    .footer{display:flex;gap:8px;flex-wrap:wrap}
+    .btn-light{background:#3b4ea8}.btn-danger{background:#9f3a4f}
+    @media (max-width:760px){.top{grid-template-columns:repeat(2,1fr)}.arena{grid-template-columns:1fr}.opts{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>向量密室：Vector Vault</h1>
+    <div class="sub">高难度综合关卡：每回合先看 5x5 空间坐标谜题，再解向量位移方程。连续答对可冲击更高关，错题会掉生命。</div>
+  </div>
+
+  <div class="card top">
+    <div class="metric">关卡<b id="level">1</b></div>
+    <div class="metric">分数<b id="score">0</b></div>
+    <div class="metric">生命<b id="hp">3</b></div>
+    <div class="metric">连击<b id="combo">0</b></div>
+  </div>
+
+  <div class="card arena">
+    <div>
+      <h3>① 空间定位（逻辑）</h3>
+      <div class="sub" id="spacePrompt"></div>
+      <div class="grid" id="grid"></div>
+    </div>
+    <div>
+      <h3>② 向量计算（数学）</h3>
+      <div class="sub" id="mathPrompt"></div>
+      <div class="opts" id="opts"></div>
+      <p id="feedback" class="sub"></p>
+      <div class="hint" id="hint"></div>
+    </div>
+  </div>
+
+  <div class="card footer">
+    <button class="btn-light" id="nextBtn">下一题</button>
+    <button class="btn-danger" id="restartBtn">重新开始</button>
+  </div>
+</div>
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const gridEl = $('#grid'), optsEl = $('#opts');
+  const spacePrompt = $('#spacePrompt'), mathPrompt = $('#mathPrompt'), hint = $('#hint'), feedback = $('#feedback');
+  const levelEl = $('#level'), scoreEl = $('#score'), hpEl = $('#hp'), comboEl = $('#combo');
+  const nextBtn = $('#nextBtn'), restartBtn = $('#restartBtn');
+
+  const S = { level:1, score:0, hp:3, combo:0, solved:false, answer:null, picked:null, target:null, start:null };
+
+  const r = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  const shuffle = arr => arr.sort(()=>Math.random()-0.5);
+  const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+
+  function drawGrid(target){
+    gridEl.innerHTML='';
+    for(let y=1;y<=5;y++){
+      for(let x=1;x<=5;x++){
+        const c = document.createElement('div');
+        const isT = target.x===x && target.y===y;
+        c.className = 'cell' + (isT ? ' goal':'' );
+        c.textContent = isT ? '★' : `(${x},${y})`;
+        gridEl.appendChild(c);
+      }
+    }
+  }
+
+  function makeRound(){
+    S.solved = false; S.picked = null; feedback.textContent='';
+    const diff = clamp(1 + Math.floor((S.level-1)/2),1,6);
+    const sx = r(1,5), sy = r(1,5);
+    const tx = r(1,5), ty = r(1,5);
+    S.start = {x:sx,y:sy}; S.target = {x:tx,y:ty};
+    drawGrid(S.target);
+
+    const dx = tx - sx, dy = ty - sy;
+    const k1 = r(-2-diff,2+diff) || 1;
+    const k2 = r(-2-diff,2+diff) || -1;
+    const biasX = r(-3,3), biasY = r(-3,3);
+
+    const ansX = dx * k1 + biasX;
+    const ansY = dy * k2 + biasY;
+    S.answer = [ansX, ansY];
+
+    const promptSpace = `起点在 (${sx},${sy})，目标是 ★ 所在坐标。先求位移向量 Δ=(x₂-x₁, y₂-y₁)。`;
+    const promptMath = `令 V=(${dx},${dy})，求 W=( ${k1}·Vx ${biasX>=0?'+':'-'} ${Math.abs(biasX)} , ${k2}·Vy ${biasY>=0?'+':'-'} ${Math.abs(biasY)} )`;
+    spacePrompt.textContent = promptSpace;
+    mathPrompt.textContent = promptMath;
+    hint.innerHTML = `提示：<br>1) 从坐标差得到 Δ。<br>2) 分别代入 x 与 y 的表达式。<br>3) 选出精确二元组。`;
+
+    const wrong = new Set();
+    while(wrong.size<3){
+      const wx = ansX + r(-3,3);
+      const wy = ansY + r(-3,3);
+      if(wx===ansX && wy===ansY) continue;
+      wrong.add(`${wx},${wy}`);
+    }
+    const options = shuffle([`${ansX},${ansY}`,...wrong]);
+    optsEl.innerHTML = '';
+    options.forEach((o,idx)=>{
+      const b = document.createElement('button');
+      b.textContent = `(${o})`;
+      b.onclick = ()=>pick(o,b);
+      b.setAttribute('aria-label',`选项${idx+1}`);
+      optsEl.appendChild(b);
+    });
+  }
+
+  function pick(text, btn){
+    if(S.solved || S.hp<=0) return;
+    S.picked = text;
+    const ok = text === `${S.answer[0]},${S.answer[1]}`;
+    [...optsEl.children].forEach(el=>el.disabled=true);
+
+    if(ok){
+      S.solved = true;
+      S.combo += 1;
+      const gain = 10 + S.level*2 + S.combo;
+      S.score += gain;
+      feedback.innerHTML = `<span class="ok">答对！+${gain} 分</span>`;
+      if(S.combo % 2 === 0) S.level += 1;
+      hint.innerHTML = `解析：Δ=(${S.target.x-S.start.x},${S.target.y-S.start.y})，代入后 W=(${S.answer[0]},${S.answer[1]})`;
+      btn.style.background = '#1f9d67';
+    } else {
+      S.combo = 0;
+      S.hp -= 1;
+      feedback.innerHTML = `<span class="bad">答错！正确答案是 (${S.answer[0]},${S.answer[1]})</span>`;
+      hint.innerHTML = `纠错：先算 Δ=(${S.target.x-S.start.x},${S.target.y-S.start.y})，再逐项代入。`;
+      btn.style.background = '#a63852';
+      if(S.hp<=0){
+        feedback.innerHTML += '<br><span class="bad">生命耗尽，点击“重新开始”再战。</span>';
+      }
+    }
+    render();
+  }
+
+  function render(){
+    levelEl.textContent = S.level;
+    scoreEl.textContent = S.score;
+    hpEl.textContent = S.hp;
+    comboEl.textContent = S.combo;
+    nextBtn.disabled = S.hp<=0 || !S.picked;
+  }
+
+  function restart(){
+    S.level=1;S.score=0;S.hp=3;S.combo=0;
+    makeRound();render();
+  }
+
+  nextBtn.onclick = ()=>{ if(S.hp>0) { makeRound(); render(); } };
+  restartBtn.onclick = restart;
+  restart();
+})();
+</script>
+</body>
+</html>
