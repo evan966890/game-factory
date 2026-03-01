@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>模运算逻辑擂台</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #22d3ee;
+      --ok: #22c55e;
+      --bad: #ef4444;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(760px, 100%);
+      background: rgba(17,24,39,0.95);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.35);
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(1.2rem, 3vw, 1.7rem); }
+    .desc { color: var(--muted); margin: 0 0 14px; line-height: 1.5; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .stat {
+      background: #0b1220;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+    .stat .label { color: var(--muted); font-size: .82rem; }
+    .stat .value { font-weight: 700; font-size: 1.15rem; margin-top: 4px; }
+    .card {
+      background: #0b1220;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .question { font-size: clamp(1rem, 2.6vw, 1.2rem); line-height: 1.6; margin-bottom: 10px; }
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button {
+      border: 1px solid #475569;
+      border-radius: 10px;
+      background: #111827;
+      color: var(--text);
+      padding: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:active { transform: translateY(1px); }
+    .feedback { min-height: 24px; margin-top: 10px; font-weight: 600; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .actions { display: flex; gap: 8px; margin-top: 14px; }
+    .primary { background: linear-gradient(135deg, #0891b2, #2563eb); border-color: #0284c7; }
+    .secondary { background: #1f2937; }
+    .hidden { display: none; }
+    @media (max-width: 560px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+      .options { grid-template-columns: 1fr; }
+      button { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-live="polite">
+    <h1>模运算逻辑擂台</h1>
+    <p class="desc">10 题高强度挑战：判断同余、补全余数、找错误推理。答对加分，连击有奖励，错题即时讲解。</p>
+
+    <section class="stats">
+      <div class="stat"><div class="label">题号</div><div id="qIndex" class="value">1/10</div></div>
+      <div class="stat"><div class="label">得分</div><div id="score" class="value">0</div></div>
+      <div class="stat"><div class="label">连击</div><div id="streak" class="value">0</div></div>
+      <div class="stat"><div class="label">正确率</div><div id="accuracy" class="value">0%</div></div>
+    </section>
+
+    <section class="card">
+      <div id="question" class="question"></div>
+      <div id="options" class="options"></div>
+      <div id="feedback" class="feedback"></div>
+      <div class="actions">
+        <button id="nextBtn" class="primary hidden">下一题</button>
+        <button id="restartBtn" class="secondary hidden">再来一局</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const TOTAL = 10;
+    let state = {
+      index: 0,
+      score: 0,
+      streak: 0,
+      correct: 0,
+      answered: false,
+      current: null
+    };
+
+    const qIndexEl = document.getElementById('qIndex');
+    const scoreEl = document.getElementById('score');
+    const streakEl = document.getElementById('streak');
+    const accuracyEl = document.getElementById('accuracy');
+    const questionEl = document.getElementById('question');
+    const optionsEl = document.getElementById('options');
+    const feedbackEl = document.getElementById('feedback');
+    const nextBtn = document.getElementById('nextBtn');
+    const restartBtn = document.getElementById('restartBtn');
+
+    function randint(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function makeQuestion() {
+      const type = randint(1, 3);
+      if (type === 1) {
+        const m = [3,4,5,6,7,8,9,11][randint(0,7)];
+        const a = randint(20, 140);
+        const k = randint(1, 8);
+        const b = a + m * k * (Math.random() < 0.5 ? 1 : -1);
+        const isCongruent = Math.random() < 0.6;
+        const c = isCongruent ? b : b + randint(1, m - 1);
+        const correct = isCongruent ? '同余' : '不同余';
+        return {
+          text: `判断：${a} 与 ${c} 在模 ${m} 意义下是否同余？`,
+          options: ['同余', '不同余', '无法判断', '取决于是否为质数'],
+          answer: correct,
+          explain: `${a} mod ${m} = ${((a % m) + m) % m}，${c} mod ${m} = ${((c % m) + m) % m}。余数${correct === '同余' ? '相同' : '不同'}。`
+        };
+      }
+      if (type === 2) {
+        const m = [5,6,7,8,9,10,11,12][randint(0,7)];
+        const a = randint(30, 170);
+        const r = ((a % m) + m) % m;
+        const target = (r + randint(1, m - 1)) % m;
+        const x = (target - r + m) % m;
+        const base = x === 0 ? m : x;
+        const wrong1 = (base + 1) % m;
+        const wrong2 = (base + 2) % m;
+        const wrong3 = (base + m - 1) % m;
+        const opts = [base, wrong1 === 0 ? m : wrong1, wrong2 === 0 ? m : wrong2, wrong3 === 0 ? m : wrong3]
+          .map(n => String(n));
+        return {
+          text: `补全：若 ${a} + x ≡ ${target} (mod ${m})，最小正整数 x 是多少？`,
+          options: shuffle([...new Set(opts)]).slice(0,4),
+          answer: String(base),
+          explain: `${a} mod ${m} = ${r}，所以 x ≡ ${target} - ${r} ≡ ${x} (mod ${m})，最小正整数是 ${base}。`
+        };
+      }
+      const m = [4,5,6,7,8,9][randint(0,5)];
+      const a = randint(10, 80);
+      const b = randint(10, 80);
+      const left = ((a + b) % m + m) % m;
+      const right = (((a % m) + (b % m)) % m + m) % m;
+      const fake = (left + randint(1, m - 1)) % m;
+      const correct = 'A';
+      return {
+        text: `哪条推理正确？已知 m=${m}，a=${a}，b=${b}`,
+        options: [
+          `A. (a+b) mod m = ((a mod m)+(b mod m)) mod m，值为 ${right}`,
+          `B. (a+b) mod m = (a mod m)+(b mod m)，值为 ${right}`,
+          `C. (a+b) mod m 恒等于 ${fake}`,
+          'D. 只有当 m 为质数时加法同余性质才成立'
+        ],
+        answer: `A. (a+b) mod m = ((a mod m)+(b mod m)) mod m，值为 ${right}`,
+        explain: `加法同余对任意正整数模都成立；且结果要再取 mod。左边=${left}，右边=${right}。`
+      };
+    }
+
+    function render() {
+      qIndexEl.textContent = `${Math.min(state.index + 1, TOTAL)}/${TOTAL}`;
+      scoreEl.textContent = state.score;
+      streakEl.textContent = state.streak;
+      const acc = state.index ? Math.round((state.correct / state.index) * 100) : 0;
+      accuracyEl.textContent = `${acc}%`;
+    }
+
+    function showQuestion() {
+      state.current = makeQuestion();
+      state.answered = false;
+      questionEl.textContent = state.current.text;
+      optionsEl.innerHTML = '';
+      feedbackEl.textContent = '';
+      feedbackEl.className = 'feedback';
+      nextBtn.classList.add('hidden');
+
+      state.current.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = opt;
+        btn.addEventListener('click', () => answer(opt, btn));
+        optionsEl.appendChild(btn);
+      });
+      render();
+    }
+
+    function answer(choice, btn) {
+      if (state.answered) return;
+      state.answered = true;
+      state.index += 1;
+      const ok = choice === state.current.answer;
+      if (ok) {
+        state.correct += 1;
+        state.streak += 1;
+        const bonus = state.streak >= 3 ? 5 : 0;
+        state.score += 10 + bonus;
+        feedbackEl.textContent = bonus
+          ? `✅ 正确！连击 +${bonus} 奖励。${state.current.explain}`
+          : `✅ 正确！${state.current.explain}`;
+        feedbackEl.classList.add('ok');
+      } else {
+        state.streak = 0;
+        feedbackEl.textContent = `❌ 正确答案：${state.current.answer}。${state.current.explain}`;
+        feedbackEl.classList.add('bad');
+      }
+
+      [...optionsEl.querySelectorAll('button')].forEach(b => {
+        b.disabled = true;
+        if (b.textContent === state.current.answer) {
+          b.style.borderColor = 'var(--ok)';
+          b.style.boxShadow = '0 0 0 1px var(--ok) inset';
+        }
+      });
+      btn.style.opacity = '0.9';
+      render();
+
+      if (state.index >= TOTAL) {
+        const acc = Math.round((state.correct / TOTAL) * 100);
+        questionEl.textContent = `本局完成！得分 ${state.score}，正确率 ${acc}%。`;
+        nextBtn.classList.add('hidden');
+        restartBtn.classList.remove('hidden');
+      } else {
+        nextBtn.classList.remove('hidden');
+      }
+    }
+
+    nextBtn.addEventListener('click', showQuestion);
+    restartBtn.addEventListener('click', () => {
+      state = { index: 0, score: 0, streak: 0, correct: 0, answered: false, current: null };
+      restartBtn.classList.add('hidden');
+      showQuestion();
+    });
+
+    showQuestion();
+  </script>
+</body>
+</html>

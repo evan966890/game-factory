@@ -270,5 +270,11 @@
     "path": "games/boolean-circuit-sprint/index.html",
     "category": "逻辑推理",
     "createdAt": "2026-03-01T15:53:15Z"
+  },
+  {
+    "name": "模运算逻辑擂台",
+    "path": "games/modulo-logic-arena/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-01T16:13:20.263562Z"
   }
 ]
