@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>角度猎人</title>
+  <style>
+    :root{
+      --bg:#f5faff;--card:#fff;--text:#21364d;--muted:#61788f;--primary:#0d75c7;
+      --ok:#1d8b4b;--bad:#bc3a3a;--border:#d6e5f2;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100dvh;padding:14px;display:flex;align-items:center;justify-content:center;
+      font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+      color:var(--text);background:linear-gradient(180deg,#ebf5ff 0%,var(--bg) 50%,#f7fff9 100%)}
+    .app{width:min(100%,700px);background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;
+      box-shadow:0 10px 28px rgba(12,80,134,.12)}
+    h1{margin:0 0 6px;font-size:1.4rem}.sub{margin:0 0 12px;color:var(--muted);font-size:.92rem}
+    .row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+    .lv,.pill,.btn,.opt{border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--text)}
+    .lv{padding:8px 12px;font-weight:700;cursor:pointer}.lv.active{background:var(--primary);color:#fff;border-color:transparent}
+    .pill{padding:7px 10px;border-radius:999px;background:#f8fbff;font-size:.9rem}
+    .board{border:1px solid var(--border);border-radius:12px;padding:10px;background:#fbfdff}
+    canvas{max-width:100%;height:auto;display:block;margin:auto}
+    .q{margin:12px 0 8px;text-align:center;font-weight:700;font-size:1.1rem}
+    .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .opt{padding:10px;font-weight:700;cursor:pointer}.opt:active,.btn:active{transform:scale(.98)}
+    .msg{min-height:1.5em;text-align:center;margin:10px 0;font-weight:700}.ok{color:var(--ok)}.bad{color:var(--bad)}
+    .actions{display:flex;justify-content:center;gap:10px}.btn{padding:10px 14px;font-weight:700;cursor:pointer}
+    .btn.primary{background:var(--primary);color:#fff;border-color:transparent}
+    @media(max-width:520px){.opts{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="角度猎人游戏">
+    <h1>角度猎人</h1>
+    <p class="sub">观察图形夹角，判断是锐角/直角/钝角。3 个关卡逐步增加迷惑选项。</p>
+
+    <section class="row" aria-label="等级">
+      <button class="lv active" id="lv1" type="button">Level 1 基础识别</button>
+      <button class="lv" id="lv2" type="button">Level 2 接近边界</button>
+      <button class="lv" id="lv3" type="button">Level 3 混合挑战</button>
+    </section>
+
+    <section class="row" aria-label="统计">
+      <span class="pill">题目 <b id="total">0</b></span>
+      <span class="pill">答对 <b id="correct">0</b></span>
+      <span class="pill">得分 <b id="score">0</b></span>
+      <span class="pill">正确率 <b id="rate">0%</b></span>
+    </section>
+
+    <div class="board"><canvas id="cv" width="320" height="220"></canvas></div>
+    <p class="q">这个角属于哪一类？</p>
+    <section id="opts" class="opts"></section>
+    <div id="msg" class="msg" aria-live="polite"></div>
+    <div class="actions">
+      <button id="next" class="btn primary" type="button">下一题</button>
+      <button id="reset" class="btn" type="button">重置</button>
+    </div>
+  </main>
+
+  <script>
+    (()=>{
+      const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+      const optsEl=document.getElementById('opts'),msgEl=document.getElementById('msg');
+      const totalEl=document.getElementById('total'),correctEl=document.getElementById('correct');
+      const scoreEl=document.getElementById('score'),rateEl=document.getElementById('rate');
+      const lvBtns={1:document.getElementById('lv1'),2:document.getElementById('lv2'),3:document.getElementById('lv3')};
+
+      let level=1,total=0,correct=0,score=0,current=null,locked=false;
+      const labels=['锐角','直角','钝角'];
+
+      const byLevel={
+        1:[25,35,45,55,90,105,120,135,150],
+        2:[80,85,89,90,91,95,100,175,178],
+        3:[15,30,44,59,75,88,90,92,110,128,149,170]
+      };
+
+      const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+      const pick=(arr)=>arr[rand(0,arr.length-1)];
+
+      function cls(deg){if(deg<90)return '锐角'; if(deg===90)return '直角'; return '钝角';}
+
+      function drawAngle(deg){
+        ctx.clearRect(0,0,320,220);
+        ctx.fillStyle='#fbfdff';ctx.fillRect(0,0,320,220);
+        const ox=90,oy=170,r=110;
+
+        ctx.strokeStyle='#d5e4f1';ctx.lineWidth=1;
+        for(let i=0;i<=320;i+=20){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,220);ctx.stroke();}
+        for(let j=0;j<=220;j+=20){ctx.beginPath();ctx.moveTo(0,j);ctx.lineTo(320,j);ctx.stroke();}
+
+        ctx.strokeStyle='#1e3a56';ctx.lineWidth=6;ctx.lineCap='round';
+        ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(ox+r,oy);ctx.stroke();
+
+        const rad=-deg*Math.PI/180;
+        const x2=ox+Math.cos(rad)*r,y2=oy+Math.sin(rad)*r;
+        ctx.strokeStyle='#0d75c7';
+        ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(x2,y2);ctx.stroke();
+
+        ctx.beginPath();ctx.strokeStyle='#8aa7c0';ctx.lineWidth=2;
+        ctx.arc(ox,oy,42,0,rad,true);ctx.stroke();
+
+        ctx.fillStyle='#1f344d';ctx.font='bold 18px sans-serif';ctx.fillText('?',ox+48,oy-18);
+      }
+
+      function makeQuestion(){
+        const deg=pick(byLevel[level]);
+        const answer=cls(deg);
+        const choices=[answer,...labels.filter(x=>x!==answer)].sort(()=>Math.random()-0.5);
+        return {deg,answer,choices};
+      }
+
+      function updateStats(){
+        totalEl.textContent=total;correctEl.textContent=correct;scoreEl.textContent=score;
+        rateEl.textContent=total?`${Math.round(correct*100/total)}%`:'0%';
+      }
+
+      function renderOptions(){
+        optsEl.innerHTML='';
+        current.choices.forEach(c=>{
+          const b=document.createElement('button');
+          b.type='button';b.className='opt';b.textContent=c;
+          b.addEventListener('click',()=>select(c));
+          optsEl.appendChild(b);
+        });
+      }
+
+      function nextQuestion(){
+        locked=false;msgEl.className='msg';msgEl.textContent='';
+        current=makeQuestion();drawAngle(current.deg);renderOptions();
+      }
+
+      function select(val){
+        if(locked)return;locked=true;total+=1;
+        if(val===current.answer){
+          correct+=1;score+=level===1?10:level===2?12:15;
+          msgEl.textContent=`正确！这是${current.answer}（约 ${current.deg}°）`;
+          msgEl.className='msg ok';
+        }else{
+          score=Math.max(0,score-4);
+          msgEl.textContent=`答错了，应为${current.answer}（约 ${current.deg}°）`;
+          msgEl.className='msg bad';
+        }
+        updateStats();
+      }
+
+      function setLevel(lv){
+        level=lv;Object.entries(lvBtns).forEach(([k,b])=>b.classList.toggle('active',Number(k)===lv));
+        nextQuestion();
+      }
+
+      function reset(){total=0;correct=0;score=0;updateStats();nextQuestion();}
+
+      Object.entries(lvBtns).forEach(([k,b])=>b.addEventListener('click',()=>setLevel(Number(k))));
+      document.getElementById('next').addEventListener('click',nextQuestion);
+      document.getElementById('reset').addEventListener('click',reset);
+
+      updateStats();nextQuestion();
+    })();
+  </script>
+</body>
+</html>

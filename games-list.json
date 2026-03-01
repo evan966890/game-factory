@@ -132,5 +132,11 @@
     "path": "games/clock-reading-adventure/index.html",
     "category": "education",
     "createdAt": "2026-03-01T08:58:32Z"
+  },
+  {
+    "name": "角度猎人",
+    "path": "games/shape-angle-hunt/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T08:59:15Z"
   }
 ]
