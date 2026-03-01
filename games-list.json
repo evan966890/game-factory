@@ -258,5 +258,11 @@
     "path": "games/equation-balance-lab/index.html",
     "category": "数学+逻辑",
     "createdAt": "2026-03-01T15:12:45.691Z"
+  },
+  {
+    "name": "真假话侦探局",
+    "path": "games/truth-lie-detective/index.html",
+    "category": "逻辑推理",
+    "createdAt": "2026-03-01T23:33:21.751332+08:00"
   }
 ]

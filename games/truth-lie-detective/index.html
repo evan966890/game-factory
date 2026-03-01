@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>真假话侦探局</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --card: #1f2937;
+      --accent: #22c55e;
+      --accent-2: #38bdf8;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 20% -20%, #1e293b, var(--bg));
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 14px;
+    }
+    .app { width: min(900px, 100%); }
+    .panel {
+      background: linear-gradient(180deg, #111827, #0b1220);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.2rem, 2.2vw, 1.7rem);
+    }
+    .desc { color: var(--muted); margin: 0 0 12px; line-height: 1.5; }
+    .top {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .stat {
+      background: rgba(30,41,59,.7);
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    .stat .k { color: var(--muted); font-size: .8rem; }
+    .stat .v { font-weight: 700; margin-top: 4px; }
+    .card {
+      background: var(--card);
+      border: 1px solid #374151;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .statement { margin: 8px 0; line-height: 1.45; }
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    button {
+      appearance: none;
+      border: 1px solid #475569;
+      border-radius: 10px;
+      background: #0b1220;
+      color: var(--text);
+      padding: 10px;
+      font-size: .96rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { border-color: var(--accent-2); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .ok { color: var(--accent); font-weight: 700; }
+    .bad { color: var(--bad); font-weight: 700; }
+    .hint { color: var(--warn); }
+    .footer {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .primary { background: #064e3b; border-color: #10b981; }
+    .ghost { background: transparent; }
+    @media (max-width: 640px) {
+      .top { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .choices { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="panel">
+      <h1>🕵️ 真假话侦探局</h1>
+      <p class="desc">每回合 3 人发言，规则是：<b>只有 1 个人在说谎</b>。找出谁在说谎。共 10 题，连击越高得分越高。</p>
+
+      <div class="top">
+        <div class="stat"><div class="k">回合</div><div id="round" class="v">1 / 10</div></div>
+        <div class="stat"><div class="k">分数</div><div id="score" class="v">0</div></div>
+        <div class="stat"><div class="k">连击</div><div id="streak" class="v">0</div></div>
+        <div class="stat"><div class="k">正确率</div><div id="acc" class="v">0%</div></div>
+      </div>
+
+      <article class="card">
+        <div id="caseTitle"><b>案件 #1</b></div>
+        <p class="statement" id="s0"></p>
+        <p class="statement" id="s1"></p>
+        <p class="statement" id="s2"></p>
+        <div class="choices">
+          <button data-id="0">甲 在说谎</button>
+          <button data-id="1">乙 在说谎</button>
+          <button data-id="2">丙 在说谎</button>
+        </div>
+      </article>
+
+      <div id="feedback" class="desc">请选择你认为在说谎的人。</div>
+      <div class="footer">
+        <button id="nextBtn" class="primary" disabled>下一题</button>
+        <button id="restartBtn" class="ghost">重新开始</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const names = ["甲", "乙", "丙"];
+    const roundsTotal = 10;
+
+    const state = {
+      round: 1,
+      score: 0,
+      streak: 0,
+      right: 0,
+      answered: 0,
+      current: null,
+      locked: false
+    };
+
+    const els = {
+      round: document.getElementById("round"),
+      score: document.getElementById("score"),
+      streak: document.getElementById("streak"),
+      acc: document.getElementById("acc"),
+      caseTitle: document.getElementById("caseTitle"),
+      s0: document.getElementById("s0"),
+      s1: document.getElementById("s1"),
+      s2: document.getElementById("s2"),
+      feedback: document.getElementById("feedback"),
+      nextBtn: document.getElementById("nextBtn"),
+      restartBtn: document.getElementById("restartBtn"),
+      choiceBtns: [...document.querySelectorAll(".choices button")]
+    };
+
+    // 题型：
+    // A: X说“Y在说谎”；Y说“Z在说谎”；Z说“X和Y都在说实话”
+    // B: X说“我没说谎”；Y说“X在说谎”；Z说“Y在说谎”
+    // C: X说“Y和Z说法相同”；Y说“X在说谎”；Z说“Y在说谎”
+    function genPuzzle() {
+      const liar = Math.floor(Math.random() * 3);
+      const type = ["A", "B", "C"][Math.floor(Math.random() * 3)];
+
+      let truth = [true, true, true];
+      truth[liar] = false;
+
+      let lines = ["", "", ""];
+
+      if (type === "A") {
+        lines[0] = `${names[0]}：${names[1]}在说谎。`;
+        lines[1] = `${names[1]}：${names[2]}在说谎。`;
+        lines[2] = `${names[2]}：${names[0]}和${names[1]}都在说实话。`;
+
+        truth[0] = liar === 1;
+        truth[1] = liar === 2;
+        truth[2] = liar === 2;
+      } else if (type === "B") {
+        lines[0] = `${names[0]}：我没说谎。`;
+        lines[1] = `${names[1]}：${names[0]}在说谎。`;
+        lines[2] = `${names[2]}：${names[1]}在说谎。`;
+
+        truth[0] = liar !== 0;
+        truth[1] = liar === 0;
+        truth[2] = liar === 1;
+      } else {
+        lines[0] = `${names[0]}：${names[1]}和${names[2]}说法相同（都真或都假）。`;
+        lines[1] = `${names[1]}：${names[0]}在说谎。`;
+        lines[2] = `${names[2]}：${names[1]}在说谎。`;
+
+        truth[1] = liar === 0;
+        truth[2] = liar === 1;
+        truth[0] = truth[1] === truth[2];
+      }
+
+      const liarCount = truth.filter(v => !v).length;
+      if (liarCount !== 1) return genPuzzle();
+
+      return { liar: truth.findIndex(v => !v), lines };
+    }
+
+    function updateStats() {
+      els.round.textContent = `${Math.min(state.round, roundsTotal)} / ${roundsTotal}`;
+      els.score.textContent = state.score;
+      els.streak.textContent = state.streak;
+      const acc = state.answered ? Math.round((state.right / state.answered) * 100) : 0;
+      els.acc.textContent = `${acc}%`;
+    }
+
+    function loadRound() {
+      state.locked = false;
+      els.nextBtn.disabled = true;
+      els.choiceBtns.forEach(b => b.disabled = false);
+      state.current = genPuzzle();
+      els.caseTitle.innerHTML = `<b>案件 #${state.round}</b>`;
+      els.s0.textContent = state.current.lines[0];
+      els.s1.textContent = state.current.lines[1];
+      els.s2.textContent = state.current.lines[2];
+      els.feedback.textContent = "请选择你认为在说谎的人。";
+      els.feedback.className = "desc";
+      updateStats();
+    }
+
+    function answer(id) {
+      if (state.locked) return;
+      state.locked = true;
+      state.answered += 1;
+      const correct = id === state.current.liar;
+
+      if (correct) {
+        state.right += 1;
+        state.streak += 1;
+        state.score += 10 + Math.min(20, state.streak * 2);
+        els.feedback.innerHTML = `<span class="ok">回答正确！</span> ${names[id]}是唯一说谎者。`;
+      } else {
+        state.streak = 0;
+        state.score = Math.max(0, state.score - 4);
+        els.feedback.innerHTML = `<span class="bad">回答错误。</span> 正确答案是 ${names[state.current.liar]}。`;
+      }
+
+      if (state.round >= roundsTotal) {
+        const acc = Math.round((state.right / state.answered) * 100);
+        const level = acc >= 90 ? "推理大师" : acc >= 70 ? "逻辑专家" : acc >= 50 ? "侦探学徒" : "再接再厉";
+        els.feedback.innerHTML += ` <span class="hint">本局结束：正确率 ${acc}%｜评级：${level}</span>`;
+        els.nextBtn.textContent = "再来一局";
+      }
+
+      els.nextBtn.disabled = false;
+      els.choiceBtns.forEach(b => b.disabled = true);
+      updateStats();
+    }
+
+    function nextRound() {
+      if (state.round >= roundsTotal) return restart();
+      state.round += 1;
+      loadRound();
+    }
+
+    function restart() {
+      state.round = 1;
+      state.score = 0;
+      state.streak = 0;
+      state.right = 0;
+      state.answered = 0;
+      els.nextBtn.textContent = "下一题";
+      loadRound();
+    }
+
+    els.choiceBtns.forEach(btn => {
+      btn.addEventListener("click", () => answer(Number(btn.dataset.id)));
+    });
+    els.nextBtn.addEventListener("click", nextRound);
+    els.restartBtn.addEventListener("click", restart);
+
+    loadRound();
+  </script>
+</body>
+</html>
