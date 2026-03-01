@@ -438,5 +438,11 @@
     "path": "games/integer-sign-arena/index.html",
     "category": "数学",
     "createdAt": "2026-03-01T23:39:02.231879Z"
+  },
+  {
+    "name": "百分比折扣冲刺",
+    "path": "games/percent-discount-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T23:59:03Z"
   }
 ]

@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>百分比折扣冲刺</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #22d3ee;
+      --ok: #10b981;
+      --bad: #ef4444;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(160deg, #020617, #0f172a 45%, #1e293b);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+    .app {
+      width: min(720px, 100%);
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 14px 40px rgba(0,0,0,.35);
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(1.2rem, 2.3vw, 1.6rem); }
+    .sub { margin: 0 0 12px; color: var(--muted); font-size: .95rem; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .tile {
+      background: rgba(30, 41, 59, .75);
+      border: 1px solid rgba(148,163,184,.2);
+      border-radius: 12px;
+      padding: 8px;
+      text-align: center;
+    }
+    .tile .k { color: var(--muted); font-size: .78rem; }
+    .tile .v { font-size: 1.1rem; font-weight: 700; margin-top: 2px; }
+    .q {
+      background: rgba(2, 6, 23, .65);
+      border: 1px solid rgba(34, 211, 238, .35);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .q .title { color: var(--accent); margin-bottom: 6px; font-size: .9rem; }
+    .q .problem { font-size: clamp(1.1rem, 3.2vw, 1.45rem); line-height: 1.45; }
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    button.opt {
+      border: 1px solid rgba(148,163,184,.35);
+      background: #1f2937;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 1rem;
+      min-height: 56px;
+      font-weight: 600;
+    }
+    button.opt:active { transform: scale(0.98); }
+    .msg { min-height: 24px; margin-top: 10px; font-weight: 600; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .row { display: flex; gap: 10px; margin-top: 12px; }
+    .btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 700;
+      background: var(--accent);
+      color: #06202a;
+      flex: 1;
+    }
+    @media (max-width: 520px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+      .options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>百分比折扣冲刺</h1>
+    <p class="sub">10 题限时挑战：算出折后价，看看你是不是超市数学王！</p>
+
+    <section class="stats">
+      <div class="tile"><div class="k">题号</div><div class="v" id="round">1 / 10</div></div>
+      <div class="tile"><div class="k">得分</div><div class="v" id="score">0</div></div>
+      <div class="tile"><div class="k">连对</div><div class="v" id="streak">0</div></div>
+      <div class="tile"><div class="k">剩余时间</div><div class="v" id="time">60s</div></div>
+    </section>
+
+    <section class="q">
+      <div class="title">题目</div>
+      <div class="problem" id="problem">准备开始…</div>
+    </section>
+
+    <section class="options" id="options"></section>
+    <div class="msg" id="msg"></div>
+    <div class="row">
+      <button class="btn" id="startBtn">开始新一局</button>
+    </div>
+  </main>
+
+  <script>
+    const totalRounds = 10;
+    let round = 0, score = 0, streak = 0, timeLeft = 60, timer = null;
+    let currentAnswer = null, playing = false;
+
+    const el = {
+      round: document.getElementById('round'),
+      score: document.getElementById('score'),
+      streak: document.getElementById('streak'),
+      time: document.getElementById('time'),
+      problem: document.getElementById('problem'),
+      options: document.getElementById('options'),
+      msg: document.getElementById('msg'),
+      startBtn: document.getElementById('startBtn')
+    };
+
+    function rInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+    function money(n){ return '¥' + n.toFixed(2).replace(/\.00$/, ''); }
+
+    function makeQuestion(){
+      const price = rInt(25, 399);
+      const discountPool = [5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 75, 80, 85, 90];
+      const off = discountPool[rInt(0, discountPool.length-1)];
+      const answer = +(price * (1 - off/100)).toFixed(2);
+      currentAnswer = answer;
+      el.problem.textContent = `原价 ${money(price)}，打 ${off} 折（减 ${off}%），折后价格是？`;
+
+      const choices = new Set([answer]);
+      while(choices.size < 4){
+        const delta = (Math.random() < 0.5 ? -1 : 1) * (rInt(1, 30) + Math.random());
+        const fake = +(answer + delta).toFixed(2);
+        if(fake > 0) choices.add(fake);
+      }
+      const arr = [...choices].sort(()=>Math.random()-0.5);
+      el.options.innerHTML = '';
+      arr.forEach(v => {
+        const b = document.createElement('button');
+        b.className = 'opt';
+        b.textContent = money(v);
+        b.onclick = ()=> choose(v);
+        el.options.appendChild(b);
+      });
+    }
+
+    function choose(v){
+      if(!playing) return;
+      const good = Math.abs(v - currentAnswer) < 0.001;
+      if(good){
+        streak += 1;
+        score += 10 + Math.min(streak, 5) * 2;
+        el.msg.className = 'msg ok';
+        el.msg.textContent = '答对了！';
+      } else {
+        streak = 0;
+        el.msg.className = 'msg bad';
+        el.msg.textContent = `答错了，正确答案是 ${money(currentAnswer)}`;
+      }
+      nextRound();
+    }
+
+    function nextRound(){
+      round += 1;
+      refresh();
+      if(round > totalRounds || timeLeft <= 0){
+        endGame();
+        return;
+      }
+      setTimeout(makeQuestion, 420);
+    }
+
+    function refresh(){
+      el.round.textContent = `${Math.min(round, totalRounds)} / ${totalRounds}`;
+      el.score.textContent = score;
+      el.streak.textContent = streak;
+      el.time.textContent = `${timeLeft}s`;
+    }
+
+    function tick(){
+      timeLeft -= 1;
+      refresh();
+      if(timeLeft <= 0) endGame();
+    }
+
+    function startGame(){
+      round = 1; score = 0; streak = 0; timeLeft = 60; playing = true;
+      el.msg.textContent = '';
+      refresh();
+      makeQuestion();
+      clearInterval(timer);
+      timer = setInterval(tick, 1000);
+      el.startBtn.textContent = '重新开始';
+    }
+
+    function endGame(){
+      if(!playing) return;
+      playing = false;
+      clearInterval(timer);
+      el.options.innerHTML = '';
+      el.problem.textContent = `本局结束！你的得分：${score}。`;
+      let level = '继续加油';
+      if(score >= 120) level = '折扣计算大师';
+      else if(score >= 90) level = '精打细算达人';
+      else if(score >= 60) level = '购物小能手';
+      el.msg.className = 'msg ok';
+      el.msg.textContent = `评级：${level}`;
+      el.round.textContent = `${Math.min(round, totalRounds)} / ${totalRounds}`;
+    }
+
+    el.startBtn.addEventListener('click', startGame);
+    refresh();
+  </script>
+</body>
+</html>
