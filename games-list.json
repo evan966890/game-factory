@@ -288,5 +288,11 @@
     "path": "games/logic-gate-arena/index.html",
     "category": "education",
     "createdAt": "2026-03-01T16:56:19Z"
+  },
+  {
+    "name": "分数运算对决",
+    "path": "games/fraction-operations-duel/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-02T01:16:30.216545+08:00"
   }
 ]
