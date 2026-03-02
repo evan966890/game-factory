@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>角度速配挑战</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #22d3ee;
+      --good: #34d399;
+      --bad: #fb7185;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft Yahei", sans-serif;
+      background: linear-gradient(180deg, #020617, #0f172a);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(680px, 100%);
+      background: rgba(17,24,39,.95);
+      border: 1px solid rgba(148,163,184,.25);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    h1 { margin: 0 0 6px; font-size: clamp(22px, 5vw, 30px); }
+    .sub { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .pill {
+      background: #0b1220;
+      border: 1px solid rgba(148,163,184,.2);
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+      font-weight: 700;
+    }
+    .board {
+      background: #0b1220;
+      border: 1px solid rgba(148,163,184,.2);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .question { font-size: clamp(18px, 4vw, 24px); margin-bottom: 8px; }
+    .canvas-wrap { display: flex; justify-content: center; margin: 10px 0 8px; }
+    canvas {
+      width: min(290px, 76vw);
+      height: min(290px, 76vw);
+      background: #020617;
+      border: 1px solid rgba(148,163,184,.18);
+      border-radius: 12px;
+    }
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      background: #1f2937;
+      color: var(--text);
+      border: 1px solid rgba(148,163,184,.28);
+    }
+    button:active { transform: scale(.98); }
+    .feedback { min-height: 24px; font-weight: 700; margin-top: 8px; }
+    .good { color: var(--good); }
+    .bad { color: var(--bad); }
+    .actions { display: flex; gap: 8px; }
+    .actions button { flex: 1; background: #0b1220; }
+    .primary { background: #0e7490 !important; }
+    @media (max-width: 420px) {
+      .choices { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>角度速配挑战</h1>
+    <p class="sub">看图估角，选择最接近的度数。10 题一局，训练角度直觉！</p>
+
+    <section class="hud">
+      <div class="pill">题目：<span id="idx">1</span>/10</div>
+      <div class="pill">得分：<span id="score">0</span></div>
+      <div class="pill">连对：<span id="streak">0</span></div>
+    </section>
+
+    <section class="board">
+      <div class="question">这个角大约是多少度？</div>
+      <div class="canvas-wrap"><canvas id="angleCanvas" width="320" height="320" aria-label="角度示意图"></canvas></div>
+      <div class="choices" id="choices"></div>
+      <div class="feedback" id="feedback"></div>
+    </section>
+
+    <div class="actions">
+      <button id="restart" class="primary">重新开始</button>
+    </div>
+  </main>
+
+  <script>
+    const TOTAL = 10;
+    const idxEl = document.getElementById('idx');
+    const scoreEl = document.getElementById('score');
+    const streakEl = document.getElementById('streak');
+    const choicesEl = document.getElementById('choices');
+    const feedbackEl = document.getElementById('feedback');
+    const restartBtn = document.getElementById('restart');
+    const canvas = document.getElementById('angleCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let round = 1;
+    let score = 0;
+    let streak = 0;
+    let current = null;
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function uniqueChoices(answer) {
+      const set = new Set([answer]);
+      while (set.size < 4) {
+        const delta = randInt(-35, 35);
+        const candidate = Math.max(15, Math.min(170, answer + delta));
+        set.add(candidate);
+      }
+      return Array.from(set).sort(() => Math.random() - 0.5);
+    }
+
+    function drawAngle(deg) {
+      const w = canvas.width, h = canvas.height;
+      const cx = w / 2, cy = h / 2;
+      const r = 110;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 360; i += 30) {
+        const rad = (i * Math.PI) / 180;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(rad) * 16, cy + Math.sin(rad) * 16);
+        ctx.lineTo(cx + Math.cos(rad) * 130, cy + Math.sin(rad) * 130);
+        ctx.stroke();
+      }
+
+      const start = (-90 * Math.PI) / 180;
+      const end = ((-90 + deg) * Math.PI) / 180;
+
+      ctx.lineWidth = 7;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#22d3ee';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(start) * r, cy + Math.sin(start) * r);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#60a5fa';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(end) * r, cy + Math.sin(end) * r);
+      ctx.stroke();
+
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(52,211,153,.9)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 52, start, end, false);
+      ctx.stroke();
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function renderQuestion() {
+      const answer = randInt(20, 165);
+      current = { answer, options: uniqueChoices(answer) };
+      idxEl.textContent = round;
+      scoreEl.textContent = score;
+      streakEl.textContent = streak;
+      feedbackEl.textContent = '';
+      feedbackEl.className = 'feedback';
+
+      drawAngle(answer);
+      choicesEl.innerHTML = '';
+      current.options.forEach(option => {
+        const btn = document.createElement('button');
+        btn.textContent = option + '°';
+        btn.addEventListener('click', () => choose(option));
+        choicesEl.appendChild(btn);
+      });
+    }
+
+    function choose(option) {
+      const diff = Math.abs(option - current.answer);
+      const correct = option === current.answer;
+      if (correct) {
+        score += 10;
+        streak += 1;
+        if (streak > 1) score += 2;
+        feedbackEl.textContent = `✅ 正确！真实角度是 ${current.answer}°`;
+        feedbackEl.classList.add('good');
+      } else {
+        streak = 0;
+        const bonus = Math.max(0, 5 - Math.floor(diff / 8));
+        score += bonus;
+        feedbackEl.textContent = `❌ 答案是 ${current.answer}°（你选了 ${option}°，误差 ${diff}°）`;
+        feedbackEl.classList.add('bad');
+      }
+
+      scoreEl.textContent = score;
+      streakEl.textContent = streak;
+      disableChoices();
+
+      setTimeout(() => {
+        if (round >= TOTAL) {
+          endGame();
+        } else {
+          round += 1;
+          renderQuestion();
+        }
+      }, 900);
+    }
+
+    function disableChoices() {
+      [...choicesEl.querySelectorAll('button')].forEach(b => b.disabled = true);
+    }
+
+    function endGame() {
+      const rank = score >= 90 ? '角度大师' : score >= 65 ? '几何高手' : score >= 40 ? '观察新秀' : '继续练习';
+      feedbackEl.textContent = `🎉 本局结束！总分 ${score}，称号：${rank}`;
+      feedbackEl.className = 'feedback good';
+      choicesEl.innerHTML = '';
+    }
+
+    restartBtn.addEventListener('click', () => {
+      round = 1;
+      score = 0;
+      streak = 0;
+      renderQuestion();
+    });
+
+    renderQuestion();
+  </script>
+</body>
+</html>
