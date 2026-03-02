@@ -630,5 +630,11 @@
     "path": "games/speed-distance-time-race/index.html",
     "category": "education",
     "createdAt": "2026-03-02T10:19:39Z"
+  },
+  {
+    "name": "分数大小对决",
+    "path": "games/fraction-compare-duel/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T10:39:32Z"
   }
 ]

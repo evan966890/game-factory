@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>分数大小对决</title>
+  <style>
+    :root {
+      --bg: #f3f7ff;
+      --card: #ffffff;
+      --text: #1f2a44;
+      --accent: #3b82f6;
+      --ok: #10b981;
+      --bad: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #eef4ff, #f8fbff);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(560px, 100%);
+      background: var(--card);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(31, 42, 68, 0.12);
+    }
+    h1 { margin: 4px 0 10px; font-size: 1.5rem; text-align: center; }
+    .meta { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; margin-bottom: 14px; }
+    .question {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 18px 0;
+      min-height: 80px;
+      display: grid;
+      place-items: center;
+    }
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 14px 10px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      background: #e8efff;
+      color: #1e3a8a;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    button:active { transform: scale(0.98); }
+    .hint {
+      margin-top: 14px;
+      text-align: center;
+      min-height: 24px;
+      font-weight: 600;
+    }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .restart {
+      margin-top: 16px;
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      display: none;
+    }
+    .tip { margin-top: 10px; font-size: .92rem; color: #475569; text-align: center; }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>分数大小对决</h1>
+    <div class="meta">
+      <span id="round">第 1/10 题</span>
+      <span id="score">得分：0</span>
+      <span id="time">剩余：60s</span>
+    </div>
+
+    <section class="question" id="question">1/2 ? 2/3</section>
+
+    <div class="choices">
+      <button data-op="<">&lt;</button>
+      <button data-op="=">=</button>
+      <button data-op=">">&gt;</button>
+    </div>
+
+    <p class="hint" id="hint"></p>
+    <button class="restart" id="restart">再来一局</button>
+    <p class="tip">规则：10 题内尽量全对，答对 +10 分，答错不加分。</p>
+  </main>
+
+  <script>
+    (() => {
+      const totalRounds = 10;
+      const totalTime = 60;
+      let round = 1;
+      let score = 0;
+      let remain = totalTime;
+      let current = null;
+      let timer = null;
+      let locked = false;
+
+      const elRound = document.getElementById('round');
+      const elScore = document.getElementById('score');
+      const elTime = document.getElementById('time');
+      const elQuestion = document.getElementById('question');
+      const elHint = document.getElementById('hint');
+      const elRestart = document.getElementById('restart');
+      const choiceButtons = [...document.querySelectorAll('[data-op]')];
+
+      function gcd(a, b) {
+        while (b !== 0) [a, b] = [b, a % b];
+        return a;
+      }
+
+      function randomFraction() {
+        let numerator = Math.ceil(Math.random() * 11);
+        let denominator = Math.ceil(Math.random() * 11) + 1;
+        const g = gcd(numerator, denominator);
+        return { n: numerator / g, d: denominator / g };
+      }
+
+      function compare(a, b) {
+        const left = a.n * b.d;
+        const right = b.n * a.d;
+        return left === right ? '=' : left < right ? '<' : '>';
+      }
+
+      function nextQuestion() {
+        let a = randomFraction();
+        let b = randomFraction();
+        while (a.n === b.n && a.d === b.d) b = randomFraction();
+        current = { a, b, answer: compare(a, b) };
+        elQuestion.textContent = `${a.n}/${a.d}  ?  ${b.n}/${b.d}`;
+        elRound.textContent = `第 ${round}/${totalRounds} 题`;
+        elScore.textContent = `得分：${score}`;
+      }
+
+      function endGame(msg) {
+        locked = true;
+        clearInterval(timer);
+        elHint.className = 'hint';
+        elHint.textContent = `${msg} 最终得分：${score}`;
+        elRestart.style.display = 'block';
+      }
+
+      function onChoose(op) {
+        if (locked || !current) return;
+        if (op === current.answer) {
+          score += 10;
+          elHint.className = 'hint ok';
+          elHint.textContent = '✅ 回答正确！';
+        } else {
+          elHint.className = 'hint bad';
+          elHint.textContent = `❌ 正确答案是 ${current.answer}`;
+        }
+
+        if (round >= totalRounds) {
+          elScore.textContent = `得分：${score}`;
+          endGame('🎉 挑战完成！');
+          return;
+        }
+
+        round += 1;
+        setTimeout(nextQuestion, 350);
+      }
+
+      function start() {
+        round = 1;
+        score = 0;
+        remain = totalTime;
+        locked = false;
+        elRestart.style.display = 'none';
+        elHint.textContent = '';
+        elHint.className = 'hint';
+        elTime.textContent = `剩余：${remain}s`;
+        nextQuestion();
+
+        clearInterval(timer);
+        timer = setInterval(() => {
+          remain -= 1;
+          elTime.textContent = `剩余：${remain}s`;
+          if (remain <= 0) endGame('⏰ 时间到！');
+        }, 1000);
+      }
+
+      choiceButtons.forEach(btn => btn.addEventListener('click', () => onChoose(btn.dataset.op)));
+      elRestart.addEventListener('click', start);
+      start();
+    })();
+  </script>
+</body>
+</html>
