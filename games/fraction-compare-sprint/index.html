@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>分数比较冲刺</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--accent:#22d3ee;--good:#34d399;--bad:#fb7185;--text:#e5e7eb}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#020617,#0f172a 45%,#1e293b);color:var(--text);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:16px}
+    .wrap{width:min(680px,100%);background:rgba(17,24,39,.92);border:1px solid #334155;border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    h1{margin:0 0 8px;font-size:clamp(1.3rem,3.8vw,1.9rem)}
+    .meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+    .pill{background:#0b1220;border:1px solid #334155;border-radius:12px;padding:8px 10px;text-align:center}
+    .pill b{display:block;font-size:1.1rem;color:var(--accent)}
+    .arena{margin-top:10px;background:#0b1220;border:1px solid #334155;border-radius:14px;padding:16px}
+    .question{font-size:clamp(1.8rem,7vw,2.8rem);text-align:center;letter-spacing:1px;margin:8px 0 14px}
+    .btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button{border:0;border-radius:12px;padding:14px 10px;font-size:1rem;font-weight:700;background:#1f2937;color:#f8fafc;cursor:pointer}
+    button:active{transform:scale(.98)}
+    .hint{text-align:center;min-height:1.6em;margin-top:12px;font-weight:700}
+    .good{color:var(--good)} .bad{color:var(--bad)}
+    .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+    .ghost{background:transparent;border:1px solid #475569}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>分数比较冲刺</h1>
+    <div>20 秒内判断左右哪个分数更大，练习通分与大小比较。</div>
+    <section class="meta">
+      <div class="pill">剩余时间<b id="time">20</b></div>
+      <div class="pill">得分<b id="score">0</b></div>
+      <div class="pill">题目数<b id="count">0</b></div>
+    </section>
+    <section class="arena">
+      <div class="question" id="question">点击开始</div>
+      <div class="btns">
+        <button id="leftBtn">左边更大</button>
+        <button id="rightBtn">右边更大</button>
+      </div>
+      <div class="row">
+        <button class="ghost" id="equalBtn">一样大</button>
+        <button class="ghost" id="startBtn">开始 / 重新开始</button>
+      </div>
+      <div class="hint" id="hint"></div>
+    </section>
+  </main>
+  <script>
+    const $ = id => document.getElementById(id);
+    const timeEl=$("time"), scoreEl=$("score"), countEl=$("count"), qEl=$("question"), hintEl=$("hint");
+    const leftBtn=$("leftBtn"), rightBtn=$("rightBtn"), equalBtn=$("equalBtn"), startBtn=$("startBtn");
+    let state = {time:20,score:0,count:0,run:false,cur:null,timer:null};
+
+    function gcd(a,b){while(b){[a,b]=[b,a%b]} return a}
+    function makeFrac(){
+      let a=1+Math.floor(Math.random()*11), b=2+Math.floor(Math.random()*11);
+      const g=gcd(a,b); return [a/g,b/g];
+    }
+    function nextQ(){
+      let L=makeFrac(), R=makeFrac();
+      while(L[0]*R[1]===R[0]*L[1]){R=makeFrac();}
+      state.cur={L,R};
+      qEl.textContent=`${L[0]}/${L[1]}    ?    ${R[0]}/${R[1]}`;
+      hintEl.textContent=''; hintEl.className='hint';
+    }
+    function judge(ans){
+      if(!state.run||!state.cur) return;
+      const {L,R}=state.cur;
+      const cmp=L[0]*R[1]-R[0]*L[1];
+      const right = cmp>0?'L':(cmp<0?'R':'E');
+      state.count++; countEl.textContent=state.count;
+      const ok = ans===right;
+      state.score += ok?10:-5;
+      if(state.score<0) state.score=0;
+      scoreEl.textContent=state.score;
+      hintEl.textContent = ok ? '✅ 正确！' : `❌ 错了，${right==='L'?'左边':right==='R'?'右边':'两边'}更大`;
+      hintEl.className = `hint ${ok?'good':'bad'}`;
+      nextQ();
+    }
+    function stop(){state.run=false;clearInterval(state.timer);qEl.textContent='时间到！';}
+    function start(){
+      state={time:20,score:0,count:0,run:true,cur:null,timer:null};
+      timeEl.textContent=state.time;scoreEl.textContent=0;countEl.textContent=0;
+      nextQ();
+      state.timer=setInterval(()=>{
+        state.time--; timeEl.textContent=state.time;
+        if(state.time<=0){stop(); hintEl.textContent=`本轮得分 ${state.score}，再来一局！`;hintEl.className='hint good';}
+      },1000);
+    }
+    leftBtn.onclick=()=>judge('L'); rightBtn.onclick=()=>judge('R'); equalBtn.onclick=()=>judge('E'); startBtn.onclick=start;
+  </script>
+</body>
+</html>
