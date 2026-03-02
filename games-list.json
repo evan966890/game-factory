@@ -492,5 +492,11 @@
     "path": "games/fraction-equivalence-swipe/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T02:39:10Z"
+  },
+  {
+    "name": "成语填空冲刺",
+    "path": "games/idiom-fill-blank/index.html",
+    "category": "语言学习",
+    "createdAt": "2026-03-02T10:59:13.942766+08:00"
   }
 ]

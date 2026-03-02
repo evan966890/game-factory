@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>成语填空冲刺</title>
+  <style>
+    :root {
+      --bg: #f4f7ff;
+      --card: #ffffff;
+      --primary: #3b82f6;
+      --ok: #16a34a;
+      --bad: #dc2626;
+      --text: #0f172a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      background: linear-gradient(160deg, #eef2ff, #f8fafc 45%, #e0f2fe);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(720px, 100%);
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: 0 12px 34px rgba(15, 23, 42, 0.12);
+      padding: 20px;
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(22px, 5vw, 32px); }
+    .sub { margin: 0 0 16px; color: #475569; font-size: 14px; }
+    .top {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .pill {
+      background: #eff6ff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      text-align: center;
+      font-weight: 700;
+      color: #1e3a8a;
+      font-size: 14px;
+    }
+    .question {
+      background: #f8fafc;
+      border: 2px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 18px;
+      font-size: clamp(24px, 8vw, 40px);
+      letter-spacing: 2px;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .hint { text-align: center; color: #334155; margin-bottom: 16px; min-height: 22px; }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 10px;
+      background: #dbeafe;
+      color: #1e3a8a;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .06s ease, filter .2s ease;
+    }
+    button:active { transform: scale(.98); }
+    button[disabled] { opacity: .5; cursor: not-allowed; }
+    .feedback { margin-top: 14px; text-align: center; min-height: 24px; font-weight: 700; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .footer {
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .primary { background: var(--primary); color: #fff; }
+    @media (max-width: 480px) {
+      .top { grid-template-columns: 1fr; }
+      .options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>成语填空冲刺</h1>
+    <p class="sub">从 4 个选项中选出正确汉字，完成成语。10 题一局，看看你能得几分！</p>
+
+    <section class="top">
+      <div class="pill">题目：<span id="progress">1 / 10</span></div>
+      <div class="pill">得分：<span id="score">0</span></div>
+      <div class="pill">剩余：<span id="left">10</span></div>
+    </section>
+
+    <section class="question" id="question">一__千里</section>
+    <div class="hint" id="hint"></div>
+    <section class="options" id="options"></section>
+    <p class="feedback" id="feedback"></p>
+
+    <div class="footer">
+      <button class="primary" id="restart">重新开始</button>
+    </div>
+  </main>
+
+  <script>
+    const BANK = [
+      { q: '一__千里', a: '日', hint: '形容进展很快', opts: ['日', '目', '月', '山'] },
+      { q: '画龙点__', a: '睛', hint: '比喻关键一笔', opts: ['睛', '眼', '珠', '神'] },
+      { q: '守株待__', a: '兔', hint: '不主动努力', opts: ['兔', '鹿', '鸡', '鱼'] },
+      { q: '自相矛__', a: '盾', hint: '前后抵触', opts: ['盾', '戈', '剑', '刀'] },
+      { q: '亡羊补__', a: '牢', hint: '出了问题及时补救', opts: ['牢', '圈', '栏', '门'] },
+      { q: '对牛弹__', a: '琴', hint: '说话不看对象', opts: ['琴', '曲', '乐', '鼓'] },
+      { q: '井底之__', a: '蛙', hint: '见识短浅', opts: ['蛙', '鱼', '蛇', '虫'] },
+      { q: '掩耳盗__', a: '铃', hint: '自欺欺人', opts: ['铃', '钟', '鼓', '鼎'] },
+      { q: '雪中送__', a: '炭', hint: '在困难时给予帮助', opts: ['炭', '火', '暖', '衣'] },
+      { q: '四面楚__', a: '歌', hint: '陷入孤立无援', opts: ['歌', '声', '曲', '调'] },
+      { q: '胸有成__', a: '竹', hint: '做事前已有完整打算', opts: ['竹', '林', '图', '策'] },
+      { q: '水滴石__', a: '穿', hint: '坚持就能成功', opts: ['穿', '破', '裂', '开'] }
+    ];
+
+    const totalRound = 10;
+    let round = [];
+    let index = 0;
+    let score = 0;
+    let locked = false;
+
+    const el = {
+      progress: document.getElementById('progress'),
+      score: document.getElementById('score'),
+      left: document.getElementById('left'),
+      question: document.getElementById('question'),
+      hint: document.getElementById('hint'),
+      options: document.getElementById('options'),
+      feedback: document.getElementById('feedback'),
+      restart: document.getElementById('restart')
+    };
+
+    function shuffle(arr) {
+      return arr.slice().sort(() => Math.random() - 0.5);
+    }
+
+    function startGame() {
+      round = shuffle(BANK).slice(0, totalRound);
+      index = 0;
+      score = 0;
+      locked = false;
+      el.feedback.textContent = '';
+      render();
+    }
+
+    function render() {
+      const current = round[index];
+      if (!current) {
+        el.question.textContent = '本局完成！';
+        el.hint.textContent = `最终得分：${score} / ${totalRound}`;
+        el.options.innerHTML = '';
+        el.progress.textContent = `${totalRound} / ${totalRound}`;
+        el.left.textContent = '0';
+        el.feedback.textContent = score >= 8 ? '太棒了，成语小达人！' : '继续加油，再来一局！';
+        el.feedback.className = 'feedback';
+        return;
+      }
+
+      el.question.textContent = current.q;
+      el.hint.textContent = `提示：${current.hint}`;
+      el.progress.textContent = `${index + 1} / ${totalRound}`;
+      el.left.textContent = `${totalRound - index}`;
+      el.score.textContent = `${score}`;
+      el.feedback.textContent = '';
+      el.feedback.className = 'feedback';
+      locked = false;
+
+      el.options.innerHTML = '';
+      shuffle(current.opts).forEach(ch => {
+        const btn = document.createElement('button');
+        btn.textContent = ch;
+        btn.addEventListener('click', () => choose(ch));
+        el.options.appendChild(btn);
+      });
+    }
+
+    function choose(ch) {
+      if (locked) return;
+      locked = true;
+
+      const current = round[index];
+      const right = ch === current.a;
+      if (right) {
+        score += 1;
+        el.feedback.textContent = '✅ 回答正确';
+        el.feedback.className = 'feedback ok';
+      } else {
+        el.feedback.textContent = `❌ 正确答案是「${current.a}」`;
+        el.feedback.className = 'feedback bad';
+      }
+      el.score.textContent = `${score}`;
+
+      setTimeout(() => {
+        index += 1;
+        render();
+      }, 650);
+    }
+
+    el.restart.addEventListener('click', startGame);
+    startGame();
+  </script>
+</body>
+</html>
