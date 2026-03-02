@@ -738,5 +738,11 @@
     "path": "games/english-spelling-challenge/index.html",
     "category": "语言学习",
     "createdAt": "2026-03-02T16:48:24Z"
+  },
+  {
+    "name": "条件判断挑战",
+    "path": "games/conditional-judge/index.html",
+    "category": "编程入门",
+    "createdAt": "2026-03-03T01:16:00+08:00"
   }
 ]

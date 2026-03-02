@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>条件判断挑战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        .score-display {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .question-box {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+        
+        .input-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .option-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .option-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        .option-btn:active {
+            transform: translateY(0);
+        }
+        
+        .option-btn.correct {
+            background: #48bb78;
+        }
+        
+        .option-btn.wrong {
+            background: #f56565;
+        }
+        
+        .feedback {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 15px 0;
+            min-height: 30px;
+        }
+        
+        .next-btn {
+            background: #48bb78;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+            transition: all 0.3s ease;
+        }
+        
+        .next-btn:hover {
+            background: #38a169;
+        }
+        
+        .game-over {
+            text-align: center;
+        }
+        
+        .game-over h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .final-score {
+            font-size: 2rem;
+            color: #48bb78;
+            margin: 20px 0;
+        }
+        
+        .restart-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 条件判断挑战</h1>
+        
+        <div id="game-screen">
+            <div class="score-display">
+                <span>得分: <span id="score">0</span></span>
+                <span>题目: <span id="question-num">1</span>/10</span>
+            </div>
+            
+            <div class="question-box">
+                <p>请判断以下代码的输出：</p>
+                <div class="code-block" id="code-block"></div>
+                <p>当输入值为：</p>
+                <div class="input-value" id="input-value"></div>
+            </div>
+            
+            <div class="options">
+                <button class="option-btn" id="option-a" onclick="selectAnswer('A')">A</button>
+                <button class="option-btn" id="option-b" onclick="selectAnswer('B')">B</button>
+                <button class="option-btn" id="option-c" onclick="selectAnswer('C')">C</button>
+                <button class="option-btn" id="option-d" onclick="selectAnswer('D')">D</button>
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <button class="next-btn" id="next-btn" onclick="nextQuestion()" style="display: none;">下一题</button>
+        </div>
+        
+        <div id="game-over-screen" class="game-over" style="display: none;">
+            <h2>🎉 挑战完成！</h2>
+            <p>你的最终得分是：</p>
+            <div class="final-score" id="final-score">0</div>
+            <p>共答对 <span id="correct-count">0</span> 题</p>
+            <button class="restart-btn" onclick="restartGame()">再玩一次</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        let score = 0;
+        let currentQuestion = 0;
+        let totalQuestions = 10;
+        let questions = [];
+        let answered = false;
+        
+        // 条件语句模板
+        const templates = [
+            {
+                code: `if (x > {threshold}) {
+    output = "A";
+} else {
+    output = "B";
+}`,
+                generate: () => {
+                    const threshold = Math.floor(Math.random() * 20) - 10;
+                    const x = Math.floor(Math.random() * 20) - 10;
+                    const answer = x > threshold ? 'A' : 'B';
+                    return {
+                        code: `if (x > ${threshold}) {
+    output = "A";
+} else {
+    output = "B";
+}`,
+                        input: x,
+                        answer: answer,
+                        options: ['A', 'B', 'C', 'D']
+                    };
+                }
+            },
+            {
+                code: `if (x % 2 == 0) {
+    output = "偶数";
+} else {
+    output = "奇数";
+}`,
+                generate: () => {
+                    const x = Math.floor(Math.random() * 100);
+                    const answer = x % 2 === 0 ? 'A' : 'B';
+                    return {
+                        code: `if (x % 2 == 0) {
+    output = "偶数";
+} else {
+    output = "奇数";
+}`,
+                        input: x,
+                        answer: answer,
+                        options: ['A', 'B', 'C', 'D']
+                    };
+                }
+            },
+            {
+                code: `if (x >= 0 && x <= 100) {
+    output = "有效分数";
+} else {
+    output = "无效分数";
+}`,
+                generate: () => {
+                    const x = Math.floor(Math.random() * 150) - 25;
+                    const answer = (x >= 0 && x <= 100) ? 'A' : 'B';
+                    return {
+                        code: `if (x >= 0 && x <= 100) {
+    output = "有效分数";
+} else {
+    output = "无效分数";
+}`,
+                        input: x,
+                        answer: answer,
+                        options: ['A', 'B', 'C', 'D']
+                    };
+                }
+            },
+            {
+                code: `if (x > 0) {
+    output = "正数";
+} else if (x < 0) {
+    output = "负数";
+} else {
+    output = "零";
+}`,
+                generate: () => {
+                    const x = Math.floor(Math.random() * 21) - 10;
+                    let answer;
+                    if (x > 0) answer = 'A';
+                    else if (x < 0) answer = 'B';
+                    else answer = 'C';
+                    return {
+                        code: `if (x > 0) {
+    output = "正数";
+} else if (x < 0) {
+    output = "负数";
+} else {
+    output = "零";
+}`,
+                        input: x,
+                        answer: answer,
+                        options: ['A', 'B', 'C', 'D']
+                    };
+                }
+            },
+            {
+                code: `if (x % 3 == 0) {
+    output = "3的倍数";
+} else if (x % 3 == 1) {
+    output = "余1";
+} else {
+    output = "余2";
+}`,
+                generate: () => {
+                    const x = Math.floor(Math.random() * 30);
+                    let answer;
+                    if (x % 3 === 0) answer = 'A';
+                    else if (x % 3 === 1) answer = 'B';
+                    else answer = 'C';
+                    return {
+                        code: `if (x % 3 == 0) {
+    output = "3的倍数";
+} else if (x % 3 == 1) {
+    output = "余1";
+} else {
+    output = "余2";
+}`,
+                        input: x,
+                        answer: answer,
+                        options: ['A', 'B', 'C', 'D']
+                    };
+                }
+            }
+        ];
+        
+        // 生成题目
+        function generateQuestions() {
+            questions = [];
+            for (let i = 0; i < totalQuestions; i++) {
+                const template = templates[Math.floor(Math.random() * templates.length)];
+                questions.push(template.generate());
+            }
+        }
+        
+        // 显示当前题目
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            document.getElementById('code-block').textContent = question.code;
+            document.getElementById('input-value').textContent = `x = ${question.input}`;
+            document.getElementById('question-num').textContent = currentQuestion + 1;
+            
+            // 重置按钮状态
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('correct', 'wrong');
+                btn.disabled = false;
+            });
+            
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('next-btn').style.display = 'none';
+            answered = false;
+        }
+        
+        // 选择答案
+        function selectAnswer(selected) {
+            if (answered) return;
+            
+            answered = true;
+            const question = questions[currentQuestion];
+            const isCorrect = selected === question.answer;
+            
+            // 更新得分
+            if (isCorrect) {
+                score += 10;
+                document.getElementById('score').textContent = score;
+                document.getElementById('feedback').textContent = '✅ 正确！';
+                document.getElementById('feedback').style.color = '#48bb78';
+            } else {
+                document.getElementById('feedback').textContent = `❌ 错误！正确答案是 ${question.answer}`;
+                document.getElementById('feedback').style.color = '#f56565';
+            }
+            
+            // 高亮按钮
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent === question.answer) {
+                    btn.classList.add('correct');
+                } else if (btn.textContent === selected && !isCorrect) {
+                    btn.classList.add('wrong');
+                }
+            });
+            
+            // 显示下一题按钮
+            document.getElementById('next-btn').style.display = 'block';
+        }
+        
+        // 下一题
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion >= totalQuestions) {
+                showGameOver();
+            } else {
+                showQuestion();
+            }
+        }
+        
+        // 显示游戏结束
+        function showGameOver() {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('game-over-screen').style.display = 'block';
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('correct-count').textContent = score / 10;
+        }
+        
+        // 重新开始游戏
+        function restartGame() {
+            score = 0;
+            currentQuestion = 0;
+            document.getElementById('score').textContent = '0';
+            document.getElementById('game-screen').style.display = 'block';
+            document.getElementById('game-over-screen').style.display = 'none';
+            generateQuestions();
+            showQuestion();
+        }
+        
+        // 初始化游戏
+        function initGame() {
+            generateQuestions();
+            showQuestion();
+        }
+        
+        // 启动游戏
+        initGame();
+    </script>
+</body>
+</html>
