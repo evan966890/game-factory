@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>角度狙击手</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #22d3ee;
+      --ok: #34d399;
+      --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 60%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+    .app {
+      width: min(680px, 100%);
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 16px;
+      padding: 16px;
+      backdrop-filter: blur(3px);
+    }
+    h1 { font-size: 1.4rem; margin: 0 0 4px; }
+    .sub { color: var(--muted); margin: 0 0 12px; font-size: 0.95rem; }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .box {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+    }
+    .box .k { display: block; color: var(--muted); font-size: 0.75rem; }
+    .box .v { font-size: 1.1rem; font-weight: 700; }
+    .target {
+      margin: 8px 0 10px;
+      font-size: 1rem;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px dashed rgba(34, 211, 238, 0.6);
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    canvas {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      touch-action: none;
+      display: block;
+    }
+    .controls { margin-top: 10px; display: flex; gap: 8px; }
+    button {
+      flex: 1;
+      border: 0;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0b1120;
+      background: var(--accent);
+    }
+    button.secondary { background: #cbd5e1; }
+    .msg { margin-top: 8px; min-height: 1.4em; font-size: 0.92rem; color: var(--warn); text-align: center; }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>角度狙击手</h1>
+    <p class="sub">把准星旋转到目标角度（0°~359°），越准得分越高！</p>
+
+    <section class="hud">
+      <div class="box"><span class="k">回合</span><span class="v" id="round">1/10</span></div>
+      <div class="box"><span class="k">目标角</span><span class="v" id="target">0°</span></div>
+      <div class="box"><span class="k">当前角</span><span class="v" id="current">0°</span></div>
+      <div class="box"><span class="k">总分</span><span class="v" id="score">0</span></div>
+    </section>
+
+    <div class="target" id="prompt">点击圆盘并拖动，瞄准目标角度</div>
+    <canvas id="dial" width="600" height="600" aria-label="角度圆盘"></canvas>
+
+    <div class="controls">
+      <button id="fire">发射</button>
+      <button class="secondary" id="restart">重开</button>
+    </div>
+    <div class="msg" id="msg"></div>
+  </main>
+
+  <script>
+    const TOTAL_ROUNDS = 10;
+    const canvas = document.getElementById('dial');
+    const ctx = canvas.getContext('2d');
+    const roundEl = document.getElementById('round');
+    const targetEl = document.getElementById('target');
+    const currentEl = document.getElementById('current');
+    const scoreEl = document.getElementById('score');
+    const msgEl = document.getElementById('msg');
+    const promptEl = document.getElementById('prompt');
+    const fireBtn = document.getElementById('fire');
+    const restartBtn = document.getElementById('restart');
+
+    const state = {
+      round: 1,
+      target: randAngle(),
+      current: 0,
+      score: 0,
+      over: false,
+      dragging: false
+    };
+
+    function randAngle() {
+      return Math.floor(Math.random() * 360);
+    }
+
+    function norm(angle) {
+      return (angle % 360 + 360) % 360;
+    }
+
+    function shortestDiff(a, b) {
+      let d = Math.abs(a - b) % 360;
+      return d > 180 ? 360 - d : d;
+    }
+
+    function angleFromPoint(x, y) {
+      const rect = canvas.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = x - cx;
+      const dy = y - cy;
+      let deg = Math.atan2(dy, dx) * 180 / Math.PI;
+      deg = norm(deg + 90);
+      return Math.round(deg);
+    }
+
+    function draw() {
+      const w = canvas.width, h = canvas.height;
+      const cx = w / 2, cy = h / 2;
+      const r = Math.min(w, h) * 0.42;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // grid
+      ctx.save();
+      ctx.translate(cx, cy);
+      for (let i = 0; i < 360; i += 15) {
+        const rad = (i - 90) * Math.PI / 180;
+        const outer = r;
+        const inner = i % 45 === 0 ? r - 26 : r - 14;
+        ctx.strokeStyle = i % 45 === 0 ? 'rgba(148,163,184,0.6)' : 'rgba(148,163,184,0.25)';
+        ctx.lineWidth = i % 45 === 0 ? 3 : 1;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(rad) * inner, Math.sin(rad) * inner);
+        ctx.lineTo(Math.cos(rad) * outer, Math.sin(rad) * outer);
+        ctx.stroke();
+
+        if (i % 90 === 0) {
+          const tx = Math.cos(rad) * (r - 48);
+          const ty = Math.sin(rad) * (r - 48);
+          ctx.fillStyle = '#cbd5e1';
+          ctx.font = 'bold 28px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(String(i), tx, ty);
+        }
+      }
+
+      // circle
+      ctx.strokeStyle = 'rgba(148,163,184,0.5)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // target marker
+      drawHand(state.target, r - 8, '#f59e0b', 6);
+      // current marker
+      drawHand(state.current, r - 20, '#22d3ee', 8);
+
+      // center
+      ctx.fillStyle = '#e2e8f0';
+      ctx.beginPath();
+      ctx.arc(0, 0, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      function drawHand(deg, len, color, width) {
+        const rad = (deg - 90) * Math.PI / 180;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(rad) * len, Math.sin(rad) * len);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function syncUI() {
+      roundEl.textContent = `${state.round}/${TOTAL_ROUNDS}`;
+      targetEl.textContent = `${state.target}°`;
+      currentEl.textContent = `${state.current}°`;
+      scoreEl.textContent = String(state.score);
+      draw();
+    }
+
+    function shoot() {
+      if (state.over) return;
+      const err = shortestDiff(state.current, state.target);
+      const gain = Math.max(0, 100 - err * 2);
+      state.score += gain;
+      msgEl.textContent = `偏差 ${err}°，本轮 +${gain} 分`;
+
+      if (state.round >= TOTAL_ROUNDS) {
+        state.over = true;
+        promptEl.textContent = `挑战结束！总分 ${state.score}。点击“重开”再来一次。`;
+        fireBtn.disabled = true;
+      } else {
+        state.round += 1;
+        state.target = randAngle();
+        promptEl.textContent = '继续瞄准下一个目标角度';
+      }
+      syncUI();
+    }
+
+    function reset() {
+      state.round = 1;
+      state.target = randAngle();
+      state.current = 0;
+      state.score = 0;
+      state.over = false;
+      msgEl.textContent = '';
+      promptEl.textContent = '点击圆盘并拖动，瞄准目标角度';
+      fireBtn.disabled = false;
+      syncUI();
+    }
+
+    function onPointerMove(e) {
+      if (!state.dragging || state.over) return;
+      state.current = angleFromPoint(e.clientX, e.clientY);
+      syncUI();
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      state.dragging = true;
+      canvas.setPointerCapture(e.pointerId);
+      state.current = angleFromPoint(e.clientX, e.clientY);
+      syncUI();
+    });
+    canvas.addEventListener('pointermove', onPointerMove);
+    canvas.addEventListener('pointerup', () => { state.dragging = false; });
+    canvas.addEventListener('pointercancel', () => { state.dragging = false; });
+
+    fireBtn.addEventListener('click', shoot);
+    restartBtn.addEventListener('click', reset);
+
+    syncUI();
+  </script>
+</body>
+</html>

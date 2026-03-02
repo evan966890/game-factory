@@ -552,5 +552,11 @@
     "path": "games/coordinate-reflection-lab/index.html",
     "category": "数学+空间",
     "createdAt": "2026-03-02T13:59:37.311371+08:00"
+  },
+  {
+    "name": "角度狙击手",
+    "path": "games/angle-sniper/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T06:19:40.649911Z"
   }
 ]
