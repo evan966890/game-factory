@@ -546,5 +546,11 @@
     "path": "games/symmetry-judge/index.html",
     "category": "数学+空间",
     "createdAt": "2026-03-02T05:39:32.255Z"
+  },
+  {
+    "name": "坐标镜像实验室",
+    "path": "games/coordinate-reflection-lab/index.html",
+    "category": "数学+空间",
+    "createdAt": "2026-03-02T13:59:37.311371+08:00"
   }
 ]

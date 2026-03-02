@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>坐标镜像实验室</title>
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --ink:#e5e7eb; --muted:#94a3b8; --ok:#22c55e; --bad:#ef4444; --accent:#38bdf8; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif; background:linear-gradient(160deg,#0f172a,#111827); color:var(--ink); min-height:100dvh; display:flex; justify-content:center; }
+    .app { width:min(680px,100%); padding:16px; }
+    .card { background:rgba(17,24,39,.92); border:1px solid #1f2937; border-radius:16px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+    h1 { margin:0 0 8px; font-size:1.35rem; }
+    p { margin:6px 0; color:var(--muted); }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .pill { padding:6px 10px; border-radius:999px; font-size:.88rem; background:#0b1220; border:1px solid #1f2937; }
+    .question { margin:14px 0 10px; font-size:1.2rem; line-height:1.5; }
+    .options { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    button.opt { background:#0b1220; color:var(--ink); border:1px solid #334155; border-radius:12px; padding:12px 10px; font-size:1rem; min-height:52px; }
+    button.opt:active { transform:scale(.98); }
+    button.opt[disabled] { opacity:.65; }
+    .msg { min-height:24px; margin-top:12px; font-weight:600; }
+    .ok { color:var(--ok); }
+    .bad { color:var(--bad); }
+    .footer { margin-top:12px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .primary { background:var(--accent); color:#06263a; border:none; border-radius:12px; padding:10px 14px; font-weight:700; }
+    canvas { width:100%; background:#020617; border:1px solid #1f2937; border-radius:12px; margin-top:10px; }
+    @media (max-width:520px){ .options{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <h1>坐标镜像实验室</h1>
+      <p>根据给定点 <strong>P(x,y)</strong>，快速判断它关于指定轴/原点的镜像坐标。</p>
+      <div class="row">
+        <span class="pill">题目：<span id="qIdx">1</span>/10</span>
+        <span class="pill">得分：<span id="score">0</span></span>
+        <span class="pill">剩余：<span id="time">60</span>s</span>
+      </div>
+      <canvas id="plot" width="640" height="320" aria-label="坐标图"></canvas>
+      <div id="question" class="question"></div>
+      <div id="options" class="options"></div>
+      <div id="msg" class="msg"></div>
+      <div class="footer">
+        <p id="tip">规则：x轴镜像 (x,-y)，y轴镜像 (-x,y)，原点镜像 (-x,-y)。</p>
+        <button id="restart" class="primary" type="button">重新开始</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const qIdxEl = document.getElementById('qIdx');
+    const scoreEl = document.getElementById('score');
+    const timeEl = document.getElementById('time');
+    const questionEl = document.getElementById('question');
+    const optionsEl = document.getElementById('options');
+    const msgEl = document.getElementById('msg');
+    const restartBtn = document.getElementById('restart');
+    const canvas = document.getElementById('plot');
+    const ctx = canvas.getContext('2d');
+
+    const TOTAL = 10;
+    let idx = 0, score = 0, left = 60, timer = null, locked = false;
+    let current = null;
+
+    const transforms = [
+      { key:'x轴', fn:(x,y)=>[x,-y] },
+      { key:'y轴', fn:(x,y)=>[-x,y] },
+      { key:'原点', fn:(x,y)=>[-x,-y] }
+    ];
+
+    function r(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+    function pick(arr){ return arr[r(0,arr.length-1)]; }
+    function pointStr(p){ return `(${p[0]}, ${p[1]})`; }
+
+    function genQuestion(){
+      const x = r(-7,7) || 3;
+      const y = r(-7,7) || -4;
+      const tf = pick(transforms);
+      const ans = tf.fn(x,y);
+      const set = new Set([pointStr(ans)]);
+      while(set.size < 4){
+        const dx = ans[0] + r(-2,2);
+        const dy = ans[1] + r(-2,2);
+        if (Math.abs(dx)<=9 && Math.abs(dy)<=9) set.add(pointStr([dx,dy]));
+      }
+      const options = [...set].sort(()=>Math.random()-0.5);
+      return { x,y, tf:tf.key, ans:pointStr(ans), options, ansRaw:ans };
+    }
+
+    function drawGrid(p, ans){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      const ox = canvas.width/2, oy = canvas.height/2, u = 18;
+
+      ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
+      for(let i=-16;i<=16;i++){
+        ctx.beginPath(); ctx.moveTo(ox+i*u, 0); ctx.lineTo(ox+i*u, canvas.height); ctx.stroke();
+      }
+      for(let j=-8;j<=8;j++){
+        ctx.beginPath(); ctx.moveTo(0, oy+j*u); ctx.lineTo(canvas.width, oy+j*u); ctx.stroke();
+      }
+
+      ctx.strokeStyle='#64748b'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(canvas.width,oy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ox,0); ctx.lineTo(ox,canvas.height); ctx.stroke();
+
+      const toCanvas = ([x,y])=>[ox+x*u, oy-y*u];
+      const [px,py] = toCanvas(p);
+      const [ax,ay] = toCanvas(ans);
+
+      ctx.fillStyle='#38bdf8';
+      ctx.beginPath(); ctx.arc(px,py,6,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#bae6fd'; ctx.font='14px sans-serif'; ctx.fillText('P', px+8, py-8);
+
+      ctx.fillStyle='#fbbf24';
+      ctx.beginPath(); ctx.arc(ax,ay,6,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#fde68a'; ctx.fillText("P'", ax+8, ay-8);
+
+      ctx.strokeStyle='rgba(148,163,184,.5)'; ctx.setLineDash([5,5]);
+      ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(ax,ay); ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    function render(){
+      qIdxEl.textContent = idx + 1;
+      scoreEl.textContent = score;
+      questionEl.textContent = `已知点 P(${current.x}, ${current.y})，关于${current.tf}镜像后的坐标是？`;
+      optionsEl.innerHTML = '';
+      current.options.forEach(op => {
+        const btn = document.createElement('button');
+        btn.className = 'opt';
+        btn.textContent = op;
+        btn.onclick = () => choose(op, btn);
+        optionsEl.appendChild(btn);
+      });
+      drawGrid([current.x,current.y], current.ansRaw);
+      msgEl.textContent = '';
+      msgEl.className = 'msg';
+      locked = false;
+    }
+
+    function choose(op){
+      if (locked) return;
+      locked = true;
+      [...optionsEl.children].forEach(b=>b.disabled=true);
+      if(op === current.ans){
+        score += 10;
+        msgEl.textContent = '✅ 回答正确！';
+        msgEl.className = 'msg ok';
+      } else {
+        msgEl.textContent = `❌ 正确答案是 ${current.ans}`;
+        msgEl.className = 'msg bad';
+      }
+      scoreEl.textContent = score;
+      setTimeout(next, 700);
+    }
+
+    function next(){
+      idx++;
+      if(idx >= TOTAL || left <= 0){ return over(); }
+      current = genQuestion();
+      render();
+    }
+
+    function tick(){
+      left--; timeEl.textContent = left;
+      if(left <= 0) over();
+    }
+
+    function over(){
+      clearInterval(timer); timer = null;
+      locked = true;
+      [...optionsEl.children].forEach(b=>b.disabled=true);
+      questionEl.textContent = `挑战结束！你的得分：${score} / ${TOTAL*10}`;
+      msgEl.textContent = score >= 80 ? '太棒了，坐标镜像已经掌握！' : '再来一局，把镜像规则练熟！';
+      msgEl.className = `msg ${score>=80?'ok':'bad'}`;
+    }
+
+    function start(){
+      idx = 0; score = 0; left = 60;
+      timeEl.textContent = left; scoreEl.textContent = score;
+      if(timer) clearInterval(timer);
+      timer = setInterval(tick,1000);
+      current = genQuestion();
+      render();
+    }
+
+    restartBtn.addEventListener('click', start);
+    start();
+  </script>
+</body>
+</html>
