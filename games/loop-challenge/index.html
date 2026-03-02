@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>循环挑战 - 编程入门游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 10px;
+        }
+        
+        .info-item {
+            text-align: center;
+        }
+        
+        .info-label {
+            font-size: 0.8rem;
+            color: #718096;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4a5568;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .question-container {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .question-number {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 15px;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+        }
+        
+        .question-text {
+            font-size: 1.1rem;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .option-btn {
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        
+        .option-btn:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+        }
+        
+        .option-btn.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+        
+        .option-btn.correct {
+            border-color: #48bb78;
+            background: #48bb78;
+            color: white;
+        }
+        
+        .option-btn.incorrect {
+            border-color: #f56565;
+            background: #f56565;
+            color: white;
+        }
+        
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background: #c6f6d5;
+            color: #22543d;
+            display: block;
+        }
+        
+        .feedback.incorrect {
+            background: #fed7d7;
+            color: #742a2a;
+            display: block;
+        }
+        
+        .next-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .next-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .next-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-container {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .result-title {
+            font-size: 2rem;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+        
+        .result-score {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .result-text {
+            font-size: 1.2rem;
+            color: #718096;
+            margin-bottom: 30px;
+        }
+        
+        .restart-btn {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .restart-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background: #edf2f7;
+            border-radius: 10px;
+            text-align: left;
+            display: none;
+        }
+        
+        .explanation.show {
+            display: block;
+        }
+        
+        .explanation-title {
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+        
+        .explanation-text {
+            color: #718096;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .options {
+                grid-template-columns: 1fr;
+            }
+            
+            .code-block {
+                font-size: 0.9rem;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 循环挑战</h1>
+        <p class="subtitle">预测循环输出，学习编程逻辑</p>
+        
+        <div id="game-screen">
+            <div class="game-info">
+                <div class="info-item">
+                    <div class="info-label">题目</div>
+                    <div class="info-value" id="question-num">1/10</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">得分</div>
+                    <div class="info-value" id="score">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">时间</div>
+                    <div class="info-value" id="timer">60</div>
+                </div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 10%"></div>
+            </div>
+            
+            <div class="question-container">
+                <div class="question-number" id="question-number">第 1 题</div>
+                <div class="code-block" id="code-block"></div>
+                <div class="question-text" id="question-text">请选择循环的输出：</div>
+                
+                <div class="options" id="options-container">
+                    <!-- Options will be inserted here -->
+                </div>
+                
+                <div class="feedback" id="feedback"></div>
+                
+                <div class="explanation" id="explanation">
+                    <div class="explanation-title">💡 解释</div>
+                    <div class="explanation-text" id="explanation-text"></div>
+                </div>
+            </div>
+            
+            <button class="next-btn" id="next-btn" disabled>下一题</button>
+        </div>
+        
+        <div id="result-screen" style="display: none;">
+            <div class="result-container">
+                <div class="result-title">🎉 挑战完成！</div>
+                <div class="result-score" id="final-score">0</div>
+                <div class="result-text" id="result-text">继续加油！</div>
+                <button class="restart-btn" id="restart-btn">再玩一次</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game questions
+        const questions = [
+            {
+                code: `for (let i = 0; i < 5; i++) {
+    console.log(i);
+}`,
+                question: "这段代码会输出什么？",
+                options: ["0 1 2 3 4", "1 2 3 4 5", "0 1 2 3 4 5", "1 2 3 4"],
+                correct: 0,
+                explanation: "循环从 i=0 开始，每次 i++，当 i<5 时继续。所以输出 0, 1, 2, 3, 4。"
+            },
+            {
+                code: `let sum = 0;
+for (let i = 1; i <= 3; i++) {
+    sum += i;
+}
+console.log(sum);`,
+                question: "sum 的最终值是多少？",
+                options: ["3", "6", "9", "12"],
+                correct: 1,
+                explanation: "循环执行：sum = 0 + 1 + 2 + 3 = 6。"
+            },
+            {
+                code: `for (let i = 10; i > 0; i -= 2) {
+    console.log(i);
+}`,
+                question: "这段代码会输出什么？",
+                options: ["10 8 6 4 2", "10 8 6 4 2 0", "8 6 4 2", "10 9 8 7 6 5 4 3 2 1"],
+                correct: 0,
+                explanation: "循环从 i=10 开始，每次减2，当 i>0 时继续。所以输出 10, 8, 6, 4, 2。"
+            },
+            {
+                code: `let result = 1;
+for (let i = 1; i <= 4; i++) {
+    result *= i;
+}
+console.log(result);`,
+                question: "result 的最终值是多少？",
+                options: ["10", "24", "120", "720"],
+                correct: 1,
+                explanation: "计算阶乘：1 × 2 × 3 × 4 = 24。"
+            },
+            {
+                code: `for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 2; j++) {
+        console.log(i + "," + j);
+    }
+}`,
+                question: "这段代码会输出多少行？",
+                options: ["3", "5", "6", "9"],
+                correct: 2,
+                explanation: "外层循环3次，内层循环2次，总共 3 × 2 = 6 行。"
+            },
+            {
+                code: `let count = 0;
+for (let i = 1; i <= 10; i++) {
+    if (i % 2 === 0) {
+        count++;
+    }
+}
+console.log(count);`,
+                question: "count 的最终值是多少？",
+                options: ["4", "5", "6", "10"],
+                correct: 1,
+                explanation: "统计1到10中的偶数个数：2, 4, 6, 8, 10，共5个。"
+            },
+            {
+                code: `let str = "";
+for (let i = 0; i < 4; i++) {
+    str += "*";
+}
+console.log(str);`,
+                question: "str 的最终值是什么？",
+                options: ["***", "****", "*****", "******"],
+                correct: 1,
+                explanation: "循环4次，每次添加一个星号，结果是4个星号。"
+            },
+            {
+                code: `let x = 5;
+for (let i = 0; i < 3; i++) {
+    x = x * 2 - 1;
+}
+console.log(x);`,
+                question: "x 的最终值是多少？",
+                options: ["9", "17", "33", "65"],
+                correct: 2,
+                explanation: "计算过程：5 → 9 → 17 → 33。"
+            },
+            {
+                code: `let arr = [];
+for (let i = 1; i <= 3; i++) {
+    arr.push(i * i);
+}
+console.log(arr);`,
+                question: "arr 的最终值是什么？",
+                options: ["[1, 2, 3]", "[1, 4, 9]", "[2, 4, 6]", "[1, 8, 27]"],
+                correct: 1,
+                explanation: "添加平方数：1²=1, 2²=4, 3²=9。"
+            },
+            {
+                code: `let n = 10;
+while (n > 1) {
+    n = n / 2;
+}
+console.log(n);`,
+                question: "n 的最终值是多少？",
+                options: ["1", "1.25", "2.5", "5"],
+                correct: 1,
+                explanation: "计算过程：10 → 5 → 2.5 → 1.25。"
+            }
+        ];
+
+        // Game state
+        let currentQuestion = 0;
+        let score = 0;
+        let timeLeft = 60;
+        let timerInterval = null;
+        let answered = false;
+
+        // DOM elements
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionNum = document.getElementById('question-num');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const progressFill = document.getElementById('progress-fill');
+        const questionNumber = document.getElementById('question-number');
+        const codeBlock = document.getElementById('code-block');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedback = document.getElementById('feedback');
+        const explanation = document.getElementById('explanation');
+        const explanationText = document.getElementById('explanation-text');
+        const nextBtn = document.getElementById('next-btn');
+        const finalScore = document.getElementById('final-score');
+        const resultText = document.getElementById('result-text');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Initialize game
+        function initGame() {
+            currentQuestion = 0;
+            score = 0;
+            timeLeft = 60;
+            answered = false;
+            
+            updateDisplay();
+            startTimer();
+            showQuestion();
+        }
+
+        // Update display
+        function updateDisplay() {
+            questionNum.textContent = `${currentQuestion + 1}/${questions.length}`;
+            scoreDisplay.textContent = score;
+            timerDisplay.textContent = timeLeft;
+            progressFill.style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+        }
+
+        // Start timer
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // Show question
+        function showQuestion() {
+            const q = questions[currentQuestion];
+            
+            questionNumber.textContent = `第 ${currentQuestion + 1} 题`;
+            codeBlock.textContent = q.code;
+            questionText.textContent = q.question;
+            
+            // Clear options
+            optionsContainer.innerHTML = '';
+            
+            // Create option buttons
+            q.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = option;
+                btn.addEventListener('click', () => selectOption(index));
+                optionsContainer.appendChild(btn);
+            });
+            
+            // Reset feedback and explanation
+            feedback.className = 'feedback';
+            explanation.className = 'explanation';
+            nextBtn.disabled = true;
+            answered = false;
+        }
+
+        // Select option
+        function selectOption(index) {
+            if (answered) return;
+            
+            answered = true;
+            const q = questions[currentQuestion];
+            const options = optionsContainer.querySelectorAll('.option-btn');
+            
+            // Disable all options
+            options.forEach(opt => opt.disabled = true);
+            
+            // Mark selected and correct/incorrect
+            options[index].classList.add('selected');
+            
+            if (index === q.correct) {
+                // Correct answer
+                options[index].classList.add('correct');
+                feedback.textContent = '✅ 正确！';
+                feedback.className = 'feedback correct';
+                score += 10;
+            } else {
+                // Incorrect answer
+                options[index].classList.add('incorrect');
+                options[q.correct].classList.add('correct');
+                feedback.textContent = '❌ 错误！';
+                feedback.className = 'feedback incorrect';
+            }
+            
+            // Show explanation
+            explanationText.textContent = q.explanation;
+            explanation.className = 'explanation show';
+            
+            // Enable next button
+            nextBtn.disabled = false;
+            
+            // Update score display
+            scoreDisplay.textContent = score;
+        }
+
+        // Next question
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (currentQuestion >= questions.length) {
+                endGame();
+            } else {
+                updateDisplay();
+                showQuestion();
+            }
+        }
+
+        // End game
+        function endGame() {
+            clearInterval(timerInterval);
+            
+            gameScreen.style.display = 'none';
+            resultScreen.style.display = 'block';
+            
+            finalScore.textContent = score;
+            
+            // Set result text based on score
+            if (score >= 90) {
+                resultText.textContent = '🏆 太棒了！你是循环大师！';
+            } else if (score >= 70) {
+                resultText.textContent = '👍 很好！继续练习！';
+            } else if (score >= 50) {
+                resultText.textContent = '💪 不错！还有进步空间！';
+            } else {
+                resultText.textContent = '📚 多多练习，你会更棒！';
+            }
+        }
+
+        // Restart game
+        function restartGame() {
+            gameScreen.style.display = 'block';
+            resultScreen.style.display = 'none';
+            initGame();
+        }
+
+        // Event listeners
+        nextBtn.addEventListener('click', nextQuestion);
+        restartBtn.addEventListener('click', restartGame);
+
+        // Start game
+        initGame();
+    </script>
+</body>
+</html>

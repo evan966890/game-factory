@@ -744,5 +744,11 @@
     "path": "games/conditional-judge/index.html",
     "category": "编程入门",
     "createdAt": "2026-03-03T01:16:00+08:00"
+  },
+  {
+    "name": "循环挑战",
+    "path": "games/loop-challenge/index.html",
+    "category": "编程入门",
+    "createdAt": "2026-03-03T01:36:00+08:00"
   }
 ]
