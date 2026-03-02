@@ -576,5 +576,11 @@
     "path": "games/clock-reading-race/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T07:19:33Z"
+  },
+  {
+    "name": "罗马数字快译",
+    "path": "games/roman-numeral-rush/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T15:39:37.025341+08:00"
   }
 ]

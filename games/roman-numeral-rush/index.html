@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>罗马数字快译</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--accent:#38bdf8;--ok:#22c55e;--bad:#ef4444;--text:#e5e7eb}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#020617,#0f172a);color:var(--text)}
+    .wrap{max-width:760px;margin:0 auto;padding:16px}
+    .card{background:rgba(17,24,39,.92);border:1px solid #334155;border-radius:16px;padding:16px;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+    h1{font-size:1.45rem;margin:0 0 6px} .sub{opacity:.85;font-size:.95rem;margin:0 0 14px}
+    .top{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+    .pill{background:#0b1220;border:1px solid #334155;border-radius:12px;padding:10px;text-align:center}
+    .big{font-size:2.15rem;font-weight:800;letter-spacing:2px;text-align:center;margin:14px 0 10px}
+    .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button{background:#1e293b;color:#f8fafc;border:1px solid #475569;border-radius:12px;padding:12px;font-size:1.05rem;font-weight:700;cursor:pointer;min-height:48px}
+    button:active{transform:scale(.98)} button:disabled{opacity:.6;cursor:not-allowed}
+    .ok{border-color:#16a34a;background:#14532d}.bad{border-color:#dc2626;background:#7f1d1d}
+    .msg{min-height:24px;text-align:center;font-weight:700;margin-top:10px}
+    .msg.good{color:var(--ok)} .msg.err{color:var(--bad)}
+    .actions{display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+    .ghost{background:transparent;border:1px solid #64748b}
+    .footer{margin-top:12px;font-size:.9rem;opacity:.8;line-height:1.5}
+    @media (max-width:560px){.top{grid-template-columns:1fr}.opts{grid-template-columns:1fr}.big{font-size:1.9rem}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>罗马数字快译</h1>
+      <p class="sub">把罗马数字翻译成阿拉伯数字。10 题一局，练反应和规则记忆。</p>
+
+      <div class="top">
+        <div class="pill">题目：<strong id="idx">1</strong>/10</div>
+        <div class="pill">得分：<strong id="score">0</strong></div>
+        <div class="pill">剩余：<strong id="time">60</strong>s</div>
+      </div>
+
+      <div class="big" id="roman">XIV</div>
+      <div class="opts" id="options"></div>
+      <div class="msg" id="msg"></div>
+
+      <div class="actions">
+        <button id="startBtn">开始新一局</button>
+        <button id="hintBtn" class="ghost">提示规则</button>
+      </div>
+
+      <div class="footer" id="hint" hidden>
+        规则速记：<br/>
+        I=1, V=5, X=10, L=50, C=100。<br/>
+        小数在大数前面表示减法（如 IV=4, IX=9），否则相加。
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const TOTAL = 10;
+    const TIME_LIMIT = 60;
+    const romanEl = document.getElementById('roman');
+    const idxEl = document.getElementById('idx');
+    const scoreEl = document.getElementById('score');
+    const timeEl = document.getElementById('time');
+    const msgEl = document.getElementById('msg');
+    const optionsEl = document.getElementById('options');
+    const startBtn = document.getElementById('startBtn');
+    const hintBtn = document.getElementById('hintBtn');
+    const hint = document.getElementById('hint');
+
+    let questions = [], current = 0, score = 0, time = TIME_LIMIT, timer = null, locked = false;
+
+    function toRoman(num){
+      const map = [[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+      let s = '';
+      for (const [v, r] of map){ while(num >= v){ s += r; num -= v; } }
+      return s;
+    }
+
+    function uniqueNumbers(n, min=1, max=100){
+      const set = new Set();
+      while(set.size < n){ set.add(Math.floor(Math.random()*(max-min+1))+min); }
+      return [...set];
+    }
+
+    function makeQuestions(){
+      return uniqueNumbers(TOTAL).map(ans => {
+        const choices = new Set([ans]);
+        while(choices.size < 4){
+          const delta = Math.floor(Math.random()*16)-7;
+          const v = Math.max(1, Math.min(100, ans + delta));
+          choices.add(v);
+        }
+        const opts = [...choices].sort(() => Math.random()-0.5);
+        return { roman: toRoman(ans), answer: ans, opts };
+      });
+    }
+
+    function renderQuestion(){
+      locked = false;
+      msgEl.textContent = '';
+      msgEl.className = 'msg';
+      const q = questions[current];
+      idxEl.textContent = current + 1;
+      romanEl.textContent = q.roman;
+      optionsEl.innerHTML = '';
+      q.opts.forEach(v => {
+        const btn = document.createElement('button');
+        btn.textContent = v;
+        btn.onclick = () => choose(v, btn);
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    function choose(v, btn){
+      if(locked) return;
+      locked = true;
+      const q = questions[current];
+      const all = [...optionsEl.querySelectorAll('button')];
+      const ok = v === q.answer;
+      if(ok){ score += 10; btn.classList.add('ok'); msgEl.textContent = '✅ 正确！'; msgEl.classList.add('good'); }
+      else {
+        btn.classList.add('bad');
+        all.find(b => +b.textContent === q.answer)?.classList.add('ok');
+        msgEl.textContent = `❌ 正确答案是 ${q.answer}`;
+        msgEl.classList.add('err');
+      }
+      scoreEl.textContent = score;
+      all.forEach(b => b.disabled = true);
+      setTimeout(() => {
+        current++;
+        if(current >= TOTAL) return finish();
+        renderQuestion();
+      }, 650);
+    }
+
+    function finish(){
+      clearInterval(timer);
+      timer = null;
+      romanEl.textContent = '完成！';
+      optionsEl.innerHTML = '';
+      let level = '继续加油';
+      if(score >= 90) level = '罗马大师';
+      else if(score >= 70) level = '译码能手';
+      msgEl.textContent = `本局 ${score} 分｜${level}`;
+      msgEl.className = 'msg good';
+      startBtn.disabled = false;
+      startBtn.textContent = '再来一局';
+    }
+
+    function start(){
+      questions = makeQuestions();
+      current = 0; score = 0; time = TIME_LIMIT;
+      idxEl.textContent = 1; scoreEl.textContent = 0; timeEl.textContent = time;
+      startBtn.disabled = true; startBtn.textContent = '进行中';
+      renderQuestion();
+      clearInterval(timer);
+      timer = setInterval(() => {
+        time--; timeEl.textContent = time;
+        if(time <= 0){
+          clearInterval(timer); timer = null;
+          msgEl.textContent = '⏰ 时间到！';
+          finish();
+        }
+      }, 1000);
+    }
+
+    startBtn.addEventListener('click', start);
+    hintBtn.addEventListener('click', () => hint.hidden = !hint.hidden);
+  </script>
+</body>
+</html>
