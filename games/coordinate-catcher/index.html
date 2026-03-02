@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>坐标捕手</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--text:#e5e7eb;--ok:#22c55e;--bad:#ef4444;--accent:#38bdf8}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC",sans-serif;background:linear-gradient(180deg,#0b1026,#111827);color:var(--text)}
+    .wrap{max-width:860px;margin:0 auto;padding:16px}
+    .card{background:rgba(17,24,39,.9);border:1px solid #334155;border-radius:14px;padding:14px;margin-bottom:12px}
+    h1{font-size:22px;margin:0 0 8px}.muted{opacity:.85;font-size:14px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    button{border:none;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:700;background:var(--accent);color:#04202b}
+    button.secondary{background:#1f2937;color:#d1d5db;border:1px solid #374151}
+    .stats{display:grid;grid-template-columns:repeat(4,minmax(70px,1fr));gap:8px}
+    .stat{background:#0b1220;border:1px solid #374151;padding:8px;border-radius:10px;text-align:center}
+    .stat b{display:block;font-size:20px}
+    #board{width:100%;aspect-ratio:1/1;background:#fff;border-radius:10px;touch-action:none;display:block}
+    .msg{min-height:24px;font-weight:700}.ok{color:var(--ok)}.bad{color:var(--bad)}
+    @media (max-width:520px){h1{font-size:20px}.stats{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>🎯 坐标捕手</h1>
+      <div class="muted">在坐标平面中找到目标点，60 秒内尽量多答对。适合练习象限与坐标读写。</div>
+      <div class="row" style="margin-top:10px">
+        <button id="startBtn">开始挑战</button>
+        <button id="retryBtn" class="secondary">再来一局</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="stats">
+        <div class="stat">剩余时间<b id="time">60</b></div>
+        <div class="stat">分数<b id="score">0</b></div>
+        <div class="stat">连对<b id="streak">0</b></div>
+        <div class="stat">目标点<b id="target">(0,0)</b></div>
+      </div>
+      <canvas id="board" width="600" height="600" aria-label="坐标画布"></canvas>
+      <div class="row" style="margin-top:10px">
+        <div class="msg" id="msg"></div>
+      </div>
+    </div>
+  </div>
+<script>
+(() => {
+  const cvs = document.getElementById('board');
+  const ctx = cvs.getContext('2d');
+  const ui = {
+    time: document.getElementById('time'), score: document.getElementById('score'),
+    streak: document.getElementById('streak'), target: document.getElementById('target'),
+    msg: document.getElementById('msg'), startBtn: document.getElementById('startBtn'), retryBtn: document.getElementById('retryBtn')
+  };
+  const range = 10;
+  let target = {x:0,y:0}, score=0, streak=0, time=60, timer=null, running=false;
+
+  function drawGrid() {
+    const w=cvs.width,h=cvs.height, unit=w/(range*2);
+    ctx.clearRect(0,0,w,h); ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle='#d1d5db'; ctx.lineWidth=1;
+    for(let i=-range;i<=range;i++){
+      const px=w/2+i*unit;
+      ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,h);ctx.stroke();
+      const py=h/2-i*unit;
+      ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(w,py);ctx.stroke();
+    }
+    ctx.strokeStyle='#111827'; ctx.lineWidth=2.2;
+    ctx.beginPath();ctx.moveTo(w/2,0);ctx.lineTo(w/2,h);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);ctx.stroke();
+
+    ctx.fillStyle='#0f172a'; ctx.font='12px sans-serif';
+    for(let i=-range;i<=range;i++){
+      if(i===0) continue;
+      ctx.fillText(i, w/2 + i*unit - 4, h/2 + 14);
+      ctx.fillText(i, w/2 + 6, h/2 - i*unit + 4);
+    }
+  }
+
+  function toCoord(clientX, clientY){
+    const rect = cvs.getBoundingClientRect();
+    const x = (clientX-rect.left) * (cvs.width/rect.width);
+    const y = (clientY-rect.top) * (cvs.height/rect.height);
+    const unit = cvs.width/(range*2);
+    return {
+      x: Math.round((x - cvs.width/2)/unit),
+      y: Math.round((cvs.height/2 - y)/unit)
+    };
+  }
+
+  function nextTarget(){
+    target.x = Math.floor(Math.random()*21)-10;
+    target.y = Math.floor(Math.random()*21)-10;
+    ui.target.textContent = `(${target.x}, ${target.y})`;
+  }
+
+  function setMsg(text, ok){ ui.msg.textContent=text; ui.msg.className='msg '+(ok?'ok':'bad'); }
+  function refresh(){ui.time.textContent=time;ui.score.textContent=score;ui.streak.textContent=streak;}
+
+  function end(){
+    running=false; clearInterval(timer); timer=null;
+    setMsg(`时间到！最终得分 ${score} 分。`, true);
+  }
+
+  function start(){
+    score=0;streak=0;time=60;running=true; refresh(); nextTarget(); setMsg('点击坐标平面选择对应点位！', true);
+    clearInterval(timer);
+    timer=setInterval(()=>{time--;refresh();if(time<=0) end();},1000);
+    drawGrid();
+  }
+
+  cvs.addEventListener('pointerdown',(e)=>{
+    if(!running) return;
+    const p = toCoord(e.clientX,e.clientY);
+    if(p.x===target.x && p.y===target.y){
+      streak++; score += 10 + Math.min(10, streak);
+      setMsg(`✅ 命中 (${p.x}, ${p.y})！连对 +${streak}`, true);
+      nextTarget();
+    } else {
+      streak=0; score=Math.max(0, score-3);
+      setMsg(`❌ 你选了 (${p.x}, ${p.y})，继续加油！`, false);
+    }
+    refresh();
+  });
+
+  ui.startBtn.addEventListener('click', start);
+  ui.retryBtn.addEventListener('click', start);
+  drawGrid(); refresh();
+})();
+</script>
+</body>
+</html>

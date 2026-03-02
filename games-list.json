@@ -480,5 +480,11 @@
     "path": "games/fraction-chef/index.html",
     "category": "education",
     "createdAt": "2026-03-02T01:59:10Z"
+  },
+  {
+    "name": "坐标捕手",
+    "path": "games/coordinate-catcher/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T02:19:10Z"
   }
 ]
