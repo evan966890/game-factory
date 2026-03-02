@@ -1,179 +1,252 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>角度追击者</title>
+  <title>角度猎手</title>
   <style>
-    :root{
-      --bg:#0f172a;--card:#111827;--text:#e5e7eb;--muted:#94a3b8;--ok:#22c55e;--bad:#ef4444;--accent:#38bdf8;
+    :root {
+      --bg: #0b1020;
+      --card: #171f3a;
+      --text: #eef3ff;
+      --accent: #6ea8ff;
+      --ok: #47d18c;
+      --warn: #ffcc66;
     }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Noto Sans CJK SC",sans-serif;background:linear-gradient(160deg,#020617,#0b1228 55%,#0f172a);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:14px}
-    .app{width:min(760px,100%);background:rgba(17,24,39,.9);border:1px solid #1f2937;border-radius:16px;padding:16px;box-shadow:0 12px 28px rgba(0,0,0,.35)}
-    h1{font-size:clamp(1.2rem,4.2vw,1.7rem);margin:0 0 8px}
-    .sub{margin:0 0 12px;color:var(--muted);font-size:.95rem}
-    .hud{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
-    .pill{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:9px;text-align:center}
-    .pill b{display:block;font-size:1.1rem;color:#f8fafc}
-    .canvasWrap{background:#0b1220;border:1px solid #1f2937;border-radius:14px;padding:10px}
-    canvas{width:100%;height:auto;background:radial-gradient(circle at center,#0f2a44,#0b1220 65%);border-radius:10px;touch-action:none}
-    .q{margin:10px 0;font-size:1.02rem}
-    .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-    button{border:none;border-radius:12px;padding:11px 10px;font-size:1rem;font-weight:600;color:#e2e8f0;background:#1f2937;cursor:pointer}
-    button:active{transform:scale(.98)}
-    button.good{outline:2px solid var(--ok);background:#14532d}
-    button.bad{outline:2px solid var(--bad);background:#7f1d1d}
-    .ctl{display:flex;gap:8px;margin-top:10px}
-    .ctl button{flex:1;background:#0369a1}
-    .msg{min-height:24px;margin-top:8px;font-weight:600}
-    .ok{color:#86efac}.badText{color:#fca5a5}
-    @media (max-width:560px){.opts{grid-template-columns:1fr}.hud{grid-template-columns:1fr 1fr 1fr}}
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+      background: radial-gradient(circle at top, #1a2550, var(--bg));
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(560px, 100%);
+      background: rgba(23, 31, 58, 0.95);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.28);
+    }
+    h1 { margin: 0 0 8px; font-size: 1.35rem; }
+    p { margin: 6px 0; line-height: 1.5; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .pill {
+      background: #212b52;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: .92rem;
+    }
+    .target {
+      margin: 12px 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--warn);
+    }
+    #board {
+      width: 100%;
+      aspect-ratio: 1/1;
+      background: #0f1732;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 14px;
+      touch-action: none;
+      display: block;
+    }
+    .actions { display: flex; gap: 10px; margin-top: 12px; }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      flex: 1;
+    }
+    #submitBtn { background: var(--accent); color: #06102c; }
+    #nextBtn { background: #2a365f; color: var(--text); }
+    .feedback { min-height: 1.5em; margin-top: 10px; font-weight: 600; }
+    .ok { color: var(--ok); }
+    .bad { color: #ff8b8b; }
   </style>
 </head>
 <body>
   <main class="app">
-    <h1>角度追击者</h1>
-    <p class="sub">观察两条射线形成的角度，选择最接近的度数。10 题一局，越快越准分越高。</p>
+    <h1>📐 角度猎手</h1>
+    <p>观察目标角度，拖动红色射线来“瞄准”。10 题后给出总分，越接近目标分数越高。</p>
 
-    <section class="hud">
-      <div class="pill">题目<b id="round">1 / 10</b></div>
-      <div class="pill">分数<b id="score">0</b></div>
-      <div class="pill">连对<b id="streak">0</b></div>
-    </section>
+    <div class="row">
+      <div class="pill">题目：<span id="q">1</span>/10</div>
+      <div class="pill">得分：<span id="score">0</span></div>
+      <div class="pill">误差：<span id="error">-</span></div>
+    </div>
 
-    <section class="canvasWrap">
-      <canvas id="cv" width="700" height="360" aria-label="角度题目画布"></canvas>
-    </section>
+    <div class="target">目标角度：<span id="target">0</span>°</div>
+    <canvas id="board" width="800" height="800"></canvas>
 
-    <p class="q" id="question">这个角大约是多少度？</p>
-    <section class="opts" id="options"></section>
-    <div class="msg" id="msg"></div>
-    <div class="ctl"><button id="restart">重新开始</button></div>
+    <div class="actions">
+      <button id="submitBtn">提交本题</button>
+      <button id="nextBtn" disabled>下一题</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
   </main>
 
   <script>
-    const total = 10;
-    let round = 1, score = 0, streak = 0, lock = false;
-    let current = null;
+    const TOTAL = 10;
+    let idx = 1;
+    let score = 0;
+    let target = 30;
+    let angle = 45;
+    let locked = false;
 
-    const cv = document.getElementById('cv');
-    const ctx = cv.getContext('2d');
-    const $ = id => document.getElementById(id);
+    const canvas = document.getElementById('board');
+    const ctx = canvas.getContext('2d');
+    const elQ = document.getElementById('q');
+    const elScore = document.getElementById('score');
+    const elError = document.getElementById('error');
+    const elTarget = document.getElementById('target');
+    const feedback = document.getElementById('feedback');
+    const submitBtn = document.getElementById('submitBtn');
+    const nextBtn = document.getElementById('nextBtn');
 
-    function rInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
-    function uniq(arr){return [...new Set(arr)]}
-
-    function makeQuestion(){
-      const angle = [15,20,25,30,35,40,45,50,55,60,70,75,80,90,100,110,120,130,140,150,160,170][rInt(0,21)];
-      const base = rInt(10,350);
-      let opts = [angle, angle + rInt(-20,-8), angle + rInt(8,20), angle + (Math.random()>.5?30:-30)].map(v=>Math.max(5,Math.min(175,Math.round(v/5)*5)));
-      opts = uniq(opts);
-      while(opts.length < 4){
-        const c = Math.round(rInt(10,170)/5)*5;
-        if(!opts.includes(c)) opts.push(c);
-      }
-      opts = opts.sort(()=>Math.random()-.5);
-      return {angle, base, opts};
+    function randTarget() {
+      const candidates = [15, 20, 30, 35, 40, 45, 50, 60, 70, 75, 80, 90, 100, 110, 120, 135, 150, 160];
+      return candidates[Math.floor(Math.random() * candidates.length)];
     }
 
-    function drawRays(base,angle){
-      const w=cv.width,h=cv.height,cx=w/2,cy=h/2+20,len=Math.min(w,h)*0.35;
-      ctx.clearRect(0,0,w,h);
-
-      ctx.strokeStyle='rgba(148,163,184,.25)'; ctx.lineWidth=1;
-      for(let i=0;i<=w;i+=40){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,h);ctx.stroke()}
-      for(let j=0;j<=h;j+=40){ctx.beginPath();ctx.moveTo(0,j);ctx.lineTo(w,j);ctx.stroke()}
-
-      const a1 = base*Math.PI/180;
-      const a2 = (base+angle)*Math.PI/180;
-
-      const p = (a)=>({x:cx+len*Math.cos(a), y:cy-len*Math.sin(a)});
-      const p1=p(a1), p2=p(a2);
-
-      ctx.lineWidth=7; ctx.lineCap='round';
-      ctx.strokeStyle='#38bdf8';
-      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(p1.x,p1.y); ctx.stroke();
-      ctx.strokeStyle='#f59e0b';
-      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(p2.x,p2.y); ctx.stroke();
-
-      ctx.beginPath(); ctx.fillStyle='#f8fafc'; ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fill();
-
-      ctx.strokeStyle='rgba(56,189,248,.65)'; ctx.lineWidth=3;
-      const start=-a1, end=-(a1+angle*Math.PI/180);
-      ctx.beginPath(); ctx.arc(cx,cy,70,start,end,true); ctx.stroke();
-      ctx.fillStyle='#cbd5e1'; ctx.font='700 24px sans-serif';
-      ctx.fillText('?', cx+78*Math.cos((a1+a2)/2)-8, cy-78*Math.sin((a1+a2)/2)+8);
+    function norm(a) {
+      let n = a % 360;
+      if (n < 0) n += 360;
+      return n;
     }
 
-    function render(){
-      $('round').textContent = `${round} / ${total}`;
-      $('score').textContent = score;
-      $('streak').textContent = streak;
-      $('msg').textContent = '';
-      $('msg').className='msg';
-
-      current = makeQuestion();
-      drawRays(current.base,current.angle);
-
-      const box = $('options');
-      box.innerHTML = '';
-      current.opts.forEach(v=>{
-        const b=document.createElement('button');
-        b.textContent = `${v}°`;
-        b.onclick = ()=>choose(v,b);
-        box.appendChild(b);
-      });
+    function diff(a, b) {
+      const d = Math.abs(norm(a) - norm(b));
+      return Math.min(d, 360 - d);
     }
 
-    function choose(v,btn){
-      if(lock) return;
-      lock = true;
-      const buttons = [...document.querySelectorAll('#options button')];
-      const ok = v===current.angle;
-      if(ok){
-        streak += 1;
-        score += 100 + streak*15;
-        btn.classList.add('good');
-        $('msg').textContent = `答对！真实角度是 ${current.angle}°`;
-        $('msg').classList.add('ok');
-      } else {
-        streak = 0;
-        score = Math.max(0, score - 40);
-        btn.classList.add('bad');
-        buttons.find(x=>x.textContent===`${current.angle}°`)?.classList.add('good');
-        $('msg').textContent = `答错了，正确答案是 ${current.angle}°`;
-        $('msg').classList.add('badText');
+    function toAngle(x, y, cx, cy) {
+      const dx = x - cx;
+      const dy = cy - y;
+      let deg = Math.atan2(dy, dx) * 180 / Math.PI;
+      if (deg < 0) deg += 360;
+      return deg;
+    }
+
+    function draw() {
+      const w = canvas.width, h = canvas.height;
+      const cx = w / 2, cy = h / 2;
+      const r = w * 0.36;
+      ctx.clearRect(0, 0, w, h);
+
+      // Grid
+      ctx.strokeStyle = 'rgba(255,255,255,.08)';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 360; i += 15) {
+        const rad = i * Math.PI / 180;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(rad) * r, cy - Math.sin(rad) * r);
+        ctx.stroke();
       }
 
-      setTimeout(()=>{
-        round++;
-        if(round>total){
-          endGame();
-        } else {
-          lock=false;
-          render();
-        }
-      }, 850);
+      // Baseline (0°)
+      ctx.strokeStyle = '#9cb3ff';
+      ctx.lineWidth = 8;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + r, cy);
+      ctx.stroke();
+
+      // Player ray
+      const a = angle * Math.PI / 180;
+      ctx.strokeStyle = '#ff6b6b';
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(a) * r, cy - Math.sin(a) * r);
+      ctx.stroke();
+
+      // Arc hint after submit
+      if (locked) {
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(110,168,255,.9)';
+        ctx.lineWidth = 6;
+        ctx.arc(cx, cy, r * 0.55, -target * Math.PI/180, 0, false);
+        ctx.stroke();
+      }
+
+      // Center
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+      ctx.fill();
     }
 
-    function endGame(){
-      const box = $('options');
-      box.innerHTML = '';
-      const rank = score>=1300?'几何大师 🏆':score>=900?'角度高手 🎯':'继续练习 💪';
-      $('question').textContent = `本局完成！总分 ${score}，评价：${rank}`;
-      $('msg').textContent = '点击“重新开始”再来一局。';
-      $('msg').className='msg ok';
-      lock = true;
+    function setFromPointer(clientX, clientY) {
+      if (locked) return;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (clientX - rect.left) * scaleX;
+      const y = (clientY - rect.top) * scaleY;
+      angle = toAngle(x, y, canvas.width / 2, canvas.height / 2);
+      draw();
     }
 
-    $('restart').addEventListener('click',()=>{
-      round=1;score=0;streak=0;lock=false;
-      $('question').textContent='这个角大约是多少度？';
-      render();
+    canvas.addEventListener('pointerdown', e => setFromPointer(e.clientX, e.clientY));
+    canvas.addEventListener('pointermove', e => {
+      if (e.buttons) setFromPointer(e.clientX, e.clientY);
     });
 
-    render();
+    submitBtn.addEventListener('click', () => {
+      if (locked) return;
+      locked = true;
+      const err = diff(angle, target);
+      elError.textContent = err.toFixed(1) + '°';
+      const earned = Math.max(0, Math.round(100 - err * 3));
+      score += earned;
+      elScore.textContent = score;
+      feedback.className = 'feedback ' + (err <= 8 ? 'ok' : 'bad');
+      feedback.textContent = `你画的是 ${angle.toFixed(1)}°，本题 +${earned} 分`; 
+      submitBtn.disabled = true;
+      nextBtn.disabled = false;
+      draw();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (idx >= TOTAL) {
+        const avg = Math.round(score / TOTAL);
+        feedback.className = 'feedback ok';
+        feedback.textContent = `🎉 挑战完成！总分 ${score}，平均每题 ${avg} 分。点击“再来一局”重新开始。`;
+        nextBtn.textContent = '再来一局';
+        idx = 0;
+        score = 0;
+        elScore.textContent = '0';
+      }
+      idx++;
+      target = randTarget();
+      angle = Math.random() * 360;
+      locked = false;
+      elQ.textContent = idx;
+      elTarget.textContent = target;
+      elError.textContent = '-';
+      submitBtn.disabled = false;
+      nextBtn.disabled = true;
+      if (idx === 1) feedback.textContent = '新一局开始，拖动红线瞄准角度！';
+      else feedback.textContent = '';
+      draw();
+    });
+
+    // Init
+    target = randTarget();
+    elTarget.textContent = target;
+    draw();
   </script>
 </body>
 </html>
