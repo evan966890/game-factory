@@ -2,124 +2,248 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-  <title>周长小工匠</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>周长搭建师</title>
   <style>
-    :root{--bg:#f3f8ff;--card:#fff;--text:#1f2a44;--ok:#22a06b;--bad:#d03a3a;--main:#3d7bff}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
-    .wrap{max-width:680px;margin:0 auto;padding:16px}
-    .card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 10px 24px rgba(30,74,170,.08)}
-    h1{margin:4px 0 8px;font-size:1.45rem}
-    .sub{margin:0 0 10px;color:#5d6a86;font-size:.95rem}
-    .shape{display:grid;place-items:center;height:180px;border-radius:14px;background:linear-gradient(135deg,#eef4ff,#f7fbff);margin:10px 0 14px}
-    .board{position:relative;width:240px;height:140px}
-    .rect{position:absolute;left:0;top:0;right:0;bottom:0;border:4px solid #2d5ccc;border-radius:10px;background:rgba(61,123,255,.07)}
-    .lab{position:absolute;font-weight:700;background:#fff;border-radius:8px;padding:4px 8px;font-size:.95rem;box-shadow:0 4px 10px rgba(0,0,0,.08)}
-    .top{top:-16px;left:50%;transform:translateX(-50%)}
-    .left{left:-16px;top:50%;transform:translateY(-50%)}
-    .bottom{bottom:-16px;left:50%;transform:translateX(-50%)}
-    .right{right:-16px;top:50%;transform:translateY(-50%)}
-    .q{font-size:1.06rem;font-weight:700;margin-bottom:10px}
-    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    input{width:140px;padding:10px 12px;border:2px solid #d4ddef;border-radius:10px;font-size:1rem}
-    button{border:0;background:var(--main);color:#fff;border-radius:10px;padding:10px 14px;font-size:.95rem;font-weight:600}
-    button.ghost{background:#e8efff;color:#244ba9}
-    .msg{min-height:24px;margin-top:10px;font-weight:700}
-    .ok{color:var(--ok)} .bad{color:var(--bad)}
-    .stats{display:flex;justify-content:space-between;margin-top:14px;background:#f7faff;border-radius:10px;padding:10px}
+    :root {
+      --bg: #f3f7ff;
+      --card: #ffffff;
+      --ink: #15314b;
+      --brand: #3b82f6;
+      --ok: #16a34a;
+      --warn: #ef4444;
+      --muted: #6b7280;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #eaf2ff 0%, var(--bg) 100%);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 14px;
+    }
+    .app {
+      width: 100%;
+      max-width: 560px;
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(21, 49, 75, .12);
+      padding: 14px;
+    }
+    h1 { margin: 4px 0 10px; font-size: 1.35rem; }
+    .sub { color: var(--muted); margin: 0 0 12px; font-size: .95rem; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill {
+      background: #e8f0ff;
+      color: #1e40af;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 600;
+      font-size: .92rem;
+    }
+    .target {
+      margin-top: 12px;
+      border: 2px dashed #93c5fd;
+      border-radius: 14px;
+      padding: 12px;
+      background: #f8fbff;
+    }
+    .target strong { color: #1d4ed8; font-size: 1.15rem; }
+    .panel {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      background: #dbeafe;
+      color: #1e3a8a;
+      touch-action: manipulation;
+    }
+    button:active { transform: scale(.98); }
+    .controls {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .controls button:first-child { background: #bfdbfe; }
+    .controls button:last-child { background: #fecaca; color: #991b1b; }
+    .big {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      background: #f1f5f9;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      text-align: center;
+    }
+    .big b { display: block; font-size: 1.4rem; margin-top: 4px; }
+    .msg {
+      margin-top: 10px;
+      min-height: 26px;
+      font-weight: 700;
+    }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .footer {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: .88rem;
+    }
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <section class="card">
-      <h1>周长小工匠</h1>
-      <p class="sub">根据边长计算图形周长（单位：cm）。每答对 8 题完成一轮训练。</p>
-      <div class="shape">
-        <div class="board" aria-label="矩形示意图">
-          <div class="rect"></div>
-          <div class="lab top" id="topLen">0 cm</div>
-          <div class="lab left" id="leftLen">0 cm</div>
-          <div class="lab bottom" id="bottomLen">0 cm</div>
-          <div class="lab right" id="rightLen">0 cm</div>
-        </div>
-      </div>
-      <div class="q" id="question">这个图形的周长是？</div>
-      <div class="row">
-        <label for="answer">你的答案：</label>
-        <input id="answer" type="number" inputmode="numeric" placeholder="输入数字" />
-        <button id="checkBtn">提交</button>
-        <button class="ghost" id="skipBtn">换一题</button>
-      </div>
-      <div id="msg" class="msg"></div>
-      <div class="stats">
-        <div>题目：<strong id="progress">1 / 8</strong></div>
-        <div>得分：<strong id="score">0</strong></div>
-      </div>
+  <main class="app">
+    <h1>📏 周长搭建师</h1>
+    <p class="sub">用给定长度的小木条，拼出目标周长。每轮只有 20 秒，越快越准得分越高！</p>
+
+    <div class="row">
+      <span class="pill">第 <span id="round">1</span>/10 题</span>
+      <span class="pill">剩余时间 <span id="time">20</span>s</span>
+    </div>
+
+    <section class="target">
+      目标周长：<strong id="target">18</strong>
+      <div style="margin-top:6px;color:#475569;font-size:.92rem;">点击下方木条加总，凑到刚好相等即可提交。</div>
     </section>
+
+    <section class="panel" id="panel"></section>
+
+    <div class="controls">
+      <button id="submit">✅ 提交答案</button>
+      <button id="clear">↺ 清空当前</button>
+    </div>
+
+    <section class="big">
+      <div>当前总长<b id="sum">0</b></div>
+      <div>总得分<b id="score">0</b></div>
+    </section>
+
+    <div class="msg" id="msg"></div>
+    <p class="footer">规则：正好命中 +10 分；超出或不足 -3 分。连续命中有额外奖励。</p>
   </main>
 
   <script>
-    const topLen = document.getElementById('topLen');
-    const leftLen = document.getElementById('leftLen');
-    const bottomLen = document.getElementById('bottomLen');
-    const rightLen = document.getElementById('rightLen');
-    const answerInput = document.getElementById('answer');
-    const msg = document.getElementById('msg');
-    const scoreEl = document.getElementById('score');
-    const progressEl = document.getElementById('progress');
+    const $ = (id) => document.getElementById(id);
+    const targetEl = $('target');
+    const timeEl = $('time');
+    const roundEl = $('round');
+    const sumEl = $('sum');
+    const scoreEl = $('score');
+    const msgEl = $('msg');
+    const panel = $('panel');
 
-    let a=0,b=0,correct=0,score=0,total=8;
+    let round = 1;
+    const maxRounds = 10;
+    let target = 0;
+    let sum = 0;
+    let score = 0;
+    let timeLeft = 20;
+    let timer = null;
+    let streak = 0;
 
-    function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
-
-    function nextQuestion(){
-      a = rand(2,18); b = rand(2,14);
-      correct = 2*(a+b);
-      topLen.textContent = `${a} cm`;
-      bottomLen.textContent = `${a} cm`;
-      leftLen.textContent = `${b} cm`;
-      rightLen.textContent = `${b} cm`;
-      answerInput.value='';
-      answerInput.focus();
-      msg.textContent='';
-      msg.className='msg';
-      progressEl.textContent = `${Math.min(score+1,total)} / ${total}`;
+    function rand(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    function submit(){
-      const v = Number(answerInput.value);
-      if(!Number.isFinite(v)){
-        msg.textContent='先输入答案哦～'; msg.className='msg bad'; return;
+    function generateSticks() {
+      const sticks = [];
+      for (let i = 0; i < 6; i++) sticks.push(rand(1, 9));
+      const base = sticks[rand(0, 5)] + sticks[rand(0, 5)] + sticks[rand(0, 5)];
+      target = Math.min(28, Math.max(8, base + rand(-2, 3)));
+      targetEl.textContent = target;
+
+      panel.innerHTML = '';
+      sticks.forEach((v) => {
+        const btn = document.createElement('button');
+        btn.textContent = `+${v}`;
+        btn.addEventListener('click', () => {
+          sum += v;
+          sumEl.textContent = sum;
+        });
+        panel.appendChild(btn);
+      });
+    }
+
+    function showMsg(text, ok) {
+      msgEl.textContent = text;
+      msgEl.className = 'msg ' + (ok ? 'ok' : 'warn');
+    }
+
+    function nextRound() {
+      if (round > maxRounds) {
+        clearInterval(timer);
+        panel.innerHTML = '';
+        showMsg(`🎉 挑战完成！最终得分 ${score} 分。点击“清空当前”可重新开始。`, true);
+        $('submit').disabled = true;
+        return;
       }
-      if(v===correct){
-        score++;
-        msg.textContent=`✅ 正确！周长 = ${correct} cm`;
-        msg.className='msg ok';
-      }else{
-        msg.textContent=`❌ 再试试，正确答案是 ${correct} cm`;
-        msg.className='msg bad';
+      roundEl.textContent = round;
+      sum = 0;
+      timeLeft = 20;
+      sumEl.textContent = sum;
+      timeEl.textContent = timeLeft;
+      showMsg('', true);
+      generateSticks();
+    }
+
+    function judge(auto = false) {
+      let delta = 0;
+      if (sum === target) {
+        streak++;
+        delta = 10 + Math.min(5, streak - 1);
+        score += delta;
+        showMsg(`命中！+${delta} 分${streak > 1 ? `（连击 x${streak}）` : ''}`, true);
+      } else {
+        streak = 0;
+        delta = -3;
+        score += delta;
+        const reason = auto ? '超时未提交' : (sum > target ? '超出了目标' : '还没达到目标');
+        showMsg(`${reason}，${delta} 分`, false);
       }
+      score = Math.max(0, score);
       scoreEl.textContent = score;
-
-      if(score>=total){
-        progressEl.textContent = `${total} / ${total}`;
-        setTimeout(()=>{
-          alert(`恭喜通关！你在本轮答对 ${score} 题。继续挑战新一轮吧！`);
-          score = 0;
-          scoreEl.textContent = score;
-          nextQuestion();
-        }, 120);
-      }else{
-        setTimeout(nextQuestion, 420);
-      }
+      round++;
+      setTimeout(nextRound, 800);
     }
 
-    document.getElementById('checkBtn').addEventListener('click', submit);
-    document.getElementById('skipBtn').addEventListener('click', nextQuestion);
-    answerInput.addEventListener('keydown', e => { if(e.key==='Enter') submit(); });
+    function restart() {
+      round = 1;
+      score = 0;
+      streak = 0;
+      scoreEl.textContent = score;
+      $('submit').disabled = false;
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        if (timeLeft <= 0) judge(true);
+      }, 1000);
+      nextRound();
+    }
 
-    nextQuestion();
+    $('submit').addEventListener('click', () => judge(false));
+    $('clear').addEventListener('click', () => {
+      if (round > maxRounds) {
+        restart();
+      } else {
+        sum = 0;
+        sumEl.textContent = sum;
+      }
+    });
+
+    restart();
   </script>
 </body>
 </html>

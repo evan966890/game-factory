@@ -528,5 +528,11 @@
     "path": "games/decimal-percent-converter/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T12:39:09.223148+08:00"
+  },
+  {
+    "name": "周长搭建师",
+    "path": "games/perimeter-builder/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T04:59:17Z"
   }
 ]
