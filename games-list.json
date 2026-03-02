@@ -636,5 +636,11 @@
     "path": "games/fraction-compare-duel/index.html",
     "category": "education",
     "createdAt": "2026-03-02T10:39:32Z"
+  },
+  {
+    "name": "小数冲刺",
+    "path": "games/decimal-dash/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T10:59:43Z"
   }
 ]
