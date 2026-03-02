@@ -678,5 +678,11 @@
     "path": "games/time-conversion-station/index.html",
     "category": "education",
     "createdAt": "2026-03-02T13:20:32Z"
+  },
+  {
+    "name": "食物网平衡守护者",
+    "path": "games/food-web-balance/index.html",
+    "category": "科学",
+    "createdAt": "2026-03-02T21:42:12.279201+08:00"
   }
 ]

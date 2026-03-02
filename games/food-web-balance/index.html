@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>食物网平衡守护者</title>
+  <style>
+    :root{--bg:#eef9f1;--card:#fff;--text:#183325;--accent:#2f9e62;--ok:#157347;--bad:#c92a2a}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft Yahei",sans-serif;background:linear-gradient(180deg,#e8f7ee,#f6fcf8);color:var(--text)}
+    .wrap{max-width:780px;margin:0 auto;padding:16px}
+    .card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 10px 24px rgba(21,80,48,.12)}
+    h1{margin:0 0 8px;font-size:clamp(24px,5vw,34px)}
+    .sub{margin:0 0 14px;color:#3f5f4d}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+    .pill{background:#e7f7ee;border-radius:12px;padding:10px;text-align:center;font-weight:700}
+    .scene{padding:14px;border:2px dashed #bfe7cf;border-radius:12px;background:#f8fdf9;margin-bottom:12px;line-height:1.6;font-size:18px;min-height:110px}
+    .q{font-weight:800;font-size:22px;margin-bottom:8px}
+    .opts{display:grid;grid-template-columns:1fr;gap:8px}
+    button{border:0;border-radius:12px;padding:12px 14px;font-size:17px;font-weight:700;background:#dff4e8;color:#165c37}
+    button.primary{background:var(--accent);color:#fff}
+    button:active{transform:scale(.985)}
+    .msg{min-height:24px;margin-top:10px;font-weight:700}
+    .ok{color:var(--ok)} .bad{color:var(--bad)}
+    .actions{display:flex;gap:8px;margin-top:12px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>食物网平衡守护者</h1>
+      <p class="sub">你是生态观察员。45 秒内判断哪种变化最可能让生态系统更稳定。</p>
+      <div class="stats">
+        <div class="pill">⏱ 剩余：<span id="time">45</span>s</div>
+        <div class="pill">🎯 分数：<span id="score">0</span></div>
+        <div class="pill">📚 题目：<span id="idx">0</span></div>
+      </div>
+      <div class="scene">
+        <div class="q" id="q">点击开始</div>
+        <div id="desc"></div>
+      </div>
+      <div class="opts" id="opts"></div>
+      <div class="msg" id="msg"></div>
+      <div class="actions">
+        <button class="primary" id="start">开始守护</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const bank = [
+      {
+        q:'草原上兔子数量骤降，最优先的修复措施是？',
+        desc:'已知：狼主要吃兔子，草被兔子啃食。',
+        options:['大量减少草地面积','恢复兔子栖息地并减少偷猎','引入更多狼','喷洒杀虫剂'],
+        answer:1,
+        explain:'先恢复初级消费者（兔子）数量，能逐步稳定狼和草地的关系。'
+      },
+      {
+        q:'湖里藻类暴增导致缺氧，哪种做法更有助于长期平衡？',
+        desc:'已知：农田肥料流入湖泊是主因。',
+        options:['继续加肥提高产量','建设缓冲带减少氮磷流失','大量投放外来鱼','把湖水全部抽干'],
+        answer:1,
+        explain:'控制营养盐输入是治本策略，可缓解富营养化。'
+      },
+      {
+        q:'某岛蛇类几乎消失，老鼠激增，首选措施是？',
+        desc:'已知：老鼠会偷食鸟蛋，鸟类数量下降。',
+        options:['恢复本地蛇类栖息地并保护种群','继续捕鸟','引入猫科外来物种','砍伐更多林地'],
+        answer:0,
+        explain:'恢复本地捕食者比引入外来物种更安全、可持续。'
+      },
+      {
+        q:'蜜蜂数量下降影响果树结果，最合理的做法是？',
+        desc:'已知：附近农田长期高频使用高毒农药。',
+        options:['改种单一作物','建立花带并减少高毒农药','清除所有野花','夜间强光照田'],
+        answer:1,
+        explain:'保护传粉者并提升栖息地多样性，能改善授粉网络。'
+      },
+      {
+        q:'红树林被破坏后幼鱼减少，最有效的修复方向是？',
+        desc:'已知：红树林是幼鱼育幼场。',
+        options:['增加海岸硬质围堤','红树林复育+限制近岸污染','扩大拖网捕捞','填海造地'],
+        answer:1,
+        explain:'恢复关键栖息地可直接提升幼鱼存活率。'
+      }
+    ];
+
+    const els = {
+      time:document.getElementById('time'), score:document.getElementById('score'), idx:document.getElementById('idx'),
+      q:document.getElementById('q'), desc:document.getElementById('desc'), opts:document.getElementById('opts'),
+      msg:document.getElementById('msg'), start:document.getElementById('start')
+    };
+
+    let s = {running:false,time:45,score:0,idx:0,order:[],timer:null};
+    const shuffle = arr => arr.map(v=>({v,r:Math.random()})).sort((a,b)=>a.r-b.r).map(x=>x.v);
+    const say = (t,cls='')=>{els.msg.textContent=t;els.msg.className='msg '+cls};
+    const paint = ()=>{els.time.textContent=s.time;els.score.textContent=s.score;els.idx.textContent=s.idx};
+
+    function next(){
+      if(!s.running) return;
+      if(s.order.length===0) s.order = shuffle([...bank.keys()]);
+      const item = bank[s.order.pop()];
+      s.current = item;
+      s.idx++; paint();
+      els.q.textContent = item.q;
+      els.desc.textContent = item.desc;
+      els.opts.innerHTML = '';
+      item.options.forEach((op,i)=>{
+        const b = document.createElement('button');
+        b.textContent = `${String.fromCharCode(65+i)}. ${op}`;
+        b.onclick = ()=>judge(i);
+        els.opts.appendChild(b);
+      });
+    }
+
+    function judge(choice){
+      if(!s.running) return;
+      const right = choice===s.current.answer;
+      if(right){
+        s.score += 12;
+        say('判断正确！'+s.current.explain,'ok');
+      }else{
+        s.score = Math.max(0,s.score-5);
+        s.time = Math.max(0,s.time-3);
+        say('再想想：'+s.current.explain+'（-3秒）','bad');
+      }
+      paint();
+      if(s.time<=0) return end();
+      setTimeout(next,650);
+    }
+
+    function end(){
+      s.running=false; clearInterval(s.timer);
+      els.q.textContent = `守护结束！得分 ${s.score}`;
+      els.desc.textContent = s.score>=60 ? '生态平衡大师！' : '再来一局，继续提升判断力！';
+      els.opts.innerHTML='';
+      say('你可以再次开始，挑战更高分。', 'ok');
+      els.start.textContent='再来一局';
+    }
+
+    function start(){
+      s={running:true,time:45,score:0,idx:0,order:shuffle([...bank.keys()]),timer:null,current:null};
+      paint(); say(''); els.start.textContent='进行中'; next();
+      s.timer=setInterval(()=>{s.time--; paint(); if(s.time<=0) end();},1000);
+    }
+
+    els.start.addEventListener('click',()=>{if(!s.running) start();});
+    paint();
+  </script>
+</body>
+</html>
