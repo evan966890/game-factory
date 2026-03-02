@@ -648,5 +648,11 @@
     "path": "games/linear-equation-sprint/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T11:19:32Z"
+  },
+  {
+    "name": "角度快跑",
+    "path": "games/angle-runner/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T11:39:32.894832Z"
   }
 ]

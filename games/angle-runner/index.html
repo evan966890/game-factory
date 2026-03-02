@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>角度快跑</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--accent:#22d3ee;--ok:#22c55e;--bad:#ef4444;--text:#e5e7eb}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#0b1024,#111827);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:14px}
+    .app{width:min(720px,100%);background:rgba(17,24,39,.95);border:1px solid #1f2937;border-radius:16px;padding:16px;box-shadow:0 18px 40px rgba(0,0,0,.35)}
+    h1{margin:0 0 6px;font-size:clamp(24px,5vw,34px)}
+    .sub{opacity:.85;margin:0 0 12px;font-size:14px}
+    .hud{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+    .box{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:10px;text-align:center}
+    .k{font-size:12px;opacity:.7}.v{font-size:22px;font-weight:700}
+    .q{font-size:clamp(26px,7vw,44px);text-align:center;margin:10px 0 14px;font-weight:800}
+    .opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    button{appearance:none;border:1px solid #334155;background:#111827;color:#e5e7eb;border-radius:12px;padding:12px;font-size:20px;font-weight:700;min-height:56px;touch-action:manipulation}
+    button:active{transform:scale(.98)}
+    .ok{background:rgba(34,197,94,.18);border-color:var(--ok)}
+    .bad{background:rgba(239,68,68,.18);border-color:var(--bad)}
+    .ctl{display:flex;gap:8px;justify-content:center;margin-top:14px}
+    .primary{background:linear-gradient(135deg,#06b6d4,#3b82f6);border:none}
+    .msg{min-height:24px;text-align:center;margin-top:8px}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>角度快跑</h1>
+    <p class="sub">60 秒内快速判断三角形缺失角度，练习角度和与补角思维。</p>
+    <section class="hud">
+      <div class="box"><div class="k">剩余时间</div><div id="time" class="v">60</div></div>
+      <div class="box"><div class="k">得分</div><div id="score" class="v">0</div></div>
+      <div class="box"><div class="k">题目数</div><div id="count" class="v">0</div></div>
+    </section>
+    <div id="question" class="q">点击开始</div>
+    <div id="options" class="opts"></div>
+    <div id="msg" class="msg"></div>
+    <div class="ctl">
+      <button id="start" class="primary">开始游戏</button>
+      <button id="reset">重置</button>
+    </div>
+  </main>
+  <script>
+    const $ = s => document.querySelector(s);
+    const timeEl = $('#time'), scoreEl = $('#score'), countEl = $('#count');
+    const qEl = $('#question'), optsEl = $('#options'), msgEl = $('#msg');
+    let timer = null, time = 60, score = 0, count = 0, running = false, answer = 0;
+
+    function rInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+    function uniqueOptions(ans){
+      const set = new Set([ans]);
+      while(set.size<4){
+        const d = rInt(-25,25);
+        const v = ans + d;
+        if(v>0 && v<180) set.add(v);
+      }
+      return [...set].sort(()=>Math.random()-0.5);
+    }
+
+    function nextQuestion(){
+      const a = rInt(20,100);
+      const b = rInt(20,120-a);
+      answer = 180 - a - b;
+      count++; countEl.textContent = count;
+      qEl.textContent = `∠A=${a}°，∠B=${b}°，∠C=？`;
+      renderOptions(uniqueOptions(answer));
+    }
+
+    function renderOptions(arr){
+      optsEl.innerHTML='';
+      arr.forEach(v=>{
+        const btn=document.createElement('button');
+        btn.textContent=v+'°';
+        btn.onclick=()=>pick(v,btn);
+        optsEl.appendChild(btn);
+      });
+    }
+
+    function pick(v,btn){
+      if(!running) return;
+      const correct = v===answer;
+      btn.classList.add(correct?'ok':'bad');
+      if(correct){ score += 10; msgEl.textContent='✅ 正确！'; }
+      else { score = Math.max(0, score-5); msgEl.textContent=`❌ 正确答案是 ${answer}°`; }
+      scoreEl.textContent = score;
+      running = false;
+      setTimeout(()=>{ if(time>0){ running=true; nextQuestion(); msgEl.textContent=''; } }, 450);
+    }
+
+    function tick(){
+      time--; timeEl.textContent = time;
+      if(time<=0){
+        clearInterval(timer); timer=null; running=false;
+        qEl.textContent=`时间到！总分 ${score}`;
+        msgEl.textContent='再来一局，刷新反应速度。';
+        optsEl.innerHTML='';
+      }
+    }
+
+    function start(){
+      if(timer) return;
+      time=60; score=0; count=0;
+      timeEl.textContent=time; scoreEl.textContent=score; countEl.textContent=count;
+      msgEl.textContent='';
+      running=true; nextQuestion();
+      timer=setInterval(tick,1000);
+    }
+
+    function reset(){
+      clearInterval(timer); timer=null; running=false;
+      time=60; score=0; count=0;
+      timeEl.textContent=time; scoreEl.textContent=score; countEl.textContent=count;
+      qEl.textContent='点击开始'; optsEl.innerHTML=''; msgEl.textContent='';
+    }
+
+    $('#start').onclick=start; $('#reset').onclick=reset;
+  </script>
+</body>
+</html>
