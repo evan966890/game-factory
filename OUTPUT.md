@@ -1,0 +1,11 @@
+Config warnings:
+- plugins.entries.zhipu-vision: plugin disabled (not in allowlist) but config is present
+
+[plugins] feishu_doc: Registered feishu_doc, feishu_app_scopes
+[plugins] feishu_wiki: Registered feishu_wiki tool
+[plugins] feishu_drive: Registered feishu_drive tool
+[plugins] feishu_bitable: Registered bitable tools
+
+[info]: [ 'client ready' ]
+
+✅ Sent via Feishu. Message ID: om_x100b5569913a18a0c2d116f71ca8013 (chat ou_9d9a523c28e69a78bea45df93bdfa734)

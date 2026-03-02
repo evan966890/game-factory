@@ -5,9 +5,9 @@ created: '2026-03-03'
 status: 'ready-for-dev'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['HTML', 'CSS', 'JavaScript']
-files_to_modify: ['game-factory/games/math-miner-tycoon/index.html', 'game-factory/games-list.json', 'game-factory/CHANGELOG.md']
-code_patterns: ['单文件 HTML 游戏', '内联 CSS 和 JS', 'localStorage 保存进度', '响应式设计']
-test_patterns: ['手动浏览器测试', '移动端测试']
+files_to_modify: ['game-factory/games/math-miner-tycoon/index.html']
+code_patterns: ['单HTML文件包含内联CSS和JS', '纯前端实现，无框架依赖', '使用localStorage保存进度']
+test_patterns: ['手动测试', '浏览器开发者工具调试']
 ---
 
 # Tech-Spec: 数学矿工大亨
@@ -18,141 +18,167 @@ test_patterns: ['手动浏览器测试', '移动端测试']
 
 ### Problem Statement
 
-如何将 idle/incremental 游戏机制与数学教育融合，创造上瘾的学习体验？传统教育游戏往往枯燥乏味，缺乏重玩性。需要设计一个既能吸引玩家持续游玩，又能自然融入数学练习的游戏。
+需要创建一个结合idle/incremental游戏机制和数学教育的游戏，让玩家在享受数字增长快感的同时学习数学知识。
 
 ### Solution
 
-创建一个点击挖矿游戏，玩家通过点击挖矿获得金币，用金币购买升级和自动化。每10次点击弹出一道数学题，答对获得奖励倍率，答错则无奖励。游戏难度随进度递进：加法 → 减法 → 乘法 → 除法。实现教育与娱乐的结合，让玩家在享受 idle 游戏成长感的同时练习数学。
+《数学矿工大亨》是一款点击挖矿游戏，玩家通过点击获得金币，用金币购买升级提高产出。每10次点击弹出一道数学题，答对获得奖励倍率，答错无惩罚。游戏包含加法、减法、乘法、除法难度递进，以及自动化矿工机器人实现离线收益。
 
 ### Scope
 
 **In Scope:**
-- 核心循环：点击挖矿 → 获得金币 → 购买升级 → 解锁自动化
-- 数学题系统：每10次点击弹出数学题，答对获得奖励倍率
-- 难度递进：加法 → 减法 → 乘法 → 除法，随进度解锁
-- 升级系统：提高点击产出、自动化产出、奖励倍率
-- 成就系统：累计答对100题、挖到10000金币等成就
-- 离线收益：购买"矿工机器人"实现离线收益
-- 移动端友好：单指操作，响应式设计
+1. 核心点击挖矿循环
+2. 数学题弹出系统（每10次点击）
+3. 难度递进（加法→减法→乘法→除法）
+4. 升级系统（提高点击产出、自动化矿工）
+5. 成就系统（累计答对100题、挖到10000金币等）
+6. 本地存储保存进度
+7. 移动端响应式设计
 
 **Out of Scope:**
-- 复杂图形和3D效果
-- 多人游戏和社交功能
-- 后端服务器和数据库
-- 复杂的音效系统
-- 多语言支持
+1. 复杂图形素材（使用纯CSS绘制）
+2. 音效系统
+3. 多人在线功能
+4. 复杂动画效果
 
 ## Context for Development
 
 ### Codebase Patterns
 
-游戏工厂现有游戏采用纯 HTML/CSS/JS 技术栈，无框架依赖。每个游戏是一个独立的目录，包含一个 index.html 文件，内联 CSS 和 JavaScript。游戏注册到 games-list.json，通过 GitHub Pages 部署。所有游戏逻辑、样式和脚本都整合在单个 HTML 文件中，确保离线可用和部署简便。
+游戏工厂项目结构：
+- 每个游戏在独立目录：`game-factory/games/{游戏名}/`
+- 实际模式：单个HTML文件包含内联CSS和JS（如`addition-practice/index.html`）
+- 注册到 `game-factory/games-list.json`
+- 使用纯HTML/CSS/JS，无框架依赖
+- 移动端优先，响应式设计
+- 离线可用，无外部资源依赖
 
 ### Files to Reference
 
 | File | Purpose |
 | ---- | ------- |
 | game-factory/games-list.json | 游戏注册表 |
-| game-factory/CHANGELOG.md | 变更日志 |
-| game-factory/_bmad-output/ | 设计文档输出目录 |
+| game-factory/games/addition-practice/index.html | 参考实现模式 |
+| game-factory/_bmad-output/ | BMAD输出目录 |
 
 ### Technical Decisions
 
-1. **纯前端实现**：使用 HTML/CSS/JS，无框架依赖，确保离线可用
-2. **本地存储**：使用 localStorage 保存游戏进度和最高分
-3. **响应式设计**：移动端优先，适配不同屏幕尺寸
-4. **CSS 动画**：使用 CSS 动画实现视觉反馈，无需复杂图形库
-5. **数学题生成**：使用 JavaScript 随机生成数学题，难度随进度递进
+1. **单HTML文件模式**：将CSS和JS内联在HTML中，便于部署和维护
+2. **纯前端实现**：无需后端，所有数据存储在localStorage
+3. **CSS绘制图形**：使用CSS形状和渐变绘制矿工、金币等元素
+4. **数学题生成**：JavaScript随机生成题目，根据难度调整数字范围
+5. **响应式设计**：使用viewport单位和flexbox布局，确保移动端友好
+6. **性能优化**：使用requestAnimationFrame处理动画，避免频繁DOM操作
+7. **游戏平衡**：数学题难度适中，升级价格合理，保持游戏节奏
 
 ## Implementation Plan
 
 ### Tasks
 
-- [ ] Task 1: 创建游戏目录结构
-  - File: `game-factory/games/math-miner-tycoon/`
-  - Action: 创建目录并准备 index.html 文件
-  - Notes: 确保目录结构符合游戏工厂规范
-
-- [ ] Task 2: 实现 HTML 结构
+- [ ] Task 1: 创建游戏目录和HTML文件
   - File: `game-factory/games/math-miner-tycoon/index.html`
-  - Action: 创建游戏界面、数学题弹窗、升级面板、成就面板的 HTML 结构
-  - Notes: 使用语义化标签，确保移动端友好
+  - Action: 创建单HTML文件，包含DOCTYPE、head、body结构
+  - Notes: 使用viewport meta标签确保移动端友好
 
-- [ ] Task 3: 实现 CSS 样式
+- [ ] Task 2: 实现HTML骨架结构
   - File: `game-factory/games/math-miner-tycoon/index.html`
-  - Action: 添加内联 CSS，实现响应式设计、动画效果、视觉反馈
-  - Notes: 使用 CSS 变量便于主题调整，确保 60fps 动画
+  - Action: 添加游戏容器、矿工区域、金币显示、升级面板、成就面板、数学题弹窗
+  - Notes: 使用语义化HTML标签，确保可访问性
 
-- [ ] Task 4: 实现 JavaScript 核心循环
+- [ ] Task 3: 实现CSS样式
   - File: `game-factory/games/math-miner-tycoon/index.html`
-  - Action: 实现点击挖矿、金币获取、升级购买逻辑
-  - Notes: 确保操作响应灵敏，视觉反馈明确
+  - Action: 添加内联CSS，实现响应式布局、矿工和金币图形、动画效果
+  - Notes: 使用CSS变量便于主题调整，使用flexbox/grid布局
 
-- [ ] Task 5: 实现数学题系统
+- [ ] Task 4: 实现JavaScript核心逻辑 - 游戏状态管理
   - File: `game-factory/games/math-miner-tycoon/index.html`
-  - Action: 实现每10次点击弹出数学题，题目生成、答案验证、奖励倍率
-  - Notes: 难度随进度递进：加法 → 减法 → 乘法 → 除法
+  - Action: 添加游戏状态对象（金币、点击次数、升级等级、成就等）
+  - Notes: 使用localStorage保存和加载状态
 
-- [ ] Task 6: 实现自动化系统
+- [ ] Task 5: 实现JavaScript核心逻辑 - 点击挖矿系统
   - File: `game-factory/games/math-miner-tycoon/index.html`
-  - Action: 实现矿工机器人、离线收益计算
-  - Notes: 使用 localStorage 保存离线收益时间戳
+  - Action: 添加矿工点击事件，计算金币产出，更新显示
+  - Notes: 使用requestAnimationFrame优化动画性能
 
-- [ ] Task 7: 实现成就系统
+- [ ] Task 6: 实现JavaScript核心逻辑 - 数学题系统
   - File: `game-factory/games/math-miner-tycoon/index.html`
-  - Action: 实现成就检测、解锁提示、成就面板显示
-  - Notes: 成就包括累计答对100题、挖到10000金币等
+  - Action: 实现数学题生成（加减乘除）、弹窗显示、答案验证、奖励计算
+  - Notes: 根据游戏进度调整题目难度
 
-- [ ] Task 8: 实现本地存储
+- [ ] Task 7: 实现JavaScript核心逻辑 - 升级系统
   - File: `game-factory/games/math-miner-tycoon/index.html`
-  - Action: 实现游戏进度保存和加载功能
-  - Notes: 保存金币、升级、成就、离线收益时间戳
+  - Action: 实现升级购买逻辑（点击产出、自动化矿工），更新价格和效果
+  - Notes: 升级价格指数增长，保持游戏平衡
 
-- [ ] Task 9: 测试游戏功能
+- [ ] Task 8: 实现JavaScript核心逻辑 - 成就系统
   - File: `game-factory/games/math-miner-tycoon/index.html`
-  - Action: 手动测试所有功能，确保符合验收标准
-  - Notes: 在浏览器和移动设备上测试
+  - Action: 实现成就检测和解锁，显示成就进度
+  - Notes: 成就提供长期目标，增加重玩性
 
-- [ ] Task 10: 注册到 games-list.json
+- [ ] Task 9: 测试和调试
+  - File: `game-factory/games/math-miner-tycoon/index.html`
+  - Action: 手动测试所有功能，修复bug，优化性能
+  - Notes: 测试移动端响应式布局
+
+- [ ] Task 10: 注册到游戏列表
   - File: `game-factory/games-list.json`
-  - Action: 添加游戏条目，包含名称、描述、链接、图标
-  - Notes: 确保链接格式正确：`games/math-miner-tycoon/`
-
-- [ ] Task 11: 更新 CHANGELOG.md
-  - File: `game-factory/CHANGELOG.md`
-  - Action: 使用 bash 追加变更记录
-  - Notes: 格式：`- 2026-03-03: 完成《数学矿工大亨》— 点击挖矿+数学题 idle 游戏`
+  - Action: 添加新游戏条目，包含名称、描述、路径
+  - Notes: 确保JSON格式正确
 
 ### Acceptance Criteria
 
-- [ ] AC 1: Given 游戏已加载，当玩家点击挖矿按钮时，金币数量增加
-- [ ] AC 2: Given 玩家已点击10次，当第10次点击完成时，数学题弹窗出现
-- [ ] AC 3: Given 数学题弹窗出现，当玩家输入正确答案并提交时，获得奖励倍率
-- [ ] AC 4: Given 数学题弹窗出现，当玩家输入错误答案并提交时，无奖励倍率
-- [ ] AC 5: Given 玩家拥有足够金币，当玩家点击升级按钮时，金币扣除，升级生效
-- [ ] AC 6: Given 升级已购买，当玩家点击挖矿时，产出提高
-- [ ] AC 7: Given 玩家进度达到一定阶段，当数学题弹出时，难度递进（加法→减法→乘法→除法）
-- [ ] AC 8: Given 成就条件满足，当条件达成时，成就解锁提示出现
-- [ ] AC 9: Given 游戏进度已保存，当玩家重新加载游戏时，进度恢复
-- [ ] AC 10: Given 游戏在移动设备上运行，当玩家操作时，响应式设计正常工作
-- [ ] AC 11: Given 游戏离线运行，当玩家操作时，功能正常（除可能的外部资源）
+- [ ] AC 1: Given 游戏加载完成, when 点击矿工, then 金币数量增加并实时更新显示
+- [ ] AC 2: Given 点击次数达到10次, when 触发数学题, then 弹出数学题弹窗
+- [ ] AC 3: Given 数学题弹出, when 输入正确答案, then 获得2倍金币奖励并关闭弹窗
+- [ ] AC 4: Given 数学题弹出, when 输入错误答案, then 无惩罚并关闭弹窗
+- [ ] AC 5: Given 游戏进度推进, when 数学题难度递进, then 题目类型从加法变为减法、乘法、除法
+- [ ] AC 6: Given 金币足够, when 购买点击产出升级, then 点击产出增加
+- [ ] AC 7: Given 金币足够, when 购买矿工机器人, then 实现自动化产出
+- [ ] AC 8: Given 达成成就条件, when 检测成就, then 解锁成就并显示通知
+- [ ] AC 9: Given 游戏进行中, when 刷新页面, then 游戏进度从localStorage恢复
+- [ ] AC 10: Given 移动端访问, when 操作游戏, then 所有功能正常工作
 
 ## Additional Context
 
 ### Dependencies
 
-无外部依赖，纯 HTML/CSS/JS 实现。
+- 无外部依赖，纯HTML/CSS/JS实现
+- 使用localStorage API（现代浏览器支持）
+- 使用requestAnimationFrame API（现代浏览器支持）
 
 ### Testing Strategy
 
-1. 手动测试：在浏览器中测试所有功能
-2. 移动端测试：在移动设备上测试响应式设计和操作
-3. 离线测试：断网情况下测试游戏功能
-4. 进度保存测试：测试游戏进度保存和加载
+1. **手动测试**：
+   - 测试点击挖矿功能
+   - 测试数学题弹出和验证
+   - 测试升级购买和效果
+   - 测试成就解锁
+   - 测试本地存储保存和加载
+
+2. **浏览器测试**：
+   - Chrome开发者工具调试
+   - 移动端模拟器测试
+   - 不同屏幕尺寸测试
+
+3. **性能测试**：
+   - 检查动画流畅度
+   - 检查内存使用
+   - 检查localStorage大小
 
 ### Notes
 
-- 游戏需要具有上瘾性，让玩家想玩第二局
-- 数学题难度要适中，不能太简单也不能太难
-- 视觉反馈要明确，让玩家清楚知道自己的操作结果
-- 游戏节奏要由慢到快，有心流体验
+- **高风险项**：
+  - 数学题难度平衡：题目不能太难影响游戏体验
+  - 升级价格平衡：价格指数增长需要合理设计
+  - 移动端兼容性：确保触摸事件正常工作
+
+- **已知限制**：
+  - 无音效系统（纯视觉反馈）
+  - 无复杂动画（CSS动画为主）
+  - 无多人在线功能
+
+- **未来考虑**：
+  - 可添加更多数学题类型（分数、百分比）
+  - 可添加更多升级类型
+  - 可添加成就奖励系统
+  - 可添加主题切换功能
