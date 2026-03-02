@@ -624,5 +624,11 @@
     "path": "games/angle-match-challenge/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T09:59:36.000003Z"
+  },
+  {
+    "name": "速度路程时间冲刺",
+    "path": "games/speed-distance-time-race/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T10:19:39Z"
   }
 ]

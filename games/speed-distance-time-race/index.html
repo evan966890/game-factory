@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>速度路程时间冲刺</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--text:#e5e7eb;--accent:#22d3ee;--ok:#22c55e;--bad:#f97316}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Noto Sans CJK SC",sans-serif;background:linear-gradient(180deg,#0b1020,#111827);color:var(--text)}
+    .wrap{max-width:860px;margin:0 auto;padding:16px}
+    .card{background:rgba(17,24,39,.92);border:1px solid #263041;border-radius:16px;padding:16px;margin-bottom:12px}
+    h1{margin:0 0 8px;font-size:1.45rem}
+    p{margin:8px 0;color:#cbd5e1}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .pill{padding:6px 10px;border-radius:999px;background:#0b1220;border:1px solid #334155;font-weight:700}
+    .qbox{font-size:1.15rem;font-weight:700;color:#fef3c7;line-height:1.5}
+    input[type="number"]{width:140px;padding:10px;border-radius:10px;border:1px solid #475569;background:#0b1220;color:#e2e8f0;font-size:1rem}
+    button{border:0;border-radius:12px;padding:10px 14px;font-weight:800;background:var(--accent);color:#083344}
+    button.secondary{background:#334155;color:#e2e8f0}
+    button:active{transform:scale(.98)}
+    .feedback{min-height:1.4em;font-weight:700}
+    .ok{color:var(--ok)} .bad{color:var(--bad)}
+    .progress{height:10px;background:#0b1220;border:1px solid #334155;border-radius:999px;overflow:hidden}
+    .bar{height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#22c55e);transition:width .25s}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(90px,1fr));gap:8px}
+    .stat{background:#0b1220;border:1px solid #273449;border-radius:12px;padding:10px;text-align:center}
+    .stat .n{font-size:1.2rem;font-weight:800}
+    @media (max-width:640px){.grid{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>🏁 速度路程时间冲刺</h1>
+      <p>10 题限时训练，熟练掌握「路程=速度×时间」和相关变形公式。</p>
+      <div class="row">
+        <span class="pill">题号：<span id="index">1</span>/10</span>
+        <span class="pill">剩余时间：<span id="time">90</span>s</span>
+        <span class="pill">连对：<span id="streak">0</span></span>
+      </div>
+      <div class="progress" style="margin-top:10px"><div id="bar" class="bar"></div></div>
+    </section>
+
+    <section class="card">
+      <div id="question" class="qbox">准备开始…</div>
+      <div class="row" style="margin-top:12px">
+        <label for="answer">你的答案：</label>
+        <input id="answer" type="number" step="0.1" inputmode="decimal" placeholder="输入数字" />
+        <button id="submitBtn">提交</button>
+        <button id="nextBtn" class="secondary" disabled>下一题</button>
+      </div>
+      <div id="feedback" class="feedback" style="margin-top:10px"></div>
+    </section>
+
+    <section class="card">
+      <div class="grid">
+        <div class="stat"><div>得分</div><div class="n" id="score">0</div></div>
+        <div class="stat"><div>答对</div><div class="n" id="correct">0</div></div>
+        <div class="stat"><div>准确率</div><div class="n" id="acc">0%</div></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button id="restartBtn" class="secondary">重新开始</button>
+      </div>
+    </section>
+  </main>
+
+<script>
+(() => {
+  const total = 10;
+  const qEl = document.getElementById('question');
+  const answerEl = document.getElementById('answer');
+  const feedbackEl = document.getElementById('feedback');
+  const idxEl = document.getElementById('index');
+  const timeEl = document.getElementById('time');
+  const streakEl = document.getElementById('streak');
+  const barEl = document.getElementById('bar');
+  const scoreEl = document.getElementById('score');
+  const correctEl = document.getElementById('correct');
+  const accEl = document.getElementById('acc');
+  const submitBtn = document.getElementById('submitBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const restartBtn = document.getElementById('restartBtn');
+
+  let i = 0, score = 0, correct = 0, streak = 0, left = 90, timer = null, locked = false;
+  let current = null;
+
+  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function round1(x){ return Math.round(x*10)/10; }
+
+  function makeQuestion(){
+    const type = randInt(1,3);
+    if(type===1){
+      const speed = randInt(20,110);
+      const time = randInt(1,5);
+      return { text:`一辆车速度 ${speed} 千米/时，行驶 ${time} 小时，路程是多少千米？`, ans:speed*time };
+    }
+    if(type===2){
+      const speed = randInt(30,100);
+      const distance = speed * randInt(2,8);
+      return { text:`高铁以 ${speed} 千米/时行驶，路程 ${distance} 千米，需要多少小时？`, ans:round1(distance/speed) };
+    }
+    const time = randInt(2,6);
+    const distance = randInt(12,45) * time;
+    return { text:`骑行 ${time} 小时共 ${distance} 千米，平均速度是多少千米/时？`, ans:round1(distance/time) };
+  }
+
+  function renderStats(){
+    idxEl.textContent = Math.min(i+1,total);
+    streakEl.textContent = streak;
+    scoreEl.textContent = score;
+    correctEl.textContent = correct;
+    const answered = i;
+    accEl.textContent = answered ? Math.round(correct/answered*100)+'%' : '0%';
+    barEl.style.width = (i/total*100)+'%';
+  }
+
+  function nextQuestion(){
+    if(i>=total){ endGame(); return; }
+    current = makeQuestion();
+    qEl.textContent = current.text;
+    answerEl.value = '';
+    answerEl.disabled = false;
+    submitBtn.disabled = false;
+    nextBtn.disabled = true;
+    feedbackEl.textContent = '';
+    feedbackEl.className = 'feedback';
+    locked = false;
+    renderStats();
+    answerEl.focus();
+  }
+
+  function judge(){
+    if(locked) return;
+    const v = Number(answerEl.value);
+    if(Number.isNaN(v)){
+      feedbackEl.textContent = '请输入有效数字';
+      feedbackEl.className = 'feedback bad';
+      return;
+    }
+    locked = true;
+    const ok = Math.abs(v-current.ans) < 0.11;
+    if(ok){
+      correct++; streak++; score += 10 + Math.min(10, streak*2);
+      feedbackEl.textContent = `✅ 正确！答案是 ${current.ans}`;
+      feedbackEl.className = 'feedback ok';
+    }else{
+      streak = 0;
+      feedbackEl.textContent = `❌ 正确答案：${current.ans}`;
+      feedbackEl.className = 'feedback bad';
+    }
+    i++;
+    answerEl.disabled = true;
+    submitBtn.disabled = true;
+    nextBtn.disabled = false;
+    renderStats();
+    if(i>=total) nextBtn.textContent = '查看结果';
+  }
+
+  function endGame(){
+    clearInterval(timer);
+    qEl.textContent = `训练结束！总分 ${score}，答对 ${correct}/${total}，继续挑战刷新纪录！`;
+    answerEl.disabled = true;
+    submitBtn.disabled = true;
+    nextBtn.disabled = true;
+    feedbackEl.textContent = '';
+    barEl.style.width = '100%';
+  }
+
+  function start(){
+    i = 0; score = 0; correct = 0; streak = 0; left = 90; nextBtn.textContent = '下一题';
+    clearInterval(timer);
+    timer = setInterval(()=>{
+      left--;
+      timeEl.textContent = left;
+      if(left<=0){
+        left = 0; timeEl.textContent = 0;
+        endGame();
+      }
+    },1000);
+    timeEl.textContent = left;
+    nextQuestion();
+  }
+
+  submitBtn.addEventListener('click', judge);
+  nextBtn.addEventListener('click', nextQuestion);
+  restartBtn.addEventListener('click', start);
+  answerEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') judge(); });
+
+  start();
+})();
+</script>
+</body>
+</html>
