@@ -474,5 +474,11 @@
     "path": "games/geometry-angle-sum-quest/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T09:39:03.507390+08:00"
+  },
+  {
+    "name": "分数小厨师",
+    "path": "games/fraction-chef/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T01:59:10Z"
   }
 ]

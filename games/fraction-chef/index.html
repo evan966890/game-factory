@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>分数小厨师</title>
+  <style>
+    :root {
+      --bg: #fff8ed;
+      --card: #ffffff;
+      --ink: #2b2d42;
+      --accent: #ef476f;
+      --good: #06d6a0;
+      --bad: #f94144;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+      background: radial-gradient(circle at top, #ffe9c6, var(--bg));
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(560px, 100%);
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      padding: 18px;
+    }
+    h1 { font-size: 1.5rem; margin: 0 0 6px; }
+    .sub { margin: 0 0 14px; opacity: .75; font-size: .95rem; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .pill {
+      background: #f6f7fb;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      font-weight: 700;
+    }
+    .question {
+      text-align: center;
+      font-size: clamp(1.3rem, 4vw, 2rem);
+      padding: 16px;
+      background: #fff5f7;
+      border-radius: 14px;
+      margin-bottom: 12px;
+      font-weight: 800;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: #edf2ff;
+      color: var(--ink);
+      cursor: pointer;
+      min-height: 56px;
+    }
+    button:active { transform: scale(.98); }
+    #message {
+      margin-top: 12px;
+      text-align: center;
+      min-height: 24px;
+      font-weight: 700;
+    }
+    .good { color: var(--good); }
+    .bad { color: var(--bad); }
+    .footer {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+    }
+    .footer button {
+      flex: 1;
+      background: var(--accent);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>🍲 分数小厨师</h1>
+    <p class="sub">根据配方，选出正确的食材分数和！10 题一局。</p>
+
+    <section class="stats">
+      <div class="pill">题目 <span id="round">1</span>/10</div>
+      <div class="pill">得分 <span id="score">0</span></div>
+      <div class="pill">连对 <span id="streak">0</span></div>
+    </section>
+
+    <div id="question" class="question">1/2 + 1/3 = ?</div>
+    <div id="options" class="options"></div>
+    <div id="message"></div>
+
+    <div class="footer">
+      <button id="restartBtn" type="button">重新开始</button>
+    </div>
+  </main>
+
+  <script>
+    const totalRounds = 10;
+    let round = 1, score = 0, streak = 0;
+    let currentAnswer = "";
+
+    const elRound = document.getElementById('round');
+    const elScore = document.getElementById('score');
+    const elStreak = document.getElementById('streak');
+    const elQuestion = document.getElementById('question');
+    const elOptions = document.getElementById('options');
+    const elMessage = document.getElementById('message');
+
+    const gcd = (a, b) => b ? gcd(b, a % b) : a;
+    function simplify(n, d) {
+      const g = gcd(Math.abs(n), Math.abs(d));
+      return [n / g, d / g];
+    }
+
+    function fracToText(n, d) {
+      if (d === 1) return String(n);
+      return `${n}/${d}`;
+    }
+
+    function makeQuestion() {
+      const d1 = [2,3,4,5,6][Math.floor(Math.random() * 5)];
+      const d2 = [2,3,4,5,6][Math.floor(Math.random() * 5)];
+      const n1 = 1 + Math.floor(Math.random() * (d1 - 1));
+      const n2 = 1 + Math.floor(Math.random() * (d2 - 1));
+
+      const sumN = n1 * d2 + n2 * d1;
+      const sumD = d1 * d2;
+      const [sn, sd] = simplify(sumN, sumD);
+      currentAnswer = fracToText(sn, sd);
+
+      elQuestion.textContent = `${n1}/${d1} + ${n2}/${d2} = ?`;
+      renderOptions(currentAnswer);
+    }
+
+    function renderOptions(correct) {
+      const set = new Set([correct]);
+      while (set.size < 4) {
+        const tweak = Math.floor(Math.random() * 3) - 1;
+        const parts = correct.includes('/') ? correct.split('/').map(Number) : [Number(correct), 1];
+        let [n, d] = parts;
+        n = Math.max(1, n + tweak + (Math.random() < 0.5 ? 1 : 0));
+        d = Math.max(1, d + (Math.random() < 0.5 ? 1 : -1));
+        const [sn, sd] = simplify(n, d);
+        set.add(fracToText(sn, sd));
+      }
+
+      const options = [...set].sort(() => Math.random() - 0.5);
+      elOptions.innerHTML = '';
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = opt;
+        btn.addEventListener('click', () => handleAnswer(opt));
+        elOptions.appendChild(btn);
+      });
+    }
+
+    function handleAnswer(choice) {
+      if (round > totalRounds) return;
+      if (choice === currentAnswer) {
+        score += 10;
+        streak += 1;
+        elMessage.textContent = '✅ 调味成功！';
+        elMessage.className = 'good';
+      } else {
+        streak = 0;
+        elMessage.textContent = `❌ 正确答案是 ${currentAnswer}`;
+        elMessage.className = 'bad';
+      }
+
+      round += 1;
+      updateStats();
+
+      if (round > totalRounds) {
+        elQuestion.textContent = `🎉 出餐完成！总分 ${score}`;
+        elOptions.innerHTML = '';
+        return;
+      }
+      setTimeout(makeQuestion, 500);
+    }
+
+    function updateStats() {
+      elRound.textContent = Math.min(round, totalRounds);
+      elScore.textContent = score;
+      elStreak.textContent = streak;
+    }
+
+    document.getElementById('restartBtn').addEventListener('click', () => {
+      round = 1; score = 0; streak = 0;
+      elMessage.textContent = '';
+      elMessage.className = '';
+      updateStats();
+      makeQuestion();
+    });
+
+    updateStats();
+    makeQuestion();
+  </script>
+</body>
+</html>
