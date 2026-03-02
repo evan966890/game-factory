@@ -504,5 +504,11 @@
     "path": "games/volume-unit-conversion-sprint/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T11:19:14.165911+08:00"
+  },
+  {
+    "name": "重量单位换算实验室",
+    "path": "games/weight-conversion-lab/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T03:39:15Z"
   }
 ]

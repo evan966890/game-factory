@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>重量单位换算实验室</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --card: #1f2937;
+      --text: #f8fafc;
+      --sub: #cbd5e1;
+      --ok: #10b981;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --accent: #38bdf8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(160deg, #0f172a, #111827 40%, #172554);
+      color: var(--text);
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 14px;
+    }
+    .app {
+      width: min(760px, 100%);
+      background: rgba(17, 24, 39, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 15px 35px rgba(0,0,0,.35);
+    }
+    h1 { font-size: clamp(22px, 5vw, 32px); margin: 4px 0 10px; }
+    .sub { color: var(--sub); margin-bottom: 12px; }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .tile {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+    .tile b { display: block; font-size: 22px; margin-top: 4px; }
+    .question {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    .q-main { font-size: clamp(18px, 4.3vw, 28px); font-weight: 700; }
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    button.choice {
+      appearance: none;
+      border: 1px solid rgba(148,163,184,.35);
+      background: #0b1220;
+      color: var(--text);
+      padding: 12px;
+      min-height: 52px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      touch-action: manipulation;
+    }
+    button.choice:active { transform: scale(.98); }
+    button.choice.correct { border-color: var(--ok); background: rgba(16,185,129,.2); }
+    button.choice.wrong { border-color: var(--bad); background: rgba(239,68,68,.2); }
+    .msg {
+      min-height: 28px;
+      margin: 10px 2px;
+      color: var(--sub);
+      font-weight: 600;
+    }
+    .msg.ok { color: #6ee7b7; }
+    .msg.bad { color: #fca5a5; }
+    .footer { display: flex; gap: 8px; }
+    .footer button {
+      flex: 1;
+      border: none;
+      border-radius: 12px;
+      padding: 11px;
+      color: #031525;
+      background: var(--accent);
+      font-weight: 800;
+      font-size: 16px;
+    }
+    .footer button.secondary { background: #94a3b8; }
+    @media (max-width: 520px) {
+      .choices { grid-template-columns: 1fr; }
+      .hud { grid-template-columns: 1fr 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>⚖️ 重量单位换算实验室</h1>
+    <div class="sub">10 题一局：在 g / kg / mg / t 之间快速换算，连对有奖励。</div>
+
+    <section class="hud">
+      <div class="tile">题号<b id="round">1 / 10</b></div>
+      <div class="tile">得分<b id="score">0</b></div>
+      <div class="tile">连击<b id="combo">0</b></div>
+    </section>
+
+    <section class="question">
+      <div class="q-main" id="questionText">准备开始…</div>
+    </section>
+
+    <section class="choices" id="choices"></section>
+    <div class="msg" id="msg"></div>
+
+    <div class="footer">
+      <button id="nextBtn" class="secondary" disabled>下一题</button>
+      <button id="restartBtn">重新开始</button>
+    </div>
+  </main>
+
+  <script>
+    const units = [
+      { u: 'mg', f: 0.001 },
+      { u: 'g', f: 1 },
+      { u: 'kg', f: 1000 },
+      { u: 't', f: 1000000 }
+    ];
+
+    const total = 10;
+    let index = 0, score = 0, combo = 0, current = null, locked = false;
+
+    const el = {
+      round: document.getElementById('round'),
+      score: document.getElementById('score'),
+      combo: document.getElementById('combo'),
+      q: document.getElementById('questionText'),
+      choices: document.getElementById('choices'),
+      msg: document.getElementById('msg'),
+      next: document.getElementById('nextBtn'),
+      restart: document.getElementById('restartBtn')
+    };
+
+    const rint = (a,b)=> Math.floor(Math.random()*(b-a+1))+a;
+    const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+
+    function formatNum(n){
+      return Number.isInteger(n) ? String(n) : String(Number(n.toFixed(6))).replace(/\.0+$/,'');
+    }
+
+    function genQuestion(){
+      let from = pick(units), to = pick(units);
+      while (from.u === to.u) to = pick(units);
+
+      const baseCandidates = [1,2,5,10,20,25,50,100,200,250,500,750];
+      let value = pick(baseCandidates);
+
+      // 避免出现过长小数
+      if ((from.u === 'mg' && to.u === 't') || (from.u === 't' && to.u === 'mg')) value = pick([1,2,5,10]);
+
+      const grams = value * from.f;
+      const answer = grams / to.f;
+
+      const q = `${value}${from.u} = ? ${to.u}`;
+      return { q, answer };
+    }
+
+    function makeOptions(ans){
+      const set = new Set([formatNum(ans)]);
+      while(set.size < 4){
+        const delta = [0.1,0.2,0.5,1,2,5,10][rint(0,6)] * (Math.random() < 0.5 ? -1 : 1);
+        const candidate = Math.max(0, ans + delta * (Math.abs(ans) >= 10 ? 1 : 0.1));
+        set.add(formatNum(candidate));
+      }
+      return [...set].sort(()=>Math.random()-0.5);
+    }
+
+    function render(){
+      el.round.textContent = `${Math.min(index+1,total)} / ${total}`;
+      el.score.textContent = score;
+      el.combo.textContent = combo;
+
+      current = genQuestion();
+      const options = makeOptions(current.answer);
+      locked = false;
+      el.next.disabled = true;
+      el.msg.className = 'msg';
+      el.msg.textContent = '';
+      el.q.textContent = current.q;
+      el.choices.innerHTML = '';
+
+      options.forEach(op => {
+        const btn = document.createElement('button');
+        btn.className = 'choice';
+        btn.textContent = op;
+        btn.onclick = () => judge(btn, op);
+        el.choices.appendChild(btn);
+      });
+    }
+
+    function judge(btn, val){
+      if (locked) return;
+      locked = true;
+      const right = formatNum(current.answer);
+      const isRight = val === right;
+      [...el.choices.children].forEach(b => {
+        if (b.textContent === right) b.classList.add('correct');
+      });
+
+      if (isRight){
+        combo += 1;
+        score += 10 + Math.min(20, (combo-1)*2);
+        btn.classList.add('correct');
+        el.msg.className = 'msg ok';
+        el.msg.textContent = `回答正确！+${10 + Math.min(20, (combo-1)*2)} 分`;
+      } else {
+        combo = 0;
+        btn.classList.add('wrong');
+        el.msg.className = 'msg bad';
+        el.msg.textContent = `答错了，正确答案是 ${right}`;
+      }
+
+      el.score.textContent = score;
+      el.combo.textContent = combo;
+      el.next.disabled = false;
+    }
+
+    function next(){
+      index += 1;
+      if (index >= total){
+        endGame();
+      } else {
+        render();
+      }
+    }
+
+    function endGame(){
+      el.round.textContent = `${total} / ${total}`;
+      el.q.textContent = `本局结束：总分 ${score}`;
+      let level = '继续加油';
+      if (score >= 130) level = '单位换算专家';
+      else if (score >= 100) level = '换算小能手';
+      else if (score >= 70) level = '进步很快';
+
+      el.msg.className = 'msg ok';
+      el.msg.textContent = `评级：${level}`;
+      el.choices.innerHTML = '';
+      el.next.disabled = true;
+    }
+
+    function restart(){
+      index = 0; score = 0; combo = 0;
+      render();
+      el.score.textContent = 0;
+      el.combo.textContent = 0;
+    }
+
+    el.next.addEventListener('click', next);
+    el.restart.addEventListener('click', restart);
+    restart();
+  </script>
+</body>
+</html>
