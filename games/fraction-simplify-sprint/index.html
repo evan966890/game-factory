@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>分数约分冲刺</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --card: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --ok: #34d399;
+      --bad: #f87171;
+      --accent: #60a5fa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: 100%;
+      max-width: 560px;
+      background: var(--panel);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 10px 28px rgba(0,0,0,.35);
+    }
+    h1 { margin: 0 0 10px; font-size: 1.4rem; }
+    .meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: .95rem;
+      margin-bottom: 14px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .q {
+      font-size: clamp(1.5rem, 8vw, 2.2rem);
+      text-align: center;
+      margin: 8px 0 12px;
+      letter-spacing: .5px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    input {
+      width: 100%;
+      border: 1px solid #374151;
+      border-radius: 10px;
+      background: #0b1220;
+      color: var(--text);
+      font-size: 1.1rem;
+      padding: 10px;
+      text-align: center;
+    }
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--accent); color: #081225; width: 100%; margin-top: 10px; }
+    .btn-ghost { background: #374151; color: var(--text); width: 100%; margin-top: 8px; }
+    .msg { min-height: 24px; text-align: center; font-weight: 600; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .hint { color: var(--muted); font-size: .9rem; text-align: center; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>分数约分冲刺</h1>
+    <div class="meta">
+      <span>⏱️ 剩余：<strong id="time">60</strong>s</span>
+      <span>✅ 得分：<strong id="score">0</strong></span>
+      <span>🎯 题号：<strong id="idx">1</strong>/20</span>
+    </div>
+
+    <section class="card">
+      <div class="q" id="question">12 / 18</div>
+      <div class="row">
+        <input id="num" type="number" inputmode="numeric" placeholder="最简分子" />
+        <input id="den" type="number" inputmode="numeric" placeholder="最简分母" />
+      </div>
+      <button id="submit" class="btn-primary">提交答案</button>
+      <div id="msg" class="msg"></div>
+      <div class="hint">输入最简分数，例如 12/18 的答案是 2/3</div>
+      <button id="restart" class="btn-ghost" style="display:none;">再来一局</button>
+    </section>
+  </main>
+
+  <script>
+    const TOTAL = 20;
+    let score = 0;
+    let idx = 1;
+    let timeLeft = 60;
+    let timer = null;
+    let current = null;
+    let over = false;
+
+    const $ = id => document.getElementById(id);
+    const el = {
+      time: $('time'), score: $('score'), idx: $('idx'), question: $('question'),
+      num: $('num'), den: $('den'), submit: $('submit'), msg: $('msg'), restart: $('restart')
+    };
+
+    function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+    function genQuestion() {
+      const baseDen = 2 + Math.floor(Math.random() * 11);
+      const baseNum = 1 + Math.floor(Math.random() * (baseDen - 1));
+      const k = 2 + Math.floor(Math.random() * 7);
+      const n = baseNum * k;
+      const d = baseDen * k;
+      return { n, d, sn: baseNum, sd: baseDen };
+    }
+
+    function showMsg(text, cls = '') {
+      el.msg.className = `msg ${cls}`.trim();
+      el.msg.textContent = text;
+    }
+
+    function next() {
+      if (idx > TOTAL || over) return endGame();
+      current = genQuestion();
+      el.question.textContent = `${current.n} / ${current.d}`;
+      el.idx.textContent = `${idx}`;
+      el.num.value = '';
+      el.den.value = '';
+      el.num.focus();
+      showMsg('');
+    }
+
+    function submit() {
+      if (over || !current) return;
+      const n = parseInt(el.num.value, 10);
+      const d = parseInt(el.den.value, 10);
+      if (!Number.isInteger(n) || !Number.isInteger(d) || d <= 0) {
+        return showMsg('请输入有效的分子和分母', 'bad');
+      }
+      const g = gcd(n, d);
+      const ok = n === current.sn && d === current.sd && g === 1;
+      if (ok) {
+        score += 1;
+        el.score.textContent = String(score);
+        showMsg('回答正确！', 'ok');
+      } else {
+        showMsg(`正确答案：${current.sn}/${current.sd}`, 'bad');
+      }
+      idx += 1;
+      if (idx > TOTAL) return endGame();
+      setTimeout(next, 350);
+    }
+
+    function tick() {
+      timeLeft -= 1;
+      el.time.textContent = String(timeLeft);
+      if (timeLeft <= 0) endGame();
+    }
+
+    function endGame() {
+      if (over) return;
+      over = true;
+      clearInterval(timer);
+      el.submit.disabled = true;
+      showMsg(`本局结束！你答对了 ${score} / ${Math.min(idx - 1, TOTAL)} 题`, score >= 14 ? 'ok' : 'bad');
+      el.restart.style.display = 'block';
+    }
+
+    function start() {
+      score = 0; idx = 1; timeLeft = 60; over = false;
+      el.score.textContent = '0';
+      el.time.textContent = '60';
+      el.submit.disabled = false;
+      el.restart.style.display = 'none';
+      next();
+      clearInterval(timer);
+      timer = setInterval(tick, 1000);
+    }
+
+    el.submit.addEventListener('click', submit);
+    el.restart.addEventListener('click', start);
+    el.den.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+    el.num.addEventListener('keydown', e => { if (e.key === 'Enter') el.den.focus(); });
+
+    start();
+  </script>
+</body>
+</html>
