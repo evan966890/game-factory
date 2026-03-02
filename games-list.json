@@ -612,5 +612,11 @@
     "path": "games/equivalent-ratio-rush/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T09:19:28.259Z"
+  },
+  {
+    "name": "概率转盘实验室",
+    "path": "games/probability-spinner-lab/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T09:39:39.376Z"
   }
 ]

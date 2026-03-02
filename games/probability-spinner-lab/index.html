@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>概率转盘实验室</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--text:#e5e7eb;--accent:#38bdf8;--ok:#22c55e;--warn:#f59e0b}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Noto Sans CJK SC",sans-serif;background:linear-gradient(180deg,#0b1020,#111827);color:var(--text)}
+    .wrap{max-width:860px;margin:0 auto;padding:16px}
+    .card{background:rgba(17,24,39,.9);border:1px solid #263041;border-radius:16px;padding:16px;margin-bottom:12px}
+    h1{font-size:1.4rem;margin:0 0 8px} p{margin:8px 0;color:#cbd5e1}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    button{border:0;border-radius:12px;padding:10px 14px;font-weight:700;background:var(--accent);color:#082f49}
+    button.secondary{background:#334155;color:#e2e8f0}
+    button:active{transform:scale(.98)}
+    canvas{width:min(92vw,420px);height:min(92vw,420px);display:block;margin:0 auto;background:#0b1220;border-radius:50%;border:2px solid #334155}
+    .stats{display:grid;grid-template-columns:repeat(3,minmax(90px,1fr));gap:8px}
+    .stat{background:#0b1220;border:1px solid #273449;border-radius:12px;padding:10px;text-align:center}
+    .stat .n{font-size:1.1rem;font-weight:800}
+    .q{font-weight:700;color:#fef3c7}.good{color:var(--ok)}.bad{color:var(--warn)}
+    input[type="number"]{width:96px;padding:8px;border-radius:8px;border:1px solid #475569;background:#0b1220;color:#e2e8f0}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>🎯 概率转盘实验室</h1>
+      <p>先预测，再实验！观察长期频率是否接近理论概率。</p>
+      <canvas id="wheel" width="500" height="500" aria-label="概率转盘"></canvas>
+      <div class="row" style="justify-content:center;margin-top:10px">
+        <button id="spinBtn">旋转 1 次</button>
+        <button id="spin10Btn">旋转 10 次</button>
+        <button id="resetBtn" class="secondary">重置</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <p class="q">问题：转盘共有 8 个扇区，其中红色 3 格、蓝色 2 格、绿色 2 格、黄色 1 格。你预测红色出现概率是多少？</p>
+      <div class="row">
+        <label>输入分数：</label>
+        <input id="num" type="number" min="0" max="8" value="3" /> /
+        <input id="den" type="number" min="1" max="8" value="8" />
+        <button id="checkBtn" class="secondary">检查预测</button>
+        <span id="checkMsg"></span>
+      </div>
+      <div class="stats" style="margin-top:12px">
+        <div class="stat"><div>总次数</div><div class="n" id="total">0</div></div>
+        <div class="stat"><div>红色次数</div><div class="n" id="redCount">0</div></div>
+        <div class="stat"><div>红色频率</div><div class="n" id="freq">0%</div></div>
+      </div>
+      <p id="latest">最近结果：-</p>
+    </section>
+  </main>
+<script>
+(() => {
+  const sectors = [
+    {name:'红色',color:'#ef4444'}, {name:'红色',color:'#ef4444'}, {name:'红色',color:'#ef4444'},
+    {name:'蓝色',color:'#3b82f6'}, {name:'蓝色',color:'#3b82f6'},
+    {name:'绿色',color:'#22c55e'}, {name:'绿色',color:'#22c55e'},
+    {name:'黄色',color:'#facc15'}
+  ];
+  const cv = document.getElementById('wheel'); const ctx = cv.getContext('2d');
+  const totalEl = document.getElementById('total'), redEl = document.getElementById('redCount'), freqEl = document.getElementById('freq'), latestEl = document.getElementById('latest');
+  let angle = 0, total = 0, red = 0, spinning = false;
+  function draw(){
+    const cx=250, cy=250, r=220, a=2*Math.PI/sectors.length;
+    ctx.clearRect(0,0,500,500);
+    sectors.forEach((s,i)=>{
+      const st = angle+i*a, ed = st+a;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,st,ed); ctx.closePath(); ctx.fillStyle=s.color; ctx.fill();
+      ctx.save(); ctx.translate(cx,cy); ctx.rotate(st+a/2); ctx.fillStyle='#0f172a'; ctx.font='bold 20px sans-serif'; ctx.textAlign='center'; ctx.fillText(s.name, 140, 8); ctx.restore();
+    });
+    ctx.beginPath(); ctx.arc(cx,cy,28,0,2*Math.PI); ctx.fillStyle='#e5e7eb'; ctx.fill();
+    ctx.fillStyle='#111827'; ctx.beginPath(); ctx.moveTo(250,18); ctx.lineTo(236,52); ctx.lineTo(264,52); ctx.closePath(); ctx.fill();
+  }
+  function resultIndex(){
+    const a = (Math.PI*1.5 - angle)%(Math.PI*2); // pointer at top
+    const normalized = (a + Math.PI*2)%(Math.PI*2);
+    return Math.floor(normalized / (2*Math.PI/sectors.length)) % sectors.length;
+  }
+  function updateUI(name){
+    totalEl.textContent = total; redEl.textContent = red;
+    const f = total ? (red/total*100).toFixed(1) : '0.0';
+    freqEl.textContent = f + '%';
+    latestEl.textContent = '最近结果：' + name;
+  }
+  function spinOnce(){
+    if(spinning) return Promise.resolve();
+    spinning = true;
+    return new Promise(res=>{
+      const target = angle + (Math.random()*4+5)*Math.PI;
+      const start = performance.now(), dur = 900;
+      const tick = (t)=>{
+        const p = Math.min(1,(t-start)/dur);
+        const e = 1-Math.pow(1-p,3);
+        angle = angle + (target-angle)*e;
+        draw();
+        if(p<1) requestAnimationFrame(tick);
+        else {
+          angle = target%(Math.PI*2); draw();
+          const idx = resultIndex(); const hit = sectors[idx].name;
+          total++; if(hit==='红色') red++; updateUI(hit);
+          spinning=false; res();
+        }
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+  document.getElementById('spinBtn').onclick = ()=>spinOnce();
+  document.getElementById('spin10Btn').onclick = async ()=>{ for(let i=0;i<10;i++) await spinOnce(); };
+  document.getElementById('resetBtn').onclick = ()=>{ total=0; red=0; updateUI('-'); angle=0; draw(); };
+  document.getElementById('checkBtn').onclick = ()=>{
+    const num = Number(document.getElementById('num').value);
+    const den = Number(document.getElementById('den').value);
+    const msg = document.getElementById('checkMsg');
+    if(!den || den<1){ msg.textContent='分母需大于0'; msg.className='bad'; return; }
+    const pred = num/den, real = 3/8;
+    const ok = Math.abs(pred-real) < 1e-9;
+    msg.textContent = ok ? '✅ 正确！理论概率=3/8=37.5%' : `提示：理论概率是 3/8（37.5%）`;
+    msg.className = ok ? 'good' : 'bad';
+  };
+  draw(); updateUI('-');
+})();
+</script>
+</body>
+</html>
