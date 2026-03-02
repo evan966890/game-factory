@@ -720,5 +720,11 @@
     "path": "games/angle-archer/index.html",
     "category": "education",
     "createdAt": "2026-03-02T15:44:28Z"
+  },
+  {
+    "name": "成语接龙挑战",
+    "path": "games/idiom-chain-challenge/index.html",
+    "category": "语言学习",
+    "createdAt": "2026-03-02T15:52:35Z"
   }
 ]

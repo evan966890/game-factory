@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>成语接龙挑战</title>
+  <style>
+    :root {
+      --bg: #f4f7ff;
+      --card: #ffffff;
+      --primary: #3b82f6;
+      --ok: #16a34a;
+      --bad: #dc2626;
+      --text: #0f172a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      background: linear-gradient(160deg, #eef2ff, #f8fafc 45%, #e0f2fe);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(720px, 100%);
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: 0 12px 34px rgba(15, 23, 42, 0.12);
+      padding: 20px;
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(22px, 5vw, 32px); }
+    .sub { margin: 0 0 16px; color: #475569; font-size: 14px; }
+    .top {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .pill {
+      background: #eff6ff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      text-align: center;
+      font-weight: 700;
+      color: #1e3a8a;
+      font-size: 14px;
+    }
+    .question {
+      background: #f8fafc;
+      border: 2px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 18px;
+      font-size: clamp(24px, 8vw, 40px);
+      letter-spacing: 2px;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .hint { text-align: center; color: #334155; margin-bottom: 16px; min-height: 22px; }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 10px;
+      background: #dbeafe;
+      color: #1e3a8a;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .06s ease, filter .2s ease;
+    }
+    button:active { transform: scale(.98); }
+    button[disabled] { opacity: .5; cursor: not-allowed; }
+    .feedback { margin-top: 14px; text-align: center; min-height: 24px; font-weight: 700; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .footer {
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .primary { background: var(--primary); color: #fff; }
+    @media (max-width: 480px) {
+      .top { grid-template-columns: 1fr; }
+      .options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>成语接龙挑战</h1>
+    <p class="sub">选择正确的成语接龙，60秒内尽可能多得分！</p>
+    <div class="top">
+      <div class="pill">得分: <span id="score">0</span></div>
+      <div class="pill">连击: <span id="streak">0</span></div>
+      <div class="pill">时间: <span id="time">60</span>s</div>
+    </div>
+    <div class="question" id="question">一马当先</div>
+    <div class="hint" id="hint">请选择以"先"字开头的成语</div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="footer">
+      <button class="primary" id="startBtn">开始游戏</button>
+      <button id="restartBtn" style="display:none">再来一局</button>
+    </div>
+  </main>
+
+  <script>
+    // 成语数据：每个成语和它的接龙选项
+    const idiomData = [
+      {
+        current: "一马当先",
+        lastChar: "先",
+        options: ["先见之明", "先发制人", "先斩后奏", "先礼后兵"],
+        correct: 0
+      },
+      {
+        current: "先见之明",
+        lastChar: "明",
+        options: ["明察秋毫", "明目张胆", "明哲保身", "明争暗斗"],
+        correct: 0
+      },
+      {
+        current: "明察秋毫",
+        lastChar: "毫",
+        options: ["毫不犹豫", "毫发无损", "毫厘不差", "毫无二致"],
+        correct: 0
+      },
+      {
+        current: "毫不犹豫",
+        lastChar: "豫",
+        options: ["豫剧", "豫章", "豫备", "豫让"],
+        correct: 0
+      },
+      {
+        current: "豫让",
+        lastChar: "让",
+        options: ["让步", "让位", "让路", "让贤"],
+        correct: 0
+      },
+      {
+        current: "让步",
+        lastChar: "步",
+        options: ["步步为营", "步履维艰", "步调一致", "步人后尘"],
+        correct: 0
+      },
+      {
+        current: "步步为营",
+        lastChar: "营",
+        options: ["营私舞弊", "营营逐逐", "营营苟苟", "营营役役"],
+        correct: 0
+      },
+      {
+        current: "营私舞弊",
+        lastChar: "弊",
+        options: ["弊绝风清", "弊帚自珍", "弊衣疏食", "弊车羸马"],
+        correct: 0
+      },
+      {
+        current: "弊绝风清",
+        lastChar: "清",
+        options: ["清风明月", "清规戒律", "清心寡欲", "清清楚楚"],
+        correct: 0
+      },
+      {
+        current: "清风明月",
+        lastChar: "月",
+        options: ["月下老人", "月明星稀", "月落乌啼", "月圆花好"],
+        correct: 0
+      },
+      {
+        current: "月下老人",
+        lastChar: "人",
+        options: ["人山人海", "人杰地灵", "人定胜天", "人云亦云"],
+        correct: 0
+      },
+      {
+        current: "人山人海",
+        lastChar: "海",
+        options: ["海阔天空", "海枯石烂", "海市蜃楼", "海纳百川"],
+        correct: 0
+      },
+      {
+        current: "海阔天空",
+        lastChar: "空",
+        options: ["空前绝后", "空穴来风", "空空如也", "空口无凭"],
+        correct: 0
+      },
+      {
+        current: "空前绝后",
+        lastChar: "后",
+        options: ["后起之秀", "后顾之忧", "后生可畏", "后患无穷"],
+        correct: 0
+      },
+      {
+        current: "后起之秀",
+        lastChar: "秀",
+        options: ["秀外慧中", "秀色可餐", "秀而不实", "秀出班行"],
+        correct: 0
+      },
+      {
+        current: "秀外慧中",
+        lastChar: "中",
+        options: ["中流砥柱", "中庸之道", "中饱私囊", "中西合璧"],
+        correct: 0
+      },
+      {
+        current: "中流砥柱",
+        lastChar: "柱",
+        options: ["柱石之臣", "柱天踏地", "柱小倾大", "柱杖"],
+        correct: 0
+      },
+      {
+        current: "柱石之臣",
+        lastChar: "臣",
+        options: ["臣门如市", "臣心如水", "臣服", "臣子"],
+        correct: 0
+      },
+      {
+        current: "臣门如市",
+        lastChar: "市",
+        options: ["市井之徒", "市无二价", "市不二价", "市道之交"],
+        correct: 0
+      },
+      {
+        current: "市井之徒",
+        lastChar: "徒",
+        options: ["徒劳无功", "徒有虚名", "徒子徒孙", "徒托空言"],
+        correct: 0
+      }
+    ];
+
+    let currentIndex = 0;
+    let score = 0;
+    let streak = 0;
+    let timeLeft = 60;
+    let timer = null;
+    let gameActive = false;
+
+    const questionEl = document.getElementById('question');
+    const hintEl = document.getElementById('hint');
+    const optionsEl = document.getElementById('options');
+    const feedbackEl = document.getElementById('feedback');
+    const scoreEl = document.getElementById('score');
+    const streakEl = document.getElementById('streak');
+    const timeEl = document.getElementById('time');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+
+    function shuffleArray(array) {
+      const newArray = [...array];
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      }
+      return newArray;
+    }
+
+    function loadQuestion() {
+      if (currentIndex >= idiomData.length) {
+        currentIndex = 0;
+      }
+      const data = idiomData[currentIndex];
+      questionEl.textContent = data.current;
+      hintEl.textContent = `请选择以"${data.lastChar}"字开头的成语`;
+      
+      // 打乱选项顺序
+      const shuffledOptions = shuffleArray(data.options.map((opt, idx) => ({ text: opt, isCorrect: idx === data.correct })));
+      
+      optionsEl.innerHTML = '';
+      shuffledOptions.forEach((option, idx) => {
+        const btn = document.createElement('button');
+        btn.textContent = option.text;
+        btn.dataset.correct = option.isCorrect;
+        btn.addEventListener('click', () => handleAnswer(option.isCorrect, btn));
+        optionsEl.appendChild(btn);
+      });
+      
+      feedbackEl.textContent = '';
+      feedbackEl.className = 'feedback';
+    }
+
+    function handleAnswer(isCorrect, btn) {
+      if (!gameActive) return;
+      
+      const buttons = optionsEl.querySelectorAll('button');
+      buttons.forEach(b => b.disabled = true);
+      
+      if (isCorrect) {
+        streak++;
+        score += 10 + streak * 2; // 连击加分
+        feedbackEl.textContent = '✓ 正确！';
+        feedbackEl.className = 'feedback ok';
+        btn.style.background = '#bbf7d0';
+      } else {
+        streak = 0;
+        feedbackEl.textContent = '✗ 错误！';
+        feedbackEl.className = 'feedback bad';
+        btn.style.background = '#fecaca';
+        // 显示正确答案
+        buttons.forEach(b => {
+          if (b.dataset.correct === 'true') {
+            b.style.background = '#bbf7d0';
+          }
+        });
+      }
+      
+      scoreEl.textContent = score;
+      streakEl.textContent = streak;
+      
+      setTimeout(() => {
+        currentIndex++;
+        loadQuestion();
+      }, 1000);
+    }
+
+    function startGame() {
+      gameActive = true;
+      score = 0;
+      streak = 0;
+      timeLeft = 60;
+      currentIndex = 0;
+      
+      scoreEl.textContent = score;
+      streakEl.textContent = streak;
+      timeEl.textContent = timeLeft;
+      
+      startBtn.style.display = 'none';
+      restartBtn.style.display = 'none';
+      
+      loadQuestion();
+      
+      timer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function endGame() {
+      gameActive = false;
+      clearInterval(timer);
+      
+      feedbackEl.textContent = `游戏结束！最终得分：${score}`;
+      feedbackEl.className = 'feedback';
+      
+      restartBtn.style.display = 'inline-block';
+      
+      const buttons = optionsEl.querySelectorAll('button');
+      buttons.forEach(b => b.disabled = true);
+    }
+
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', startGame);
+  </script>
+</body>
+</html>
