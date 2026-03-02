@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>等值分数快判</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--text:#e5e7eb;--ok:#22c55e;--bad:#ef4444;--accent:#38bdf8}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#0f172a,#1e293b);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+    .app{width:min(720px,100%);background:rgba(17,24,39,.92);border:1px solid rgba(148,163,184,.28);border-radius:20px;padding:18px;box-shadow:0 20px 40px rgba(0,0,0,.35)}
+    h1{margin:0 0 8px;font-size:clamp(1.2rem,2.5vw,1.8rem)}
+    .meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+    .pill{background:#1f2937;border:1px solid #334155;padding:6px 10px;border-radius:999px;font-size:.92rem}
+    .question{margin-top:8px;padding:16px;border-radius:14px;background:#0b1220;border:1px solid #334155;text-align:center}
+    .pair{font-size:clamp(1.8rem,6vw,2.8rem);font-weight:800;letter-spacing:.5px}
+    .btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+    button{padding:14px;border-radius:12px;border:none;font-size:1rem;font-weight:700;cursor:pointer;touch-action:manipulation}
+    .yes{background:var(--ok);color:#052e16}
+    .no{background:var(--bad);color:#450a0a}
+    .ctrl{margin-top:14px;background:#0ea5e9;color:#082f49}
+    .log{margin-top:12px;min-height:24px;color:#cbd5e1;font-size:.95rem}
+    .result{margin-top:12px;padding:12px;border-radius:12px;background:#111827;border:1px dashed #475569;display:none}
+    .hint{opacity:.8;font-size:.9rem;margin-top:6px}
+    @media (max-width:480px){.app{padding:14px}.btns{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>等值分数快判</h1>
+    <div class="meta">
+      <div class="pill">⏱ 60 秒</div>
+      <div class="pill">🎯 目标：判断两分数是否相等</div>
+      <div class="pill" id="score">得分：0</div>
+      <div class="pill" id="left">剩余：60s</div>
+    </div>
+
+    <section class="question">
+      <div class="pair" id="pair">1/2 ? 2/4</div>
+      <div class="btns">
+        <button class="yes" id="eqBtn">相等</button>
+        <button class="no" id="neqBtn">不相等</button>
+      </div>
+      <button class="ctrl" id="startBtn">开始挑战</button>
+      <div class="log" id="log">点击“开始挑战”进入 60 秒快判。</div>
+      <div class="result" id="result"></div>
+      <div class="hint">提示：可通过交叉相乘快速判断。</div>
+    </section>
+  </main>
+
+  <script>
+    const pairEl = document.getElementById('pair');
+    const scoreEl = document.getElementById('score');
+    const leftEl = document.getElementById('left');
+    const logEl = document.getElementById('log');
+    const resultEl = document.getElementById('result');
+    const startBtn = document.getElementById('startBtn');
+    const eqBtn = document.getElementById('eqBtn');
+    const neqBtn = document.getElementById('neqBtn');
+
+    let timer = null;
+    let timeLeft = 60;
+    let score = 0;
+    let answered = 0;
+    let current = null;
+    let running = false;
+
+    function gcd(a,b){return b===0?a:gcd(b,a%b)}
+    function simplify(n,d){const g=gcd(n,d);return [n/g,d/g]}
+
+    function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+
+    function generatePair(){
+      const isEqual = Math.random() < 0.5;
+      let a = randInt(1,12), b = randInt(2,12);
+      while(a>=b){a=randInt(1,12);b=randInt(2,12)}
+
+      let c,d;
+      if(isEqual){
+        const k = randInt(2,6);
+        c = a*k; d = b*k;
+      }else{
+        do{
+          c = randInt(1,18);
+          d = randInt(2,18);
+        }while(a*d===b*c);
+      }
+
+      current = { a,b,c,d,isEqual };
+      pairEl.textContent = `${a}/${b}  ?  ${c}/${d}`;
+    }
+
+    function updateHUD(){
+      scoreEl.textContent = `得分：${score}`;
+      leftEl.textContent = `剩余：${timeLeft}s`;
+    }
+
+    function answer(userSaysEqual){
+      if(!running) return;
+      answered++;
+      const ok = userSaysEqual === current.isEqual;
+      if(ok){
+        score += 10;
+        logEl.textContent = '✅ 判断正确！+10';
+      }else{
+        score = Math.max(0, score - 5);
+        const [s1n,s1d]=simplify(current.a,current.b);
+        const [s2n,s2d]=simplify(current.c,current.d);
+        logEl.textContent = `❌ 判断错误。${current.a}/${current.b}=${s1n}/${s1d}，${current.c}/${current.d}=${s2n}/${s2d}`;
+      }
+      updateHUD();
+      generatePair();
+    }
+
+    function endGame(){
+      running = false;
+      clearInterval(timer);
+      timer = null;
+      resultEl.style.display = 'block';
+      resultEl.innerHTML = `🏁 挑战结束！<br>最终得分：<b>${score}</b><br>答题数：<b>${answered}</b><br>正确率估算：<b>${answered?Math.round((score+5*(answered-score/10))/answered):0}%</b>`;
+      startBtn.textContent = '再来一局';
+      logEl.textContent = '复盘：错误题可用交叉相乘法 a×d 与 b×c 比较。';
+    }
+
+    function startGame(){
+      running = true;
+      timeLeft = 60;
+      score = 0;
+      answered = 0;
+      resultEl.style.display = 'none';
+      startBtn.textContent = '进行中…';
+      generatePair();
+      updateHUD();
+      logEl.textContent = '开始！快速判断两分数是否相等。';
+      clearInterval(timer);
+      timer = setInterval(()=>{
+        timeLeft--;
+        updateHUD();
+        if(timeLeft<=0) endGame();
+      },1000);
+    }
+
+    startBtn.addEventListener('click',()=>{if(!running) startGame()});
+    eqBtn.addEventListener('click',()=>answer(true));
+    neqBtn.addEventListener('click',()=>answer(false));
+  </script>
+</body>
+</html>

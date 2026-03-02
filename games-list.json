@@ -486,5 +486,11 @@
     "path": "games/coordinate-catcher/index.html",
     "category": "education",
     "createdAt": "2026-03-02T02:19:10Z"
+  },
+  {
+    "name": "等值分数快判",
+    "path": "games/fraction-equivalence-swipe/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T02:39:10Z"
   }
 ]
