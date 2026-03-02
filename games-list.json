@@ -516,5 +516,11 @@
     "path": "games/ecosystem-balance-lab/index.html",
     "category": "科学",
     "createdAt": "2026-03-02T11:59:14.969943+08:00"
+  },
+  {
+    "name": "角度追击者",
+    "path": "games/angle-hunter/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T04:19:06.142578+00:00"
   }
 ]

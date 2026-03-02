@@ -2,252 +2,178 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>角度猎人</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>角度追击者</title>
   <style>
-    :root {
-      --bg: #f4f8ff;
-      --card: #ffffff;
-      --primary: #2f6df6;
-      --ok: #0da56a;
-      --bad: #e24a4a;
-      --text: #1f2d3d;
+    :root{
+      --bg:#0f172a;--card:#111827;--text:#e5e7eb;--muted:#94a3b8;--ok:#22c55e;--bad:#ef4444;--accent:#38bdf8;
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
-      background: linear-gradient(180deg, var(--bg), #e8f0ff);
-      color: var(--text);
-      display: grid;
-      place-items: center;
-      padding: 14px;
-    }
-    .app {
-      width: min(100%, 760px);
-      background: var(--card);
-      border-radius: 18px;
-      padding: 16px;
-      box-shadow: 0 10px 30px rgba(47,109,246,.14);
-    }
-    h1 { margin: 4px 0 10px; font-size: 1.4rem; text-align: center; }
-    .desc { margin: 0 0 10px; text-align: center; font-size: .95rem; opacity: .86; }
-    .hud {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin: 8px 0 14px;
-    }
-    .chip {
-      background: #eef4ff;
-      border-radius: 12px;
-      text-align: center;
-      padding: 8px 6px;
-      font-weight: 600;
-    }
-    .board {
-      position: relative;
-      width: min(100%, 420px);
-      aspect-ratio: 1 / 1;
-      margin: 0 auto 14px;
-      border-radius: 16px;
-      background: #f8fbff;
-      border: 2px solid #d7e3ff;
-      overflow: hidden;
-    }
-    canvas { width: 100%; height: 100%; }
-    .answers {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-    button {
-      appearance: none;
-      border: none;
-      border-radius: 12px;
-      background: var(--primary);
-      color: white;
-      font-size: 1rem;
-      font-weight: 700;
-      padding: 12px 10px;
-      cursor: pointer;
-      min-height: 48px;
-    }
-    button:active { transform: translateY(1px); }
-    button.alt { background: #5b7bd8; }
-    .msg {
-      margin-top: 10px;
-      min-height: 24px;
-      text-align: center;
-      font-weight: 700;
-    }
-    .ok { color: var(--ok); }
-    .bad { color: var(--bad); }
-    .foot {
-      margin-top: 12px;
-      display: flex;
-      gap: 8px;
-    }
-    .foot button { flex: 1; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Noto Sans CJK SC",sans-serif;background:linear-gradient(160deg,#020617,#0b1228 55%,#0f172a);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:14px}
+    .app{width:min(760px,100%);background:rgba(17,24,39,.9);border:1px solid #1f2937;border-radius:16px;padding:16px;box-shadow:0 12px 28px rgba(0,0,0,.35)}
+    h1{font-size:clamp(1.2rem,4.2vw,1.7rem);margin:0 0 8px}
+    .sub{margin:0 0 12px;color:var(--muted);font-size:.95rem}
+    .hud{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+    .pill{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:9px;text-align:center}
+    .pill b{display:block;font-size:1.1rem;color:#f8fafc}
+    .canvasWrap{background:#0b1220;border:1px solid #1f2937;border-radius:14px;padding:10px}
+    canvas{width:100%;height:auto;background:radial-gradient(circle at center,#0f2a44,#0b1220 65%);border-radius:10px;touch-action:none}
+    .q{margin:10px 0;font-size:1.02rem}
+    .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    button{border:none;border-radius:12px;padding:11px 10px;font-size:1rem;font-weight:600;color:#e2e8f0;background:#1f2937;cursor:pointer}
+    button:active{transform:scale(.98)}
+    button.good{outline:2px solid var(--ok);background:#14532d}
+    button.bad{outline:2px solid var(--bad);background:#7f1d1d}
+    .ctl{display:flex;gap:8px;margin-top:10px}
+    .ctl button{flex:1;background:#0369a1}
+    .msg{min-height:24px;margin-top:8px;font-weight:600}
+    .ok{color:#86efac}.badText{color:#fca5a5}
+    @media (max-width:560px){.opts{grid-template-columns:1fr}.hud{grid-template-columns:1fr 1fr 1fr}}
   </style>
 </head>
 <body>
   <main class="app">
-    <h1>🎯 角度猎人</h1>
-    <p class="desc">观察图中的角，判断它属于哪一类：锐角、直角、钝角、平角。</p>
+    <h1>角度追击者</h1>
+    <p class="sub">观察两条射线形成的角度，选择最接近的度数。10 题一局，越快越准分越高。</p>
 
     <section class="hud">
-      <div class="chip">题目：<span id="qNum">1</span>/10</div>
-      <div class="chip">得分：<span id="score">0</span></div>
-      <div class="chip">连对：<span id="streak">0</span></div>
+      <div class="pill">题目<b id="round">1 / 10</b></div>
+      <div class="pill">分数<b id="score">0</b></div>
+      <div class="pill">连对<b id="streak">0</b></div>
     </section>
 
-    <div class="board"><canvas id="cv" width="420" height="420" aria-label="角度图"></canvas></div>
+    <section class="canvasWrap">
+      <canvas id="cv" width="700" height="360" aria-label="角度题目画布"></canvas>
+    </section>
 
-    <section class="answers" id="answers"></section>
-    <div class="msg" id="msg" aria-live="polite"></div>
-
-    <div class="foot">
-      <button class="alt" id="restart">重新开始</button>
-    </div>
+    <p class="q" id="question">这个角大约是多少度？</p>
+    <section class="opts" id="options"></section>
+    <div class="msg" id="msg"></div>
+    <div class="ctl"><button id="restart">重新开始</button></div>
   </main>
 
   <script>
-    const labels = ["锐角", "直角", "钝角", "平角"];
-    const qNumEl = document.getElementById("qNum");
-    const scoreEl = document.getElementById("score");
-    const streakEl = document.getElementById("streak");
-    const msgEl = document.getElementById("msg");
-    const answersEl = document.getElementById("answers");
-    const restartBtn = document.getElementById("restart");
-    const cv = document.getElementById("cv");
-    const ctx = cv.getContext("2d");
-
-    let idx = 0;
-    let score = 0;
-    let streak = 0;
-    let current = null;
     const total = 10;
+    let round = 1, score = 0, streak = 0, lock = false;
+    let current = null;
 
-    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    const cv = document.getElementById('cv');
+    const ctx = cv.getContext('2d');
+    const $ = id => document.getElementById(id);
 
-    function buildQuestion() {
-      const type = rand(0, 3);
-      let deg;
-      if (type === 0) deg = rand(15, 89);
-      if (type === 1) deg = 90;
-      if (type === 2) deg = rand(91, 179);
-      if (type === 3) deg = 180;
-      return { type, deg };
+    function rInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+    function uniq(arr){return [...new Set(arr)]}
+
+    function makeQuestion(){
+      const angle = [15,20,25,30,35,40,45,50,55,60,70,75,80,90,100,110,120,130,140,150,160,170][rInt(0,21)];
+      const base = rInt(10,350);
+      let opts = [angle, angle + rInt(-20,-8), angle + rInt(8,20), angle + (Math.random()>.5?30:-30)].map(v=>Math.max(5,Math.min(175,Math.round(v/5)*5)));
+      opts = uniq(opts);
+      while(opts.length < 4){
+        const c = Math.round(rInt(10,170)/5)*5;
+        if(!opts.includes(c)) opts.push(c);
+      }
+      opts = opts.sort(()=>Math.random()-.5);
+      return {angle, base, opts};
     }
 
-    function drawAngle(deg) {
-      const w = cv.width, h = cv.height;
-      const cx = w / 2, cy = h / 2 + 40;
-      const len = 150;
-      const start = -Math.PI * 0.95;
-      const end = start + (deg * Math.PI / 180);
+    function drawRays(base,angle){
+      const w=cv.width,h=cv.height,cx=w/2,cy=h/2+20,len=Math.min(w,h)*0.35;
+      ctx.clearRect(0,0,w,h);
 
-      ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "#f8fbff";
-      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle='rgba(148,163,184,.25)'; ctx.lineWidth=1;
+      for(let i=0;i<=w;i+=40){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,h);ctx.stroke()}
+      for(let j=0;j<=h;j+=40){ctx.beginPath();ctx.moveTo(0,j);ctx.lineTo(w,j);ctx.stroke()}
 
-      ctx.lineWidth = 8;
-      ctx.lineCap = "round";
+      const a1 = base*Math.PI/180;
+      const a2 = (base+angle)*Math.PI/180;
 
-      // baseline
-      ctx.strokeStyle = "#2f6df6";
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(cx + len * Math.cos(start), cy + len * Math.sin(start));
-      ctx.stroke();
+      const p = (a)=>({x:cx+len*Math.cos(a), y:cy-len*Math.sin(a)});
+      const p1=p(a1), p2=p(a2);
 
-      // second ray
-      ctx.strokeStyle = "#4aa0ff";
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(cx + len * Math.cos(end), cy + len * Math.sin(end));
-      ctx.stroke();
+      ctx.lineWidth=7; ctx.lineCap='round';
+      ctx.strokeStyle='#38bdf8';
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(p1.x,p1.y); ctx.stroke();
+      ctx.strokeStyle='#f59e0b';
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(p2.x,p2.y); ctx.stroke();
 
-      // arc
-      ctx.strokeStyle = "#f39c12";
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.arc(cx, cy, 70, start, end, false);
-      ctx.stroke();
+      ctx.beginPath(); ctx.fillStyle='#f8fafc'; ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fill();
 
-      ctx.fillStyle = "#1f2d3d";
-      ctx.font = "700 26px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText("？", cx, cy - 90);
+      ctx.strokeStyle='rgba(56,189,248,.65)'; ctx.lineWidth=3;
+      const start=-a1, end=-(a1+angle*Math.PI/180);
+      ctx.beginPath(); ctx.arc(cx,cy,70,start,end,true); ctx.stroke();
+      ctx.fillStyle='#cbd5e1'; ctx.font='700 24px sans-serif';
+      ctx.fillText('?', cx+78*Math.cos((a1+a2)/2)-8, cy-78*Math.sin((a1+a2)/2)+8);
     }
 
-    function renderAnswers() {
-      answersEl.innerHTML = "";
-      labels.forEach((label, i) => {
-        const b = document.createElement("button");
-        b.textContent = label;
-        b.addEventListener("click", () => answer(i));
-        answersEl.appendChild(b);
+    function render(){
+      $('round').textContent = `${round} / ${total}`;
+      $('score').textContent = score;
+      $('streak').textContent = streak;
+      $('msg').textContent = '';
+      $('msg').className='msg';
+
+      current = makeQuestion();
+      drawRays(current.base,current.angle);
+
+      const box = $('options');
+      box.innerHTML = '';
+      current.opts.forEach(v=>{
+        const b=document.createElement('button');
+        b.textContent = `${v}°`;
+        b.onclick = ()=>choose(v,b);
+        box.appendChild(b);
       });
     }
 
-    function answer(choice) {
-      const correct = choice === current.type;
-      if (correct) {
-        score += 10;
+    function choose(v,btn){
+      if(lock) return;
+      lock = true;
+      const buttons = [...document.querySelectorAll('#options button')];
+      const ok = v===current.angle;
+      if(ok){
         streak += 1;
-        msgEl.textContent = `✅ 正确！这是${labels[current.type]}（${current.deg}°）`;
-        msgEl.className = "msg ok";
+        score += 100 + streak*15;
+        btn.classList.add('good');
+        $('msg').textContent = `答对！真实角度是 ${current.angle}°`;
+        $('msg').classList.add('ok');
       } else {
         streak = 0;
-        msgEl.textContent = `❌ 再想想！正确答案是${labels[current.type]}（${current.deg}°）`;
-        msgEl.className = "msg bad";
+        score = Math.max(0, score - 40);
+        btn.classList.add('bad');
+        buttons.find(x=>x.textContent===`${current.angle}°`)?.classList.add('good');
+        $('msg').textContent = `答错了，正确答案是 ${current.angle}°`;
+        $('msg').classList.add('badText');
       }
 
-      idx += 1;
-      updateHud();
-      if (idx >= total) {
-        setTimeout(finish, 700);
-      } else {
-        setTimeout(nextQuestion, 700);
-      }
+      setTimeout(()=>{
+        round++;
+        if(round>total){
+          endGame();
+        } else {
+          lock=false;
+          render();
+        }
+      }, 850);
     }
 
-    function updateHud() {
-      qNumEl.textContent = Math.min(idx + 1, total);
-      scoreEl.textContent = score;
-      streakEl.textContent = streak;
+    function endGame(){
+      const box = $('options');
+      box.innerHTML = '';
+      const rank = score>=1300?'几何大师 🏆':score>=900?'角度高手 🎯':'继续练习 💪';
+      $('question').textContent = `本局完成！总分 ${score}，评价：${rank}`;
+      $('msg').textContent = '点击“重新开始”再来一局。';
+      $('msg').className='msg ok';
+      lock = true;
     }
 
-    function nextQuestion() {
-      current = buildQuestion();
-      drawAngle(current.deg);
-      msgEl.textContent = "请选择角度类型";
-      msgEl.className = "msg";
-      qNumEl.textContent = idx + 1;
-    }
+    $('restart').addEventListener('click',()=>{
+      round=1;score=0;streak=0;lock=false;
+      $('question').textContent='这个角大约是多少度？';
+      render();
+    });
 
-    function finish() {
-      drawAngle(current.deg);
-      const rate = Math.round(score / (total * 10) * 100);
-      msgEl.textContent = `🎉 完成！总分 ${score}，正确率 ${rate}%`;
-      msgEl.className = "msg ok";
-      [...answersEl.querySelectorAll("button")].forEach(b => b.disabled = true);
-    }
-
-    function start() {
-      idx = 0;
-      score = 0;
-      streak = 0;
-      renderAnswers();
-      updateHud();
-      nextQuestion();
-    }
-
-    restartBtn.addEventListener("click", start);
-    start();
+    render();
   </script>
 </body>
 </html>
