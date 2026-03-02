@@ -708,5 +708,11 @@
     "path": "games/perimeter-builder-lab/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T15:03:16.580708+00:00"
+  },
+  {
+    "name": "分数平衡实验室",
+    "path": "games/fraction-balance-lab/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T15:23:03.050648+00:00"
   }
 ]
