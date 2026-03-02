@@ -600,5 +600,11 @@
     "path": "games/coordinate-treasure-hunt/index.html",
     "category": "数学+空间",
     "createdAt": "2026-03-02T16:39:54.533159+08:00"
+  },
+  {
+    "name": "三角形面积冲刺",
+    "path": "games/triangle-area-rush/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T08:59:34.699Z"
   }
 ]

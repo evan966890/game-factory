@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>三角形面积冲刺</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --card: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #22c55e;
+      --warn: #ef4444;
+      --btn: #2563eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      background: linear-gradient(180deg, #0b1024, #111827 30%, #0f172a);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: 100%;
+      max-width: 760px;
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid #374151;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    .header { padding: 16px; background: #0b1220; border-bottom: 1px solid #374151; }
+    h1 { margin: 0; font-size: 1.4rem; }
+    .sub { margin-top: 6px; color: var(--muted); font-size: .95rem; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 8px;
+      padding: 12px 16px;
+      background: #0b1220;
+      border-bottom: 1px solid #374151;
+    }
+    .stat { background: #1f2937; border-radius: 10px; padding: 10px; text-align: center; }
+    .label { color: var(--muted); font-size: .8rem; }
+    .value { font-size: 1.2rem; margin-top: 4px; font-weight: 700; }
+    .main { padding: 16px; }
+    .problem {
+      background: var(--card);
+      border: 1px solid #374151;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .formula { color: #86efac; font-size: .95rem; margin-bottom: 10px; }
+    .triangle-info { font-size: 1.1rem; line-height: 1.6; }
+    .choices { display: grid; gap: 10px; }
+    .choice {
+      width: 100%;
+      border: 1px solid #4b5563;
+      background: #111827;
+      color: var(--text);
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .choice:hover { border-color: #60a5fa; }
+    .choice.correct { border-color: var(--accent); background: rgba(34,197,94,.2); }
+    .choice.wrong { border-color: var(--warn); background: rgba(239,68,68,.2); }
+    .footer { padding: 0 16px 16px; color: var(--muted); min-height: 24px; }
+    .controls { display: flex; gap: 10px; padding: 0 16px 16px; }
+    button#start {
+      flex: 1;
+      border: none;
+      background: var(--btn);
+      color: white;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    @media (max-width: 480px) {
+      .stats { grid-template-columns: 1fr; }
+      h1 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <h1>《三角形面积冲刺》</h1>
+      <div class="sub">在倒计时内计算三角形面积，练习公式：面积 = 底 × 高 ÷ 2</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="label">剩余时间</div><div class="value" id="time">60</div></div>
+      <div class="stat"><div class="label">得分</div><div class="value" id="score">0</div></div>
+      <div class="stat"><div class="label">题目</div><div class="value" id="count">0</div></div>
+    </div>
+
+    <div class="main">
+      <div class="problem">
+        <div class="formula">面积 = 底 × 高 ÷ 2</div>
+        <div class="triangle-info" id="question">点击“开始挑战”开始游戏</div>
+      </div>
+      <div class="choices" id="choices"></div>
+    </div>
+
+    <div class="footer" id="feedback"></div>
+    <div class="controls">
+      <button id="start">开始挑战</button>
+    </div>
+  </div>
+
+  <script>
+    const timeEl = document.getElementById('time');
+    const scoreEl = document.getElementById('score');
+    const countEl = document.getElementById('count');
+    const questionEl = document.getElementById('question');
+    const choicesEl = document.getElementById('choices');
+    const feedbackEl = document.getElementById('feedback');
+    const startBtn = document.getElementById('start');
+
+    let timer = null;
+    let timeLeft = 60;
+    let score = 0;
+    let count = 0;
+    let currentAnswer = null;
+    let locked = true;
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function makeQuestion() {
+      const base = randInt(4, 24);
+      const height = randInt(3, 20);
+      currentAnswer = (base * height) / 2;
+      questionEl.textContent = `底 = ${base} cm，高 = ${height} cm，请选出面积：`;
+
+      const set = new Set([currentAnswer]);
+      while (set.size < 4) {
+        const delta = randInt(-20, 20);
+        const val = Math.max(1, currentAnswer + delta);
+        if (val !== currentAnswer) set.add(val);
+      }
+
+      const options = [...set].sort(() => Math.random() - 0.5);
+      choicesEl.innerHTML = '';
+      options.forEach(v => {
+        const btn = document.createElement('button');
+        btn.className = 'choice';
+        btn.textContent = `${v} cm²`;
+        btn.addEventListener('click', () => handleChoice(btn, v));
+        choicesEl.appendChild(btn);
+      });
+      locked = false;
+    }
+
+    function handleChoice(btn, value) {
+      if (locked) return;
+      locked = true;
+      count++;
+      countEl.textContent = count;
+
+      const buttons = [...document.querySelectorAll('.choice')];
+      buttons.forEach(b => b.disabled = true);
+
+      if (value === currentAnswer) {
+        score += 10;
+        scoreEl.textContent = score;
+        btn.classList.add('correct');
+        feedbackEl.textContent = '✅ 回答正确！+10 分';
+      } else {
+        btn.classList.add('wrong');
+        const right = buttons.find(b => b.textContent === `${currentAnswer} cm²`);
+        if (right) right.classList.add('correct');
+        feedbackEl.textContent = `❌ 正确答案是 ${currentAnswer} cm²`;
+      }
+
+      setTimeout(() => {
+        if (timeLeft > 0) makeQuestion();
+      }, 650);
+    }
+
+    function startGame() {
+      clearInterval(timer);
+      timeLeft = 60;
+      score = 0;
+      count = 0;
+      timeEl.textContent = timeLeft;
+      scoreEl.textContent = score;
+      countEl.textContent = count;
+      feedbackEl.textContent = '⏱️ 60 秒冲刺开始！';
+      startBtn.textContent = '重新开始';
+      makeQuestion();
+
+      timer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          locked = true;
+          choicesEl.innerHTML = '';
+          questionEl.textContent = '时间到！点击“重新开始”再来一局。';
+          feedbackEl.textContent = `🏁 本局得分 ${score} 分，共完成 ${count} 题。`;
+        }
+      }, 1000);
+    }
+
+    startBtn.addEventListener('click', startGame);
+  </script>
+</body>
+</html>
