@@ -498,5 +498,11 @@
     "path": "games/idiom-fill-blank/index.html",
     "category": "语言学习",
     "createdAt": "2026-03-02T10:59:13.942766+08:00"
+  },
+  {
+    "name": "体积单位换算冲刺",
+    "path": "games/volume-unit-conversion-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T11:19:14.165911+08:00"
   }
 ]

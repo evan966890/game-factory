@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>体积单位换算冲刺</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #22d3ee;
+      --ok: #22c55e;
+      --bad: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 14px;
+    }
+    .app {
+      width: min(680px, 100%);
+      background: color-mix(in srgb, var(--card) 92%, #000);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(22px, 4vw, 30px); }
+    .desc { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+    .hud { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .chip {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #1f2937;
+      border: 1px solid #334155;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .question {
+      background: #0b1220;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 14px;
+      min-height: 88px;
+      display: grid;
+      align-content: center;
+      margin-bottom: 12px;
+      font-size: clamp(19px, 4vw, 28px);
+      font-weight: 700;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    button {
+      border: 1px solid #334155;
+      background: #1f2937;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 13px;
+      font-size: 17px;
+      font-weight: 700;
+      min-height: 56px;
+      touch-action: manipulation;
+    }
+    button:active { transform: scale(.98); }
+    .feedback { min-height: 28px; margin: 12px 2px 0; font-weight: 700; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .controls { display: flex; justify-content: flex-end; margin-top: 8px; }
+    .primary {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: #082f49;
+      border: none;
+      padding-inline: 18px;
+    }
+    @media (max-width: 520px) {
+      .options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>体积单位换算冲刺</h1>
+    <p class="desc">10 题一局，点击正确答案，练习 m³ / dm³ / cm³ / L / mL 换算。</p>
+
+    <section class="hud" aria-label="游戏状态">
+      <div class="chip" id="round">第 1 / 10 题</div>
+      <div class="chip" id="score">得分：0</div>
+      <div class="chip" id="combo">连对：0</div>
+    </section>
+
+    <section class="question" id="question" aria-live="polite"></section>
+    <section class="options" id="options"></section>
+    <p class="feedback" id="feedback"></p>
+    <div class="controls"><button class="primary" id="restart">重新开始</button></div>
+  </main>
+
+  <script>
+    (() => {
+      const UNITS = ["m³", "dm³", "cm³", "L", "mL"];
+      const TO_M3 = { "m³": 1, "dm³": 0.001, "cm³": 0.000001, "L": 0.001, "mL": 0.000001 };
+      const TOTAL = 10;
+
+      const roundEl = document.getElementById("round");
+      const scoreEl = document.getElementById("score");
+      const comboEl = document.getElementById("combo");
+      const qEl = document.getElementById("question");
+      const optsEl = document.getElementById("options");
+      const fbEl = document.getElementById("feedback");
+      const restartBtn = document.getElementById("restart");
+
+      let round = 1;
+      let score = 0;
+      let combo = 0;
+      let correctAnswer = null;
+      let locked = false;
+
+      function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function pickTwoUnits() {
+        const from = UNITS[randomInt(0, UNITS.length - 1)];
+        let to = from;
+        while (to === from) to = UNITS[randomInt(0, UNITS.length - 1)];
+        return [from, to];
+      }
+
+      function formatNum(n) {
+        if (Math.abs(n) >= 1000 || (Math.abs(n) > 0 && Math.abs(n) < 0.01)) return Number(n.toPrecision(4)).toString();
+        return Number(n.toFixed(4)).toString().replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+      }
+
+      function generateQuestion() {
+        const [from, to] = pickTwoUnits();
+        const basePool = [1,2,3,4,5,8,10,12,15,20,25,50,75,100,120,250,500,750];
+        const value = basePool[randomInt(0, basePool.length - 1)];
+
+        const answer = (value * TO_M3[from]) / TO_M3[to];
+        correctAnswer = answer;
+
+        qEl.textContent = `${value}${from} = ? ${to}`;
+
+        const options = new Set([formatNum(answer)]);
+        const factors = [10, 100, 0.1, 0.01, 2, 5, 0.5];
+        while (options.size < 4) {
+          const factor = factors[randomInt(0, factors.length - 1)];
+          const delta = randomInt(-3, 3);
+          const wrong = answer * factor + delta;
+          if (wrong > 0) options.add(formatNum(wrong));
+        }
+
+        const shuffled = [...options].sort(() => Math.random() - 0.5);
+        optsEl.innerHTML = "";
+        shuffled.forEach((txt) => {
+          const btn = document.createElement("button");
+          btn.textContent = txt;
+          btn.addEventListener("click", () => onAnswer(txt));
+          optsEl.appendChild(btn);
+        });
+      }
+
+      function onAnswer(chosenText) {
+        if (locked) return;
+        locked = true;
+        const chosen = Number(chosenText);
+        const ok = Math.abs(chosen - correctAnswer) < 1e-9;
+
+        if (ok) {
+          combo += 1;
+          score += 10 + Math.min(combo, 5) * 2;
+          fbEl.textContent = `✅ 正确！当前连对 ${combo}`;
+          fbEl.className = "feedback ok";
+        } else {
+          combo = 0;
+          fbEl.textContent = `❌ 错误，正确答案是 ${formatNum(correctAnswer)}`;
+          fbEl.className = "feedback bad";
+        }
+
+        scoreEl.textContent = `得分：${score}`;
+        comboEl.textContent = `连对：${combo}`;
+
+        setTimeout(() => {
+          round += 1;
+          if (round > TOTAL) {
+            endGame();
+            return;
+          }
+          roundEl.textContent = `第 ${round} / ${TOTAL} 题`;
+          fbEl.textContent = "";
+          fbEl.className = "feedback";
+          locked = false;
+          generateQuestion();
+        }, 650);
+      }
+
+      function endGame() {
+        qEl.textContent = `🎉 本局完成！总分 ${score}`;
+        optsEl.innerHTML = "";
+        const tips = document.createElement("p");
+        tips.style.margin = "0";
+        tips.style.color = "#cbd5e1";
+        tips.textContent = score >= 120 ? "太强了！你是体积换算高手！" : "再来一局，把连击拉满！";
+        optsEl.appendChild(tips);
+      }
+
+      function reset() {
+        round = 1; score = 0; combo = 0; locked = false;
+        roundEl.textContent = `第 ${round} / ${TOTAL} 题`;
+        scoreEl.textContent = "得分：0";
+        comboEl.textContent = "连对：0";
+        fbEl.textContent = "";
+        fbEl.className = "feedback";
+        generateQuestion();
+      }
+
+      restartBtn.addEventListener("click", reset);
+      reset();
+    })();
+  </script>
+</body>
+</html>
