@@ -468,5 +468,11 @@
     "path": "games/mean-median-mode-rush/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T01:19:13.361328Z"
+  },
+  {
+    "name": "三角角和闯关",
+    "path": "games/geometry-angle-sum-quest/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T09:39:03.507390+08:00"
   }
 ]

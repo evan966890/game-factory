@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>三角角和闯关</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--accent:#22d3ee;--ok:#34d399;--bad:#fb7185;--text:#e5e7eb}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#020617,#0f172a 50%,#1e293b);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+    .app{width:min(720px,100%);background:rgba(17,24,39,.92);border:1px solid #334155;border-radius:20px;padding:18px;box-shadow:0 20px 40px rgba(0,0,0,.35)}
+    h1{margin:0 0 8px;font-size:clamp(24px,4vw,32px)}
+    .sub{margin:0 0 16px;color:#cbd5e1}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+    .stat{background:#0b1220;border:1px solid #334155;border-radius:12px;padding:10px;text-align:center}
+    .q{background:#0b1220;border:1px solid #334155;border-radius:14px;padding:14px;margin-bottom:12px}
+    .q strong{font-size:clamp(18px,3.2vw,24px);display:block;margin-top:8px;color:#f8fafc}
+    .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button{border:0;border-radius:12px;padding:12px 10px;font-size:16px;font-weight:700;background:#1e293b;color:#e2e8f0;cursor:pointer;touch-action:manipulation}
+    button:hover{filter:brightness(1.08)} button:active{transform:scale(.98)}
+    .ok{background:rgba(52,211,153,.2);border:1px solid var(--ok)}
+    .bad{background:rgba(251,113,133,.2);border:1px solid var(--bad)}
+    .bar{height:12px;background:#0b1220;border-radius:999px;overflow:hidden;border:1px solid #334155;margin:12px 0}
+    .fill{height:100%;background:linear-gradient(90deg,#22d3ee,#818cf8);width:100%;transition:width .25s linear}
+    .footer{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .primary{background:linear-gradient(90deg,#06b6d4,#6366f1);color:#fff}
+    .msg{min-height:24px;font-weight:700}
+  </style>
+</head>
+<body>
+  <main class="app" role="main">
+    <h1>三角角和闯关</h1>
+    <p class="sub">10 题计时挑战：根据两个角，快速选出第三个角。</p>
+
+    <section class="stats" aria-label="游戏状态">
+      <div class="stat">题目 <div id="round">1 / 10</div></div>
+      <div class="stat">得分 <div id="score">0</div></div>
+      <div class="stat">剩余 <div id="time">60s</div></div>
+    </section>
+
+    <div class="bar" aria-hidden="true"><div class="fill" id="fill"></div></div>
+
+    <section class="q" id="questionBox">
+      已知三角形两个内角分别为
+      <strong id="questionText">35° 和 75°，第三个角是多少？</strong>
+    </section>
+
+    <section class="opts" id="options"></section>
+    <p class="msg" id="msg" aria-live="polite"></p>
+
+    <div class="footer">
+      <button class="primary" id="restart">重新开始</button>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      const TOTAL = 10;
+      const LIMIT = 60;
+      let timer = null;
+      let qIndex = 0;
+      let score = 0;
+      let left = LIMIT;
+      let locked = false;
+      let currentAnswer = 0;
+
+      const roundEl = document.getElementById('round');
+      const scoreEl = document.getElementById('score');
+      const timeEl = document.getElementById('time');
+      const fillEl = document.getElementById('fill');
+      const qText = document.getElementById('questionText');
+      const optionsEl = document.getElementById('options');
+      const msgEl = document.getElementById('msg');
+      const restartBtn = document.getElementById('restart');
+
+      function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+      function buildQuestion(){
+        const c = randInt(20, 140);
+        const a = randInt(10, 160 - c);
+        const b = 180 - a - c;
+        currentAnswer = c;
+
+        qText.textContent = `${a}° 和 ${b}°，第三个角是多少？`;
+
+        const set = new Set([c]);
+        while (set.size < 4) {
+          let wrong = c + randInt(-30, 30);
+          if (wrong <= 0 || wrong >= 180) continue;
+          if (wrong === c) continue;
+          set.add(wrong);
+        }
+        const opts = [...set].sort(() => Math.random() - 0.5);
+
+        optionsEl.innerHTML = '';
+        opts.forEach(v => {
+          const btn = document.createElement('button');
+          btn.textContent = `${v}°`;
+          btn.addEventListener('click', () => choose(btn, v));
+          optionsEl.appendChild(btn);
+        });
+      }
+
+      function choose(btn, value){
+        if (locked) return;
+        locked = true;
+        const buttons = [...optionsEl.querySelectorAll('button')];
+
+        if (value === currentAnswer) {
+          score += 10;
+          msgEl.textContent = '✅ 正确！三角形内角和恒为 180°';
+          btn.classList.add('ok');
+        } else {
+          msgEl.textContent = `❌ 正确答案是 ${currentAnswer}°`;
+          btn.classList.add('bad');
+          buttons.find(b => b.textContent === `${currentAnswer}°`)?.classList.add('ok');
+        }
+        scoreEl.textContent = score;
+
+        setTimeout(() => {
+          qIndex++;
+          if (qIndex >= TOTAL || left <= 0) {
+            finish();
+          } else {
+            locked = false;
+            msgEl.textContent = '';
+            roundEl.textContent = `${qIndex + 1} / ${TOTAL}`;
+            buildQuestion();
+          }
+        }, 650);
+      }
+
+      function finish(){
+        clearInterval(timer);
+        locked = true;
+        qText.textContent = `挑战结束！你的得分：${score} / ${TOTAL * 10}`;
+        optionsEl.innerHTML = '';
+        const tips = document.createElement('div');
+        tips.style.opacity = '.9';
+        tips.style.lineHeight = '1.6';
+        tips.innerHTML = score >= 80
+          ? '🎉 几何高手！你对三角形角和掌握得非常扎实。'
+          : '📘 小提示：任意三角形内角和都等于 180°，多练就会更快。';
+        optionsEl.appendChild(tips);
+      }
+
+      function tick(){
+        left--;
+        if (left < 0) left = 0;
+        timeEl.textContent = `${left}s`;
+        fillEl.style.width = `${(left / LIMIT) * 100}%`;
+        if (left <= 0) finish();
+      }
+
+      function start(){
+        clearInterval(timer);
+        qIndex = 0; score = 0; left = LIMIT; locked = false;
+        msgEl.textContent = '';
+        scoreEl.textContent = '0';
+        roundEl.textContent = `1 / ${TOTAL}`;
+        timeEl.textContent = `${LIMIT}s`;
+        fillEl.style.width = '100%';
+        buildQuestion();
+        timer = setInterval(tick, 1000);
+      }
+
+      restartBtn.addEventListener('click', start);
+      start();
+    })();
+  </script>
+</body>
+</html>
