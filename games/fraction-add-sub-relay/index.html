@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>分数加减接龙</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #22d3ee;
+      --good: #10b981;
+      --bad: #ef4444;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg) 45%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 12px;
+    }
+    .app {
+      width: min(680px, 100%);
+      background: rgba(17, 24, 39, 0.92);
+      border: 1px solid #1f2937;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,.3);
+    }
+    h1 { margin: 4px 0 6px; font-size: 1.45rem; }
+    .subtitle { margin: 0 0 14px; color: var(--muted); font-size: .95rem; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .stat {
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+    .stat .label { color: var(--muted); font-size: .75rem; }
+    .stat .value { font-size: 1.15rem; font-weight: 700; margin-top: 2px; }
+    .question {
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 14px;
+      padding: 18px 12px;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: .5px;
+      min-height: 92px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    button.choice {
+      border: 1px solid #334155;
+      background: #111827;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 14px 10px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      min-height: 54px;
+    }
+    button.choice:active { transform: scale(0.98); }
+    .message { min-height: 24px; text-align: center; margin: 10px 0 2px; font-weight: 600; }
+    .good { color: var(--good); }
+    .bad { color: var(--bad); }
+    .controls { margin-top: 10px; display: flex; gap: 8px; }
+    .controls button {
+      flex: 1;
+      border: none;
+      border-radius: 12px;
+      padding: 11px 10px;
+      font-size: .95rem;
+      font-weight: 700;
+      color: #0b1220;
+      background: var(--accent);
+    }
+    .result {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px dashed #334155;
+      border-radius: 12px;
+      text-align: center;
+      color: #cbd5e1;
+      display: none;
+    }
+    @media (max-width: 520px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stats .stat:last-child { grid-column: 1 / -1; }
+      .question { font-size: 1.25rem; }
+      .choices { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>分数加减接龙</h1>
+    <p class="subtitle">60 秒挑战：快速完成分数加减，答对连击可加分！</p>
+
+    <section class="stats">
+      <div class="stat"><div class="label">剩余时间</div><div id="time" class="value">60</div></div>
+      <div class="stat"><div class="label">得分</div><div id="score" class="value">0</div></div>
+      <div class="stat"><div class="label">连击</div><div id="combo" class="value">0</div></div>
+    </section>
+
+    <div id="question" class="question">点击“开始挑战”</div>
+    <section id="choices" class="choices"></section>
+    <div id="message" class="message"></div>
+
+    <div class="controls">
+      <button id="startBtn">开始挑战</button>
+      <button id="restartBtn">重新开始</button>
+    </div>
+
+    <section id="result" class="result"></section>
+  </main>
+
+  <script>
+    const timeEl = document.getElementById('time');
+    const scoreEl = document.getElementById('score');
+    const comboEl = document.getElementById('combo');
+    const questionEl = document.getElementById('question');
+    const choicesEl = document.getElementById('choices');
+    const messageEl = document.getElementById('message');
+    const resultEl = document.getElementById('result');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+
+    let timer = null;
+    let timeLeft = 60;
+    let score = 0;
+    let combo = 0;
+    let running = false;
+    let correct = null;
+
+    const gcd = (a, b) => b ? gcd(b, a % b) : Math.abs(a);
+    const simplify = (n, d) => {
+      const g = gcd(n, d);
+      return [n / g, d / g];
+    };
+    const toText = ([n, d]) => d === 1 ? String(n) : `${n}/${d}`;
+
+    function generateQuestion() {
+      const den = [2,3,4,5,6,8,10][Math.floor(Math.random() * 7)];
+      const a = 1 + Math.floor(Math.random() * (den - 1));
+      const b = 1 + Math.floor(Math.random() * (den - 1));
+      const op = Math.random() < 0.55 ? '+' : '-';
+      let n = op === '+' ? a + b : a - b;
+      if (op === '-' && n <= 0) n = a + b;
+      const ans = simplify(n, den);
+
+      questionEl.textContent = `${a}/${den} ${op} ${b}/${den} = ?`;
+      correct = toText(ans);
+
+      const options = new Set([correct]);
+      while (options.size < 4) {
+        const delta = [-2,-1,1,2][Math.floor(Math.random()*4)];
+        const fakeN = Math.max(1, ans[0] + delta);
+        const fake = simplify(fakeN, ans[1]);
+        options.add(toText(fake));
+      }
+
+      const shuffled = [...options].sort(() => Math.random() - 0.5);
+      choicesEl.innerHTML = '';
+      shuffled.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'choice';
+        btn.textContent = item;
+        btn.addEventListener('click', () => pick(item));
+        choicesEl.appendChild(btn);
+      });
+    }
+
+    function pick(val) {
+      if (!running) return;
+      if (val === correct) {
+        combo += 1;
+        score += 10 + Math.min(15, combo * 2);
+        messageEl.textContent = `答对！连击 x${combo}`;
+        messageEl.className = 'message good';
+      } else {
+        combo = 0;
+        score = Math.max(0, score - 5);
+        messageEl.textContent = `答错了，正确答案是 ${correct}`;
+        messageEl.className = 'message bad';
+      }
+      scoreEl.textContent = score;
+      comboEl.textContent = combo;
+      generateQuestion();
+    }
+
+    function tick() {
+      timeLeft -= 1;
+      timeEl.textContent = timeLeft;
+      if (timeLeft <= 0) endGame();
+    }
+
+    function startGame() {
+      if (running) return;
+      running = true;
+      resultEl.style.display = 'none';
+      messageEl.textContent = '';
+      messageEl.className = 'message';
+      generateQuestion();
+      timer = setInterval(tick, 1000);
+    }
+
+    function endGame() {
+      running = false;
+      clearInterval(timer);
+      choicesEl.innerHTML = '';
+      questionEl.textContent = '时间到！';
+      resultEl.innerHTML = `本轮得分 <b>${score}</b>，最高连击 <b>${combo}</b>。<br>再来一局冲刺更高分！`;
+      resultEl.style.display = 'block';
+    }
+
+    function resetGame() {
+      clearInterval(timer);
+      running = false;
+      timeLeft = 60;
+      score = 0;
+      combo = 0;
+      correct = null;
+      timeEl.textContent = timeLeft;
+      scoreEl.textContent = score;
+      comboEl.textContent = combo;
+      questionEl.textContent = '点击“开始挑战”';
+      choicesEl.innerHTML = '';
+      messageEl.textContent = '';
+      messageEl.className = 'message';
+      resultEl.style.display = 'none';
+    }
+
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', resetGame);
+    resetGame();
+  </script>
+</body>
+</html>

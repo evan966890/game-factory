@@ -690,5 +690,11 @@
     "path": "games/fraction-simplify-sprint/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T22:02:06.464312+08:00"
+  },
+  {
+    "name": "分数加减接龙",
+    "path": "games/fraction-add-sub-relay/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T22:22:15.244845+08:00"
   }
 ]
