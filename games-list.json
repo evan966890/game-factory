@@ -714,5 +714,11 @@
     "path": "games/fraction-balance-lab/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T15:23:03.050648+00:00"
+  },
+  {
+    "name": "角度神射手",
+    "path": "games/angle-archer/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T15:44:28Z"
   }
 ]

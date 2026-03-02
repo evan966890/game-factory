@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>角度神射手</title>
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --ink:#e5e7eb; --ok:#22c55e; --bad:#ef4444; --acc:#38bdf8; }
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#0b1023,#111827);color:var(--ink)}
+    .wrap{max-width:720px;margin:0 auto;padding:16px}
+    .card{background:rgba(17,24,39,.92);border:1px solid #1f2937;border-radius:14px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+    h1{font-size:24px;margin:4px 0 10px} .sub{opacity:.9;font-size:14px;line-height:1.5}
+    .hud{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+    .pill{background:#0b1220;border:1px solid #223046;border-radius:10px;padding:8px;text-align:center}
+    .pill b{display:block;font-size:20px;color:#fff}
+    canvas{width:100%;height:auto;display:block;background:#0b1220;border:1px solid #1f2937;border-radius:12px;margin:10px 0}
+    .q{font-size:18px;margin:10px 0 8px}
+    .opts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    button{background:#1f2937;color:#fff;border:1px solid #334155;border-radius:10px;padding:12px;font-size:16px}
+    button:active{transform:scale(.98)}
+    .ok{color:var(--ok)} .bad{color:var(--bad)}
+    .foot{margin-top:10px;font-size:14px;min-height:22px}
+    .start{margin-top:8px;background:#0369a1;border-color:#0ea5e9}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>🎯 角度神射手</h1>
+      <div class="sub">观察射线与水平线的夹角，选出最接近的角度。10题一局，越准分越高！</div>
+      <div class="hud">
+        <div class="pill">题号<b id="round">0/10</b></div>
+        <div class="pill">得分<b id="score">0</b></div>
+        <div class="pill">连对<b id="streak">0</b></div>
+      </div>
+      <canvas id="cv" width="680" height="360" aria-label="角度题目"></canvas>
+      <div class="q" id="question">点击开始</div>
+      <div class="opts" id="options"></div>
+      <button class="start" id="startBtn">开始挑战</button>
+      <div class="foot" id="msg"></div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const total = 10;
+  let idx = 0, score = 0, streak = 0, answer = 0, locked = true;
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const el = {
+    round: document.getElementById('round'), score: document.getElementById('score'), streak: document.getElementById('streak'),
+    q: document.getElementById('question'), opts: document.getElementById('options'), msg: document.getElementById('msg'), start: document.getElementById('startBtn')
+  };
+
+  function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+  function pickOptions(ans){
+    const set = new Set([ans]);
+    while(set.size<4){
+      const delta = [5,8,10,12,15][randInt(0,4)] * (Math.random()<0.5?-1:1);
+      const v = Math.max(10, Math.min(170, ans + delta));
+      set.add(v);
+    }
+    return [...set].sort(()=>Math.random()-0.5);
+  }
+
+  function draw(angle){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    const cx = cv.width*0.2, cy = cv.height*0.75, len = Math.min(cv.width,cv.height)*0.5;
+
+    // baseline
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 5; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + len, cy); ctx.stroke();
+
+    // ray
+    const rad = angle * Math.PI / 180;
+    const x = cx + Math.cos(rad) * len;
+    const y = cy - Math.sin(rad) * len;
+    ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x,y); ctx.stroke();
+
+    // vertex
+    ctx.fillStyle='#e5e7eb'; ctx.beginPath(); ctx.arc(cx,cy,7,0,Math.PI*2); ctx.fill();
+
+    // arc hint
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx,cy,60,0,-rad,true); ctx.stroke();
+
+    // guide grid
+    ctx.strokeStyle='rgba(148,163,184,.2)'; ctx.lineWidth=1;
+    for(let i=1;i<=5;i++){ ctx.beginPath(); ctx.moveTo(0, i*60); ctx.lineTo(cv.width, i*60); ctx.stroke(); }
+  }
+
+  function updateHud(){
+    el.round.textContent = `${idx}/${total}`;
+    el.score.textContent = score;
+    el.streak.textContent = streak;
+  }
+
+  function newQ(){
+    locked = false;
+    answer = randInt(15,165);
+    idx++;
+    updateHud();
+    draw(answer);
+    el.q.textContent = `第 ${idx} 题：这个角大约是多少度？`;
+    const opts = pickOptions(answer);
+    el.opts.innerHTML = '';
+    opts.forEach(v => {
+      const b = document.createElement('button');
+      b.textContent = `${v}°`;
+      b.onclick = () => choose(v,b);
+      el.opts.appendChild(b);
+    });
+  }
+
+  function choose(v,btn){
+    if(locked) return;
+    locked = true;
+    const diff = Math.abs(v-answer);
+    const correct = diff <= 5;
+    if(correct){
+      streak++;
+      const gain = Math.max(6, 20 - diff) + Math.min(10, streak);
+      score += gain;
+      el.msg.innerHTML = `<span class="ok">答对！正确角度约 ${answer}°，+${gain} 分</span>`;
+    }else{
+      streak = 0;
+      el.msg.innerHTML = `<span class="bad">有点偏差，正确角度约 ${answer}°（你选 ${v}°）</span>`;
+    }
+
+    [...el.opts.children].forEach(c => {
+      const n = Number(c.textContent.replace('°',''));
+      if(Math.abs(n-answer)<=5) c.style.borderColor = '#22c55e';
+      if(c===btn && !correct) c.style.borderColor = '#ef4444';
+      c.disabled = true;
+    });
+
+    setTimeout(() => {
+      if(idx < total) newQ();
+      else endGame();
+    }, 850);
+    updateHud();
+  }
+
+  function endGame(){
+    el.q.textContent = `挑战完成！总分 ${score}`;
+    let rank = '角度学徒';
+    if(score >= 180) rank = '角度专家';
+    else if(score >= 130) rank = '角度达人';
+    el.msg.innerHTML = `<span class="ok">评级：${rank}。再来一局挑战更高分！</span>`;
+    el.start.style.display = 'block';
+    el.start.textContent = '再玩一次';
+    el.opts.innerHTML = '';
+    draw(45);
+  }
+
+  el.start.onclick = () => {
+    idx = 0; score = 0; streak = 0; locked = true;
+    el.start.style.display = 'none';
+    el.msg.textContent = '';
+    updateHud();
+    newQ();
+  };
+
+  draw(30);
+})();
+</script>
+</body>
+</html>
