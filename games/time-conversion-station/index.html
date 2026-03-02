@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>秒分时换算站</title>
+  <style>
+    :root{--bg:#f3f7ff;--card:#fff;--text:#1f2a44;--accent:#4a6cf7;--good:#178a49;--bad:#cc2f2f}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft Yahei",sans-serif;background:linear-gradient(180deg,#eef4ff,#f8fbff);color:var(--text)}
+    .wrap{max-width:760px;margin:0 auto;padding:16px}
+    .card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 8px 24px rgba(58,86,164,.1)}
+    h1{font-size:clamp(24px,5vw,34px);margin:0 0 8px}
+    .sub{margin:0 0 14px;color:#4b5b82}
+    .top{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+    .pill{background:#edf2ff;border-radius:12px;padding:10px;text-align:center;font-weight:700}
+    .q{font-size:clamp(26px,6vw,40px);font-weight:800;line-height:1.25;text-align:center;padding:18px 8px;border:2px dashed #cfd9ff;border-radius:12px;background:#f9fbff;margin-bottom:12px}
+    .input{display:flex;gap:8px}
+    input{flex:1;font-size:24px;padding:12px;border:2px solid #cad7ff;border-radius:12px}
+    button{border:0;border-radius:12px;padding:12px 16px;font-size:18px;font-weight:700;background:var(--accent);color:#fff}
+    button:active{transform:scale(.98)}
+    .msg{min-height:24px;margin-top:10px;font-weight:700}
+    .good{color:var(--good)} .bad{color:var(--bad)}
+    .actions{display:flex;gap:8px;margin-top:12px}
+    .ghost{background:#e8edff;color:#3550c7}
+    .hint{margin-top:8px;color:#5b6b92;font-size:14px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>秒分时换算站</h1>
+      <p class="sub">90 秒内完成尽可能多的时间单位换算，正确+10 分，错误-3 秒。</p>
+      <div class="top">
+        <div class="pill">⏱ 剩余：<span id="time">90</span>s</div>
+        <div class="pill">🎯 分数：<span id="score">0</span></div>
+        <div class="pill">🔥 连击：<span id="combo">0</span></div>
+      </div>
+      <div class="q" id="question">点击开始</div>
+      <div class="input">
+        <input id="answer" type="number" inputmode="numeric" placeholder="输入数字答案" />
+        <button id="submit">提交</button>
+      </div>
+      <div class="msg" id="msg"></div>
+      <div class="actions">
+        <button id="start">开始挑战</button>
+        <button class="ghost" id="next">跳过这题</button>
+      </div>
+      <div class="hint">题型示例：2 小时 = ? 分钟、300 秒 = ? 分钟、4 天 = ? 小时</div>
+    </div>
+  </div>
+
+  <script>
+    const timeEl = document.getElementById('time');
+    const scoreEl = document.getElementById('score');
+    const comboEl = document.getElementById('combo');
+    const qEl = document.getElementById('question');
+    const msgEl = document.getElementById('msg');
+    const inputEl = document.getElementById('answer');
+    const submitBtn = document.getElementById('submit');
+    const startBtn = document.getElementById('start');
+    const nextBtn = document.getElementById('next');
+
+    const types = [
+      { from:'小时', to:'分钟', mul:60, min:1, max:12 },
+      { from:'分钟', to:'秒', mul:60, min:1, max:120 },
+      { from:'天', to:'小时', mul:24, min:1, max:14 },
+      { from:'周', to:'天', mul:7, min:1, max:8 },
+      { from:'分钟', to:'小时', div:60, candidates:[60,120,180,240,300,360,420,480,540,600] },
+      { from:'秒', to:'分钟', div:60, candidates:[60,120,180,240,300,360,420,480,540,600,660,720] }
+    ];
+
+    let state = { running:false,time:90,score:0,combo:0,timer:null,current:null };
+
+    function rand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+    function newQuestion(){
+      const t = types[rand(0,types.length-1)];
+      let value, ans;
+      if(t.mul){
+        value = rand(t.min,t.max);
+        ans = value * t.mul;
+      }else{
+        value = t.candidates[rand(0,t.candidates.length-1)];
+        ans = value / t.div;
+      }
+      state.current = { text:`${value} ${t.from} = ? ${t.to}`, answer:ans };
+      qEl.textContent = state.current.text;
+      inputEl.value = '';
+      inputEl.focus();
+      msg('');
+    }
+
+    function msg(t, cls=''){
+      msgEl.textContent = t;
+      msgEl.className = 'msg ' + cls;
+    }
+
+    function refresh(){
+      timeEl.textContent = state.time;
+      scoreEl.textContent = state.score;
+      comboEl.textContent = state.combo;
+    }
+
+    function endGame(){
+      state.running = false;
+      clearInterval(state.timer);
+      qEl.textContent = `挑战结束！最终得分 ${state.score}`;
+      msg(`本次最高连击 ${state.combo}。再来一局刷新纪录吧！`, 'good');
+      startBtn.textContent = '再来一局';
+    }
+
+    function start(){
+      state = { running:true,time:90,score:0,combo:0,timer:null,current:null };
+      refresh();
+      startBtn.textContent = '进行中';
+      newQuestion();
+      state.timer = setInterval(()=>{
+        state.time--;
+        refresh();
+        if(state.time<=0) endGame();
+      },1000);
+    }
+
+    function submit(){
+      if(!state.running || !state.current) return;
+      const val = Number(inputEl.value);
+      if(!Number.isFinite(val)) return msg('请输入数字答案', 'bad');
+      if(val === state.current.answer){
+        state.combo++;
+        state.score += 10 + Math.min(10, state.combo);
+        msg('答对了！+分', 'good');
+      }else{
+        state.combo = 0;
+        state.time = Math.max(0, state.time - 3);
+        msg(`答错了，正确答案是 ${state.current.answer}（扣 3 秒）`, 'bad');
+      }
+      refresh();
+      if(state.time<=0) return endGame();
+      setTimeout(newQuestion, 400);
+    }
+
+    submitBtn.addEventListener('click', submit);
+    inputEl.addEventListener('keydown', e=>{ if(e.key==='Enter') submit(); });
+    startBtn.addEventListener('click', ()=>{ if(!state.running) start(); });
+    nextBtn.addEventListener('click', ()=>{ if(state.running) newQuestion(); });
+
+    refresh();
+  </script>
+</body>
+</html>

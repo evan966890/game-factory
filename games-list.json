@@ -672,5 +672,11 @@
     "path": "games/ratio-balance-lab/index.html",
     "category": "education",
     "createdAt": "2026-03-02T13:00:04Z"
+  },
+  {
+    "name": "秒分时换算站",
+    "path": "games/time-conversion-station/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T13:20:32Z"
   }
 ]
