@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>数学曲折跑</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --ball-color: #ff6b6b;
+      --path-color: #4a90e2;
+      --obstacle-color: #2c3e50;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin: 0;
+      text-align: center;
+    }
+
+    .game-area {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      background: linear-gradient(180deg, #87ceeb 0%, #e0f0ff 100%);
+      border-radius: var(--radius);
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    .score-panel {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    .score-item {
+      text-align: center;
+    }
+
+    .score-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .score-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--primary);
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: #f8f9fa;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: min(90%, 400px);
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      margin: 0 0 16px;
+      color: var(--primary);
+    }
+
+    .modal-text {
+      margin: 0 0 24px;
+      color: var(--muted);
+    }
+
+    .math-question {
+      font-size: 2rem;
+      font-weight: bold;
+      margin: 20px 0;
+      color: var(--text);
+    }
+
+    .math-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .math-option {
+      padding: 16px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: var(--card);
+    }
+
+    .math-option:hover {
+      border-color: var(--primary);
+      background: #f0f8ff;
+    }
+
+    .math-option.correct {
+      border-color: var(--ok);
+      background: #e8f5e9;
+    }
+
+    .math-option.wrong {
+      border-color: var(--bad);
+      background: #ffebee;
+    }
+
+    .achievement {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #ffd700, #ffb347);
+      color: #333;
+      padding: 16px 24px;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      transform: translateX(150%);
+      transition: transform 0.5s ease;
+      z-index: 1001;
+    }
+
+    .achievement.show {
+      transform: translateX(0);
+    }
+
+    .achievement-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .achievement-text {
+      font-size: 0.9rem;
+    }
+
+    .game-over {
+      text-align: center;
+    }
+
+    .final-score {
+      font-size: 3rem;
+      font-weight: bold;
+      color: var(--primary);
+      margin: 20px 0;
+    }
+
+    .high-score {
+      font-size: 1.2rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .instructions {
+      font-size: 0.9rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>🎮 数学曲折跑</h1>
+    <p class="subtitle">控制球在曲折路径上滚动，回答数学题，挑战最高分！</p>
+    
+    <div class="score-panel">
+      <div class="score-item">
+        <div class="score-label">当前分数</div>
+        <div class="score-value" id="currentScore">0</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">前进距离</div>
+        <div class="score-value" id="distance">0</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">最高分</div>
+        <div class="score-value" id="highScore">0</div>
+      </div>
+    </div>
+
+    <div class="game-area" id="gameArea">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary" id="startBtn">开始游戏</button>
+      <button class="btn btn-secondary" id="resetBtn">重置</button>
+    </div>
+
+    <p class="instructions">点击屏幕改变球的方向，每前进 100 米回答一道数学题</p>
+  </div>
+
+  <!-- 数学题弹窗 -->
+  <div class="modal" id="mathModal">
+    <div class="modal-content">
+      <h2 class="modal-title">🧮 数学挑战</h2>
+      <p class="modal-text">答对获得加速和护盾！</p>
+      <div class="math-question" id="mathQuestion">5 + 3 = ?</div>
+      <div class="math-options" id="mathOptions">
+        <!-- 选项将动态生成 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 游戏结束弹窗 -->
+  <div class="modal" id="gameOverModal">
+    <div class="modal-content game-over">
+      <h2 class="modal-title">🎯 游戏结束</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <div class="high-score" id="finalHighScore">最高分: 0</div>
+      <button class="btn btn-primary" id="playAgainBtn">再来一局</button>
+    </div>
+  </div>
+
+  <!-- 成就弹窗 -->
+  <div class="achievement" id="achievement">
+    <div class="achievement-title">🏆 成就解锁！</div>
+    <div class="achievement-text" id="achievementText">前进 1000 米！</div>
+  </div>
+
+  <script>
+    // 游戏状态
+    const state = {
+      isPlaying: false,
+      currentScore: 0,
+      distance: 0,
+      highScore: 0,
+      correctAnswers: 0,
+      achievements: {
+        distance1000: false,
+        answer50: false
+      },
+      ball: null,
+      path: [],
+      obstacles: [],
+      difficulty: 'addition',
+      animationId: null,
+      lastQuestionDistance: 0,
+      shield: false,
+      shieldTime: 0
+    };
+
+    // DOM 元素
+    const gameArea = document.getElementById('gameArea');
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const currentScoreEl = document.getElementById('currentScore');
+    const distanceEl = document.getElementById('distance');
+    const highScoreEl = document.getElementById('highScore');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const mathModal = document.getElementById('mathModal');
+    const mathQuestion = document.getElementById('mathQuestion');
+    const mathOptions = document.getElementById('mathOptions');
+    const gameOverModal = document.getElementById('gameOverModal');
+    const finalScore = document.getElementById('finalScore');
+    const finalHighScore = document.getElementById('finalHighScore');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+    const achievement = document.getElementById('achievement');
+    const achievementText = document.getElementById('achievementText');
+
+    // 初始化游戏
+    function init() {
+      loadGameData();
+      updateUI();
+      setupEventListeners();
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+    }
+
+    // 调整 Canvas 大小
+    function resizeCanvas() {
+      const rect = gameArea.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    }
+
+    // 加载游戏数据
+    function loadGameData() {
+      const saved = localStorage.getItem('mathZigzagRun');
+      if (saved) {
+        const data = JSON.parse(saved);
+        state.highScore = data.highScore || 0;
+        state.achievements = data.achievements || state.achievements;
+      }
+    }
+
+    // 保存游戏数据
+    function saveGameData() {
+      const data = {
+        highScore: state.highScore,
+        achievements: state.achievements
+      };
+      localStorage.setItem('mathZigzagRun', JSON.stringify(data));
+    }
+
+    // 更新 UI
+    function updateUI() {
+      currentScoreEl.textContent = state.currentScore;
+      distanceEl.textContent = Math.floor(state.distance);
+      highScoreEl.textContent = state.highScore;
+    }
+
+    // 设置事件监听器
+    function setupEventListeners() {
+      startBtn.addEventListener('click', startGame);
+      resetBtn.addEventListener('click', resetGame);
+      playAgainBtn.addEventListener('click', () => {
+        gameOverModal.classList.remove('active');
+        resetGame();
+        startGame();
+      });
+      gameArea.addEventListener('click', handleGameClick);
+    }
+
+    // 开始游戏
+    function startGame() {
+      if (state.isPlaying) return;
+      
+      state.isPlaying = true;
+      state.currentScore = 0;
+      state.distance = 0;
+      state.correctAnswers = 0;
+      state.lastQuestionDistance = 0;
+      state.shield = false;
+      state.shieldTime = 0;
+      state.path = [];
+      state.obstacles = [];
+      state.difficulty = 'addition';
+      
+      // 初始化球体
+      state.ball = {
+        x: canvas.width / 2,
+        y: canvas.height - 50,
+        radius: 15,
+        speed: 3,
+        direction: 1, // 1: 右, -1: 左
+        velocityX: 3,
+        velocityY: -2
+      };
+      
+      // 生成初始路径
+      generatePath();
+      
+      // 开始游戏循环
+      gameLoop();
+      
+      updateUI();
+      startBtn.textContent = '游戏中...';
+      startBtn.disabled = true;
+    }
+
+    // 生成路径
+    function generatePath() {
+      const pathLength = 50;
+      const segmentLength = 20;
+      let currentX = canvas.width / 2;
+      let currentY = canvas.height - 100;
+      
+      for (let i = 0; i < pathLength; i++) {
+        const angle = Math.random() * Math.PI * 0.5 - Math.PI * 0.25; // -45° 到 45°
+        const nextX = currentX + Math.cos(angle) * segmentLength;
+        const nextY = currentY - segmentLength;
+        
+        state.path.push({
+          x1: currentX,
+          y1: currentY,
+          x2: nextX,
+          y2: nextY
+        });
+        
+        // 随机生成障碍物
+        if (Math.random() < 0.3) {
+          state.obstacles.push({
+            x: nextX,
+            y: nextY,
+            radius: 10
+          });
+        }
+        
+        currentX = nextX;
+        currentY = nextY;
+      }
+    }
+
+    // 处理游戏点击
+    function handleGameClick(e) {
+      if (!state.isPlaying) return;
+      
+      // 改变球的方向
+      state.ball.direction *= -1;
+      state.ball.velocityX = state.ball.speed * state.ball.direction;
+    }
+
+    // 游戏循环
+    function gameLoop() {
+      if (!state.isPlaying) return;
+      
+      update();
+      render();
+      
+      state.animationId = requestAnimationFrame(gameLoop);
+    }
+
+    // 更新游戏状态
+    function update() {
+      // 更新球的位置
+      state.ball.x += state.ball.velocityX;
+      state.ball.y += state.ball.velocityY;
+      
+      // 更新距离
+      state.distance += 0.1;
+      
+      // 更新分数
+      state.currentScore += 1;
+      
+      // 检查是否需要弹出数学题
+      if (state.distance - state.lastQuestionDistance >= 100) {
+        state.lastQuestionDistance = state.distance;
+        showMathQuestion();
+        return;
+      }
+      
+      // 检查边界
+      if (state.ball.x < state.ball.radius || state.ball.x > canvas.width - state.ball.radius) {
+        state.ball.direction *= -1;
+        state.ball.velocityX = state.ball.speed * state.ball.direction;
+      }
+      
+      // 检查碰撞障碍物
+      if (!state.shield) {
+        for (const obstacle of state.obstacles) {
+          const dx = state.ball.x - obstacle.x;
+          const dy = state.ball.y - obstacle.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < state.ball.radius + obstacle.radius) {
+            endGame();
+            return;
+          }
+        }
+      }
+      
+      // 更新护盾时间
+      if (state.shield) {
+        state.shieldTime--;
+        if (state.shieldTime <= 0) {
+          state.shield = false;
+        }
+      }
+      
+      // 检查成就
+      checkAchievements();
+      
+      // 更新 UI
+      updateUI();
+    }
+
+    // 渲染游戏
+    function render() {
+      // 清空画布
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // 绘制路径
+      ctx.strokeStyle = '#4a90e2';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      
+      for (const segment of state.path) {
+        ctx.moveTo(segment.x1, segment.y1);
+        ctx.lineTo(segment.x2, segment.y2);
+      }
+      
+      ctx.stroke();
+      
+      // 绘制障碍物
+      ctx.fillStyle = '#2c3e50';
+      for (const obstacle of state.obstacles) {
+        ctx.beginPath();
+        ctx.arc(obstacle.x, obstacle.y, obstacle.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // 绘制球体
+      ctx.fillStyle = state.shield ? '#ffd700' : '#ff6b6b';
+      ctx.beginPath();
+      ctx.arc(state.ball.x, state.ball.y, state.ball.radius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // 绘制护盾效果
+      if (state.shield) {
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(state.ball.x, state.ball.y, state.ball.radius + 5, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    // 显示数学题
+    function showMathQuestion() {
+      const question = generateMathQuestion();
+      mathQuestion.textContent = question.text;
+      
+      // 生成选项
+      mathOptions.innerHTML = '';
+      question.options.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'math-option';
+        btn.textContent = option;
+        btn.addEventListener('click', () => handleMathAnswer(option, question.correct, btn));
+        mathOptions.appendChild(btn);
+      });
+      
+      mathModal.classList.add('active');
+      
+      // 暂停游戏
+      cancelAnimationFrame(state.animationId);
+    }
+
+    // 生成数学题
+    function generateMathQuestion() {
+      let num1, num2, operator, correct;
+      
+      // 根据距离调整难度
+      if (state.distance < 500) {
+        // 加法
+        num1 = Math.floor(Math.random() * 20) + 1;
+        num2 = Math.floor(Math.random() * 20) + 1;
+        operator = '+';
+        correct = num1 + num2;
+      } else if (state.distance < 1000) {
+        // 减法
+        num1 = Math.floor(Math.random() * 30) + 10;
+        num2 = Math.floor(Math.random() * num1);
+        operator = '-';
+        correct = num1 - num2;
+      } else if (state.distance < 1500) {
+        // 乘法
+        num1 = Math.floor(Math.random() * 10) + 1;
+        num2 = Math.floor(Math.random() * 10) + 1;
+        operator = '×';
+        correct = num1 * num2;
+      } else {
+        // 除法
+        num2 = Math.floor(Math.random() * 9) + 1;
+        correct = Math.floor(Math.random() * 10) + 1;
+        num1 = num2 * correct;
+        operator = '÷';
+      }
+      
+      const text = `${num1} ${operator} ${num2} = ?`;
+      
+      // 生成选项（1个正确，3个错误）
+      const options = [correct];
+      while (options.length < 4) {
+        const wrong = correct + Math.floor(Math.random() * 10) - 5;
+        if (wrong !== correct && wrong > 0 && !options.includes(wrong)) {
+          options.push(wrong);
+        }
+      }
+      
+      // 打乱选项
+      options.sort(() => Math.random() - 0.5);
+      
+      return { text, options, correct };
+    }
+
+    // 处理数学题答案
+    function handleMathAnswer(selected, correct, btn) {
+      const isCorrect = selected === correct;
+      
+      // 显示结果
+      const allOptions = mathOptions.querySelectorAll('.math-option');
+      allOptions.forEach(opt => {
+        opt.disabled = true;
+        if (parseInt(opt.textContent) === correct) {
+          opt.classList.add('correct');
+        } else if (opt === btn && !isCorrect) {
+          opt.classList.add('wrong');
+        }
+      });
+      
+      if (isCorrect) {
+        // 答对，获得加速和护盾
+        state.currentScore += 50;
+        state.correctAnswers++;
+        state.ball.speed += 0.5;
+        state.shield = true;
+        state.shieldTime = 300; // 5秒护盾
+        
+        setTimeout(() => {
+          mathModal.classList.remove('active');
+          // 继续游戏
+          gameLoop();
+        }, 1000);
+      } else {
+        // 答错，减速
+        state.ball.speed = Math.max(1, state.ball.speed - 0.5);
+        
+        setTimeout(() => {
+          mathModal.classList.remove('active');
+          // 继续游戏
+          gameLoop();
+        }, 1000);
+      }
+      
+      updateUI();
+    }
+
+    // 检查成就
+    function checkAchievements() {
+      // 前进 1000 米成就
+      if (state.distance >= 1000 && !state.achievements.distance1000) {
+        state.achievements.distance1000 = true;
+        showAchievement('前进 1000 米！');
+      }
+      
+      // 答对 50 题成就
+      if (state.correctAnswers >= 50 && !state.achievements.answer50) {
+        state.achievements.answer50 = true;
+        showAchievement('答对 50 题！');
+      }
+      
+      saveGameData();
+    }
+
+    // 显示成就
+    function showAchievement(text) {
+      achievementText.textContent = text;
+      achievement.classList.add('show');
+      
+      setTimeout(() => {
+        achievement.classList.remove('show');
+      }, 3000);
+    }
+
+    // 结束游戏
+    function endGame() {
+      state.isPlaying = false;
+      cancelAnimationFrame(state.animationId);
+      
+      // 更新最高分
+      if (state.currentScore > state.highScore) {
+        state.highScore = state.currentScore;
+        saveGameData();
+      }
+      
+      // 显示游戏结束弹窗
+      finalScore.textContent = state.currentScore;
+      finalHighScore.textContent = `最高分: ${state.highScore}`;
+      gameOverModal.classList.add('active');
+      
+      startBtn.textContent = '开始游戏';
+      startBtn.disabled = false;
+    }
+
+    // 重置游戏
+    function resetGame() {
+      state.isPlaying = false;
+      cancelAnimationFrame(state.animationId);
+      
+      state.currentScore = 0;
+      state.distance = 0;
+      state.ball = null;
+      state.path = [];
+      state.obstacles = [];
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      updateUI();
+      
+      startBtn.textContent = '开始游戏';
+      startBtn.disabled = false;
+    }
+
+    // 初始化
+    init();
+  </script>
+</body>
+</html>

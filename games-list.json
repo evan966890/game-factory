@@ -762,5 +762,11 @@
     "path": "games/math-miner-tycoon/index.html",
     "category": "教育idle",
     "createdAt": "2026-03-03T01:56:00+08:00"
+  },
+  {
+    "name": "数学曲折跑",
+    "path": "games/math-zigzag-run/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T06:56:00Z"
   }
 ]
