@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>一元一次方程冲刺</title>
+  <style>
+    :root{--bg:#0f1226;--card:#1b1f3b;--accent:#52d1ff;--ok:#3ddc97;--bad:#ff6b6b;--text:#eef3ff}
+    *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#0b1022,#1a1f44);color:var(--text);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:16px}
+    .app{width:min(760px,100%);background:rgba(27,31,59,.95);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+    h1{margin:0 0 8px;font-size:clamp(22px,5vw,34px)}
+    .sub{opacity:.85;margin:0 0 12px}
+    .bar{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+    .pill{background:#111632;border-radius:12px;padding:10px;text-align:center}
+    .pill b{display:block;font-size:clamp(18px,4vw,26px)}
+    .q{font-size:clamp(24px,6vw,38px);text-align:center;padding:18px;background:#10152f;border-radius:14px;margin-bottom:14px;letter-spacing:1px}
+    .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button{border:none;border-radius:12px;padding:14px 10px;font-size:clamp(18px,4.2vw,24px);font-weight:700;background:#26305f;color:#fff}
+    button:active{transform:scale(.98)}
+    .msg{margin-top:12px;min-height:26px;font-weight:700;text-align:center}
+    .ok{color:var(--ok)}.bad{color:var(--bad)}
+    .start{margin-top:14px;background:var(--accent);color:#082138;width:100%}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>一元一次方程冲刺</h1>
+    <p class="sub">60 秒内解尽可能多的方程：<b>ax + b = c</b></p>
+    <section class="bar">
+      <div class="pill">剩余时间<b id="time">60</b></div>
+      <div class="pill">得分<b id="score">0</b></div>
+      <div class="pill">连击<b id="combo">0</b></div>
+    </section>
+    <div class="q" id="question">点击开始</div>
+    <section class="opts" id="opts"></section>
+    <div class="msg" id="msg"></div>
+    <button class="start" id="startBtn">开始挑战</button>
+  </main>
+
+  <script>
+    const timeEl = document.getElementById('time');
+    const scoreEl = document.getElementById('score');
+    const comboEl = document.getElementById('combo');
+    const questionEl = document.getElementById('question');
+    const optsEl = document.getElementById('opts');
+    const msgEl = document.getElementById('msg');
+    const startBtn = document.getElementById('startBtn');
+
+    let state = {time:60,score:0,combo:0,answer:null,running:false,timer:null};
+
+    function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+
+    function makeQuestion(){
+      let a = rand(1,9) * (Math.random() < 0.25 ? -1 : 1);
+      let x = rand(-12,12);
+      let b = rand(-15,15);
+      const c = a*x + b;
+      if (a === 0) a = 1;
+      state.answer = x;
+      const eq = `${a}x ${b>=0?'+':'-'} ${Math.abs(b)} = ${c}`;
+      questionEl.textContent = eq;
+
+      const choices = new Set([x]);
+      while (choices.size < 4){
+        choices.add(x + rand(-6,6) + (Math.random()<0.5?1:0));
+      }
+      const arr = [...choices].sort(() => Math.random()-0.5);
+      optsEl.innerHTML = '';
+      arr.forEach(v=>{
+        const btn = document.createElement('button');
+        btn.textContent = v;
+        btn.onclick = ()=>pick(v);
+        optsEl.appendChild(btn);
+      });
+    }
+
+    function pick(v){
+      if (!state.running) return;
+      if (v === state.answer){
+        state.combo += 1;
+        state.score += 10 + Math.min(20, state.combo * 2);
+        msgEl.className = 'msg ok';
+        msgEl.textContent = `答对！+${10 + Math.min(20, state.combo * 2)}`;
+      } else {
+        state.combo = 0;
+        state.score = Math.max(0, state.score - 5);
+        msgEl.className = 'msg bad';
+        msgEl.textContent = `答错，正确答案是 ${state.answer}`;
+      }
+      scoreEl.textContent = state.score;
+      comboEl.textContent = state.combo;
+      makeQuestion();
+    }
+
+    function tick(){
+      state.time -= 1;
+      timeEl.textContent = state.time;
+      if (state.time <= 0){
+        clearInterval(state.timer);
+        state.running = false;
+        questionEl.textContent = `挑战结束！总分 ${state.score}`;
+        optsEl.innerHTML = '';
+        msgEl.className = 'msg';
+        msgEl.textContent = state.score >= 260 ? '太强了，继续冲榜！' : '再来一局，挑战更高分！';
+        startBtn.disabled = false;
+        startBtn.textContent = '再来一局';
+      }
+    }
+
+    startBtn.onclick = ()=>{
+      state = {time:60,score:0,combo:0,answer:null,running:true,timer:null};
+      timeEl.textContent = '60'; scoreEl.textContent = '0'; comboEl.textContent = '0';
+      msgEl.className = 'msg'; msgEl.textContent = '';
+      startBtn.disabled = true;
+      makeQuestion();
+      state.timer = setInterval(tick,1000);
+    };
+  </script>
+</body>
+</html>

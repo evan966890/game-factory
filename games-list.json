@@ -642,5 +642,11 @@
     "path": "games/decimal-dash/index.html",
     "category": "education",
     "createdAt": "2026-03-02T10:59:43Z"
+  },
+  {
+    "name": "一元一次方程冲刺",
+    "path": "games/linear-equation-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T11:19:32Z"
   }
 ]
