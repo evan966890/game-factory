@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>时钟读时冲刺</title>
+  <style>
+    :root { --bg:#f6f9ff; --card:#ffffff; --text:#1f2937; --accent:#2563eb; --ok:#16a34a; --bad:#dc2626; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:760px;margin:0 auto;padding:16px}
+    .card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+    h1{margin:0 0 8px;font-size:1.5rem}.muted{opacity:.75;margin:0 0 12px}
+    .top{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px}
+    .pill{background:#e8efff;color:#1e3a8a;padding:6px 10px;border-radius:999px;font-weight:600}
+    .clock{width:min(72vw,320px);aspect-ratio:1;margin:12px auto;display:block}
+    .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button{border:0;border-radius:12px;padding:12px;font-size:1rem;font-weight:700;background:#e5e7eb;color:#111827}
+    button.primary{background:var(--accent);color:#fff}
+    button:active{transform:scale(.98)}
+    .feedback{min-height:24px;text-align:center;font-weight:700;margin:10px 0}
+    .ok{color:var(--ok)}.bad{color:var(--bad)}
+    .footer{margin-top:10px;display:flex;gap:8px}
+    .footer button{flex:1}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>🕒 时钟读时冲刺</h1>
+      <p class="muted">10题闯关：看指针选时间，训练整点/半点/5分钟读时能力。</p>
+      <div class="top">
+        <div class="pill" id="q">第 1 / 10 题</div>
+        <div class="pill" id="score">得分：0</div>
+      </div>
+      <canvas id="clock" class="clock" width="320" height="320" aria-label="时钟"></canvas>
+      <div class="feedback" id="fb"></div>
+      <div class="opts" id="opts"></div>
+      <div class="footer">
+        <button class="primary" id="start">开始/重新开始</button>
+      </div>
+    </div>
+  </div>
+<script>
+(() => {
+  const total = 10;
+  let idx = 0, score = 0, answer = '';
+  const qEl = document.getElementById('q');
+  const sEl = document.getElementById('score');
+  const fb = document.getElementById('fb');
+  const opts = document.getElementById('opts');
+  const cvs = document.getElementById('clock');
+  const ctx = cvs.getContext('2d');
+
+  function pad(n){return String(n).padStart(2,'0')}
+  function fmt(h,m){return `${pad(h)}:${pad(m)}`}
+
+  function drawClock(h,m){
+    const w=cvs.width, r=w/2, cx=r, cy=r;
+    ctx.clearRect(0,0,w,w);
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(cx,cy,r-6,0,Math.PI*2); ctx.fill();
+    ctx.lineWidth=6; ctx.strokeStyle='#2563eb'; ctx.stroke();
+    for(let i=1;i<=12;i++){
+      const a=(i/12)*Math.PI*2 - Math.PI/2;
+      const x=cx+Math.cos(a)*(r-26), y=cy+Math.sin(a)*(r-26);
+      ctx.fillStyle='#111827'; ctx.font='bold 20px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(i, x, y);
+    }
+    for(let i=0;i<60;i++){
+      const a=(i/60)*Math.PI*2-Math.PI/2;
+      const len=i%5===0?12:6;
+      ctx.strokeStyle='#9ca3af'; ctx.lineWidth=i%5===0?3:1;
+      ctx.beginPath();
+      ctx.moveTo(cx+Math.cos(a)*(r-18), cy+Math.sin(a)*(r-18));
+      ctx.lineTo(cx+Math.cos(a)*(r-18-len), cy+Math.sin(a)*(r-18-len));
+      ctx.stroke();
+    }
+    const minA=(m/60)*Math.PI*2-Math.PI/2;
+    const hourA=((h%12 + m/60)/12)*Math.PI*2-Math.PI/2;
+    ctx.strokeStyle='#111827'; ctx.lineWidth=8; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(hourA)*(r-95), cy+Math.sin(hourA)*(r-95)); ctx.stroke();
+    ctx.strokeStyle='#dc2626'; ctx.lineWidth=5;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(minA)*(r-55), cy+Math.sin(minA)*(r-55)); ctx.stroke();
+    ctx.fillStyle='#111827'; ctx.beginPath(); ctx.arc(cx,cy,6,0,Math.PI*2); ctx.fill();
+  }
+
+  function sample(){
+    const h = Math.floor(Math.random()*12)+1;
+    const mins=[0,5,10,15,20,25,30,35,40,45,50,55];
+    const m = mins[Math.floor(Math.random()*mins.length)];
+    return [h,m];
+  }
+
+  function buildOptions(ans){
+    const [h,m]=ans.split(':').map(Number);
+    const set = new Set([ans]);
+    while(set.size<4){
+      let nh = ((h + Math.floor(Math.random()*5)-2)+24)%24;
+      if(nh===0) nh=12;
+      const shift=[-15,-10,-5,5,10,15][Math.floor(Math.random()*6)];
+      let nm = (m + shift + 60)%60;
+      nm = Math.round(nm/5)*5%60;
+      set.add(fmt(nh,nm));
+    }
+    return [...set].sort(()=>Math.random()-0.5);
+  }
+
+  function next(){
+    if(idx>=total){
+      fb.className='feedback ok';
+      fb.textContent=`完成！总分 ${score}/${total}`;
+      opts.innerHTML='';
+      qEl.textContent=`已完成 ${total} 题`;
+      return;
+    }
+    const [h,m]=sample();
+    answer=fmt(h,m);
+    drawClock(h,m);
+    qEl.textContent=`第 ${idx+1} / ${total} 题`;
+    fb.textContent=''; fb.className='feedback';
+    const candidates=buildOptions(answer);
+    opts.innerHTML='';
+    candidates.forEach(c=>{
+      const b=document.createElement('button'); b.textContent=c;
+      b.onclick=()=>{
+        const ok=c===answer;
+        if(ok){score++;fb.className='feedback ok';fb.textContent='答对了！'}
+        else{fb.className='feedback bad';fb.textContent=`答错了，正确是 ${answer}`}
+        sEl.textContent=`得分：${score}`;
+        idx++;
+        setTimeout(next,500);
+      };
+      opts.appendChild(b);
+    });
+  }
+
+  function start(){ idx=0; score=0; sEl.textContent='得分：0'; next(); }
+  document.getElementById('start').addEventListener('click',start);
+  drawClock(10,10);
+})();
+</script>
+</body>
+</html>

@@ -570,5 +570,11 @@
     "path": "games/angle-estimator-challenge/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T06:59:36.632664Z"
+  },
+  {
+    "name": "时钟读时冲刺",
+    "path": "games/clock-reading-race/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T07:19:33Z"
   }
 ]
