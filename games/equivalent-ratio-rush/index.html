@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>等比速判冲刺</title>
+  <style>
+    :root{--bg:#f4f8ff;--card:#fff;--ink:#1c2a3a;--muted:#627387;--ok:#17a34a;--bad:#e23b3b;--pri:#2563eb;--line:#dbe7ff}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#eaf2ff,#f8fbff);color:var(--ink)}
+    .wrap{max-width:760px;margin:0 auto;padding:16px}
+    h1{margin:4px 0 6px;font-size:1.55rem}
+    .sub{margin:0 0 14px;color:var(--muted);font-size:.94rem}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 8px 22px rgba(37,99,235,.08)}
+    .top{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+    .pill{background:#f7faff;border:1px solid #e2ecff;border-radius:12px;padding:8px;text-align:center}
+    .pill b{display:block;font-size:1.08rem}
+    .q{font-size:1.3rem;text-align:center;padding:14px 8px;border-radius:12px;background:#f8fbff;border:1px dashed #cfe0ff;margin:10px 0}
+    .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button{border:none;border-radius:12px;padding:12px 10px;font-size:1rem;font-weight:700;background:#eaf1ff;color:#17366e}
+    button:active{transform:scale(.98)}
+    .cta{background:var(--pri);color:#fff}
+    .msg{min-height:24px;margin:10px 2px 2px;font-weight:700}
+    .ok{color:var(--ok)} .bad{color:var(--bad)}
+    .foot{display:flex;gap:8px;justify-content:center;margin-top:12px}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>⚖️ 等比速判冲刺</h1>
+    <p class="sub">60 秒内判断两个比值是否相等，训练约分与比例直觉。</p>
+    <section class="card">
+      <div class="top">
+        <div class="pill"><span>剩余时间</span><b id="time">60</b></div>
+        <div class="pill"><span>得分</span><b id="score">0</b></div>
+        <div class="pill"><span>连对</span><b id="streak">0</b></div>
+        <div class="pill"><span>正确率</span><b id="acc">0%</b></div>
+      </div>
+      <div id="q" class="q">3:5 与 6:10 是否相等？</div>
+      <div class="opts">
+        <button data-val="yes">相等</button>
+        <button data-val="no">不相等</button>
+      </div>
+      <p id="msg" class="msg"></p>
+      <div class="foot">
+        <button id="start" class="cta">开始 / 重新开始</button>
+      </div>
+    </section>
+  </main>
+<script>
+(() => {
+  const el = id => document.getElementById(id);
+  const state = {time:60,score:0,streak:0,right:0,total:0,live:false,cur:null,timer:null};
+
+  const gcd = (a,b)=> b ? gcd(b,a%b) : Math.abs(a);
+  const norm = (a,b)=>{ const g = gcd(a,b); return `${a/g}/${b/g}`; };
+  function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+  function genQuestion(){
+    const baseA = rand(1,12), baseB = rand(2,15);
+    const shouldEqual = Math.random() < 0.5;
+    let a1 = baseA, b1 = baseB, a2, b2;
+    if (shouldEqual){
+      const k = rand(2,5);
+      a2 = a1*k; b2 = b1*k;
+    } else {
+      do {
+        a2 = rand(1,24); b2 = rand(2,24);
+      } while (norm(a1,b1) === norm(a2,b2));
+    }
+    state.cur = {text:`${a1}:${b1} 与 ${a2}:${b2} 是否相等？`, ans: shouldEqual ? 'yes':'no'};
+    el('q').textContent = state.cur.text;
+  }
+
+  function render(){
+    el('time').textContent = state.time;
+    el('score').textContent = state.score;
+    el('streak').textContent = state.streak;
+    const acc = state.total ? Math.round(state.right/state.total*100) : 0;
+    el('acc').textContent = `${acc}%`;
+  }
+
+  function toast(ok, txt){
+    const m = el('msg');
+    m.className = 'msg ' + (ok ? 'ok' : 'bad');
+    m.textContent = txt;
+  }
+
+  function answer(v){
+    if (!state.live || !state.cur) return;
+    state.total++;
+    if (v === state.cur.ans){
+      state.right++; state.streak++;
+      state.score += 10 + Math.min(20, state.streak * 2);
+      toast(true, `✅ 正确！连对 ${state.streak}`);
+    } else {
+      state.streak = 0;
+      state.score = Math.max(0, state.score - 6);
+      toast(false, `❌ 不对，正确答案是：${state.cur.ans==='yes'?'相等':'不相等'}`);
+    }
+    render();
+    genQuestion();
+  }
+
+  function stop(){
+    state.live = false;
+    clearInterval(state.timer);
+    toast(true, `🏁 结束：得分 ${state.score}，正确 ${state.right}/${state.total}`);
+  }
+
+  function start(){
+    clearInterval(state.timer);
+    Object.assign(state,{time:60,score:0,streak:0,right:0,total:0,live:true});
+    genQuestion(); render(); toast(true,'开始冲刺！');
+    state.timer = setInterval(()=>{
+      state.time--; render();
+      if (state.time <= 0) stop();
+    },1000);
+  }
+
+  document.querySelectorAll('button[data-val]').forEach(btn=>btn.addEventListener('click',()=>answer(btn.dataset.val)));
+  el('start').addEventListener('click',start);
+  render();
+})();
+</script>
+</body>
+</html>

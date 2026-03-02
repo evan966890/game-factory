@@ -606,5 +606,11 @@
     "path": "games/triangle-area-rush/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T08:59:34.699Z"
+  },
+  {
+    "name": "等比速判冲刺",
+    "path": "games/equivalent-ratio-rush/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T09:19:28.259Z"
   }
 ]
