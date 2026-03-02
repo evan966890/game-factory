@@ -564,5 +564,11 @@
     "path": "games/fraction-equivalent-builder/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T06:39:33Z"
+  },
+  {
+    "name": "角度估算挑战",
+    "path": "games/angle-estimator-challenge/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T06:59:36.632664Z"
   }
 ]

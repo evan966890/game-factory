@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>角度估算挑战</title>
+  <style>
+    :root {
+      --bg: #0f1226;
+      --card: #1a1f3a;
+      --accent: #63e6be;
+      --accent-2: #74c0fc;
+      --text: #eef2ff;
+      --muted: #b3b9d6;
+      --good: #8ce99a;
+      --warn: #ffd43b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at 20% 10%, #1e2a52, var(--bg) 60%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(760px, 100%);
+      background: rgba(26, 31, 58, 0.9);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+    }
+    h1 {
+      margin: 4px 0 8px;
+      font-size: clamp(22px, 6vw, 34px);
+      text-align: center;
+    }
+    .sub { text-align: center; color: var(--muted); margin-bottom: 14px; }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .pill {
+      background: rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      font-weight: 700;
+    }
+    .canvas-wrap {
+      background: #11162f;
+      border-radius: 14px;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 12px;
+    }
+    canvas {
+      width: 100%;
+      aspect-ratio: 1.2/1;
+      display: block;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #0e1535, #0b1026);
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+    input[type="range"] { width: 100%; }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 16px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #10223d;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .feedback {
+      min-height: 28px;
+      margin: 10px 0 4px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .tip { color: var(--muted); text-align: center; font-size: 14px; }
+    .end {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.06);
+      text-align: center;
+    }
+    .restart {
+      margin-top: 10px;
+      background: linear-gradient(135deg, #ffd43b, #ffa94d);
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>📐 角度估算挑战</h1>
+    <p class="sub">看图估角度，10 题后看总分！</p>
+
+    <section class="hud" aria-label="游戏状态">
+      <div class="pill">题目：<span id="qNow">1</span>/10</div>
+      <div class="pill">得分：<span id="score">0</span></div>
+      <div class="pill">目标角：<span id="target">--</span>°</div>
+    </section>
+
+    <div class="canvas-wrap">
+      <canvas id="board" width="720" height="560" aria-label="角度示意图"></canvas>
+    </div>
+
+    <div class="controls">
+      <label>
+        你的估计：<strong><span id="guessView">90</span>°</strong>
+        <input id="guess" type="range" min="0" max="180" step="1" value="90" />
+      </label>
+      <button id="submit">提交</button>
+    </div>
+
+    <p class="feedback" id="feedback"></p>
+    <p class="tip">误差 ≤5° 得 10 分，≤10° 得 7 分，≤15° 得 4 分，否则 0 分。</p>
+
+    <section class="end" id="endCard">
+      <h2 id="endTitle">挑战完成！</h2>
+      <p id="endText"></p>
+      <button class="restart" id="restart">再来一局</button>
+    </section>
+  </main>
+
+  <script>
+    const total = 10;
+    let idx = 1;
+    let score = 0;
+    let target = 0;
+
+    const qNow = document.getElementById('qNow');
+    const scoreEl = document.getElementById('score');
+    const targetEl = document.getElementById('target');
+    const guess = document.getElementById('guess');
+    const guessView = document.getElementById('guessView');
+    const submit = document.getElementById('submit');
+    const feedback = document.getElementById('feedback');
+    const board = document.getElementById('board');
+    const ctx = board.getContext('2d');
+    const endCard = document.getElementById('endCard');
+    const endText = document.getElementById('endText');
+    const restart = document.getElementById('restart');
+
+    function randAngle() {
+      return Math.floor(Math.random() * 151) + 15; // 15-165
+    }
+
+    function drawScene(angle) {
+      const w = board.width, h = board.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // 网格背景
+      ctx.globalAlpha = 0.2;
+      ctx.strokeStyle = '#7f8ec7';
+      for (let x = 0; x < w; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+      for (let y = 0; y < h; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      const cx = w / 2;
+      const cy = h * 0.78;
+      const len = Math.min(w, h) * 0.38;
+
+      // 基准线
+      ctx.lineWidth = 8;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#74c0fc';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + len, cy);
+      ctx.stroke();
+
+      // 目标线
+      const rad = -angle * Math.PI / 180;
+      const x2 = cx + len * Math.cos(rad);
+      const y2 = cy + len * Math.sin(rad);
+      ctx.strokeStyle = '#63e6be';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      // 角弧
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = '#ffd43b';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 110, 0, rad, true);
+      ctx.stroke();
+
+      // 顶点
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 标签
+      ctx.fillStyle = '#dbe4ff';
+      ctx.font = 'bold 30px sans-serif';
+      ctx.fillText('∠ ?', cx - 38, cy - 132);
+    }
+
+    function pointsByDiff(diff) {
+      if (diff <= 5) return 10;
+      if (diff <= 10) return 7;
+      if (diff <= 15) return 4;
+      return 0;
+    }
+
+    function startRound() {
+      if (idx > total) {
+        endGame();
+        return;
+      }
+      target = randAngle();
+      targetEl.textContent = '--';
+      feedback.textContent = '';
+      guess.value = 90;
+      guessView.textContent = '90';
+      qNow.textContent = idx;
+      drawScene(target);
+      submit.disabled = false;
+    }
+
+    function endGame() {
+      submit.disabled = true;
+      endCard.style.display = 'block';
+      let level = '继续加油！';
+      if (score >= 80) level = '角度大师！';
+      else if (score >= 60) level = '估算高手！';
+      else if (score >= 40) level = '不错，快接近高手了！';
+      endText.textContent = `你本局得分 ${score}/${total * 10}，评价：${level}`;
+    }
+
+    guess.addEventListener('input', () => {
+      guessView.textContent = guess.value;
+    });
+
+    submit.addEventListener('click', () => {
+      const val = Number(guess.value);
+      const diff = Math.abs(val - target);
+      const pts = pointsByDiff(diff);
+      score += pts;
+      scoreEl.textContent = score;
+      targetEl.textContent = target;
+      feedback.style.color = pts >= 7 ? 'var(--good)' : (pts > 0 ? 'var(--warn)' : '#ff8787');
+      feedback.textContent = `你猜 ${val}°，误差 ${diff}°，本题 +${pts} 分`;
+      submit.disabled = true;
+      idx++;
+      setTimeout(startRound, 1100);
+    });
+
+    restart.addEventListener('click', () => {
+      idx = 1;
+      score = 0;
+      scoreEl.textContent = '0';
+      endCard.style.display = 'none';
+      startRound();
+    });
+
+    startRound();
+  </script>
+</body>
+</html>
