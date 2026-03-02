@@ -450,5 +450,11 @@
     "path": "games/fraction-balance-lab/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T00:19:16Z"
+  },
+  {
+    "name": "坐标寻宝冲刺",
+    "path": "games/coordinate-treasure-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T08:39:12.541137+08:00"
   }
 ]

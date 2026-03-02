@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>坐标寻宝冲刺</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --card: #1f2937;
+      --text: #e5e7eb;
+      --ok: #22c55e;
+      --bad: #ef4444;
+      --accent: #38bdf8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 12px;
+    }
+    .app {
+      width: 100%;
+      max-width: 560px;
+      background: rgba(17,24,39,.8);
+      border: 1px solid rgba(148,163,184,.2);
+      border-radius: 16px;
+      padding: 14px;
+      backdrop-filter: blur(4px);
+    }
+    h1 { font-size: 1.25rem; margin: 4px 0 10px; }
+    .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 10px; }
+    .stat { background: var(--card); border-radius: 10px; padding: 8px; text-align: center; }
+    .label { font-size: .75rem; opacity: .85; }
+    .value { font-weight: 700; font-size: 1.05rem; margin-top: 2px; }
+    .question { background: var(--card); border-radius: 12px; padding: 10px; margin-bottom: 8px; }
+    .question p { margin: 0 0 8px; line-height: 1.35; }
+    .gridWrap { margin: 10px 0; overflow: auto; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(9, 36px);
+      grid-template-rows: repeat(9, 36px);
+      gap: 2px;
+      justify-content: center;
+      margin: 0 auto;
+    }
+    .cell {
+      border: none;
+      border-radius: 6px;
+      background: #0b1220;
+      color: #cbd5e1;
+      font-weight: 600;
+      font-size: .85rem;
+      min-height: 36px;
+    }
+    .cell.axis { background: #334155; color: #f8fafc; }
+    .cell.point { background: #1d4ed8; color: #fff; }
+    .cell.correct { outline: 2px solid var(--ok); }
+    .cell.wrong { outline: 2px solid var(--bad); }
+    .actions { display:flex; gap:8px; }
+    button {
+      flex: 1;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: .95rem;
+      font-weight: 600;
+      color: #fff;
+      background: #2563eb;
+    }
+    button.secondary { background: #475569; }
+    #msg { min-height: 1.3em; margin: 8px 2px 2px; font-weight: 600; }
+    #msg.ok { color: #4ade80; }
+    #msg.bad { color: #f87171; }
+  </style>
+</head>
+<body>
+  <main class="app" aria-live="polite">
+    <h1>🧭 坐标寻宝冲刺</h1>
+    <div class="stats">
+      <div class="stat"><div class="label">得分</div><div id="score" class="value">0</div></div>
+      <div class="stat"><div class="label">题号</div><div id="round" class="value">1 / 10</div></div>
+      <div class="stat"><div class="label">剩余秒数</div><div id="time" class="value">60</div></div>
+    </div>
+
+    <section class="question">
+      <p id="qText">请点击坐标点 (2, 3)</p>
+      <div class="gridWrap"><div id="grid" class="grid"></div></div>
+      <div id="msg"></div>
+    </section>
+
+    <div class="actions">
+      <button id="nextBtn" class="secondary">下一题</button>
+      <button id="restartBtn">重新开始</button>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      const scoreEl = document.getElementById('score');
+      const roundEl = document.getElementById('round');
+      const timeEl = document.getElementById('time');
+      const qText = document.getElementById('qText');
+      const msg = document.getElementById('msg');
+      const grid = document.getElementById('grid');
+      const nextBtn = document.getElementById('nextBtn');
+      const restartBtn = document.getElementById('restartBtn');
+
+      const totalRounds = 10;
+      const min = -4, max = 4;
+      let score = 0, round = 1, timeLeft = 60;
+      let timer = null, answered = false;
+      let target = { x: 0, y: 0 };
+
+      function buildGrid() {
+        grid.innerHTML = '';
+        for (let y = max; y >= min; y--) {
+          for (let x = min; x <= max; x++) {
+            const b = document.createElement('button');
+            b.className = 'cell';
+            b.dataset.x = x;
+            b.dataset.y = y;
+            b.textContent = (x === 0 && y === 0) ? '原点' : `${x},${y}`;
+            if (x === 0 || y === 0) b.classList.add('axis');
+            b.addEventListener('click', () => onPick(b, x, y));
+            grid.appendChild(b);
+          }
+        }
+      }
+
+      function randomTarget() {
+        do {
+          target.x = Math.floor(Math.random() * (max - min + 1)) + min;
+          target.y = Math.floor(Math.random() * (max - min + 1)) + min;
+        } while (target.x === 0 && target.y === 0);
+      }
+
+      function clearMarks() {
+        document.querySelectorAll('.cell').forEach(c => c.classList.remove('correct', 'wrong', 'point'));
+      }
+
+      function setQuestion() {
+        answered = false;
+        clearMarks();
+        msg.textContent = '';
+        msg.className = '';
+        randomTarget();
+        qText.textContent = `请点击坐标点 (${target.x}, ${target.y})`;
+        roundEl.textContent = `${round} / ${totalRounds}`;
+      }
+
+      function onPick(btn, x, y) {
+        if (answered || timeLeft <= 0) return;
+        answered = true;
+        const ok = (x === target.x && y === target.y);
+        if (ok) {
+          score += 10;
+          msg.textContent = '命中宝藏！+10 分';
+          msg.className = 'ok';
+          btn.classList.add('correct');
+        } else {
+          msg.textContent = `偏了！正确坐标是 (${target.x}, ${target.y})`;
+          msg.className = 'bad';
+          btn.classList.add('wrong');
+          const rightCell = document.querySelector(`.cell[data-x="${target.x}"][data-y="${target.y}"]`);
+          if (rightCell) rightCell.classList.add('point');
+        }
+        scoreEl.textContent = score;
+      }
+
+      function nextRound() {
+        if (timeLeft <= 0) return;
+        if (round >= totalRounds) {
+          endGame();
+          return;
+        }
+        round += 1;
+        setQuestion();
+      }
+
+      function tick() {
+        timeLeft -= 1;
+        timeEl.textContent = timeLeft;
+        if (timeLeft <= 0) endGame();
+      }
+
+      function endGame() {
+        clearInterval(timer);
+        timer = null;
+        qText.textContent = `游戏结束！最终得分 ${score} 分`;
+        msg.textContent = score >= 80 ? '太强了，坐标感满分！' : '再来一局，提升你的坐标直觉！';
+        msg.className = score >= 80 ? 'ok' : 'bad';
+      }
+
+      function restart() {
+        score = 0; round = 1; timeLeft = 60;
+        scoreEl.textContent = score;
+        timeEl.textContent = timeLeft;
+        if (timer) clearInterval(timer);
+        timer = setInterval(tick, 1000);
+        setQuestion();
+      }
+
+      nextBtn.addEventListener('click', nextRound);
+      restartBtn.addEventListener('click', restart);
+
+      buildGrid();
+      restart();
+    })();
+  </script>
+</body>
+</html>
