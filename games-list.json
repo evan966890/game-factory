@@ -456,5 +456,11 @@
     "path": "games/coordinate-treasure-sprint/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T08:39:12.541137+08:00"
+  },
+  {
+    "name": "面积单位换算冲刺",
+    "path": "games/area-unit-conversion-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T08:59:12.636899+08:00"
   }
 ]
