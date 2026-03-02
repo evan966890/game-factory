@@ -540,5 +540,11 @@
     "path": "games/fraction-balance-blitz/index.html",
     "category": "education",
     "createdAt": "2026-03-02T05:19:08Z"
+  },
+  {
+    "name": "镜面对称快判",
+    "path": "games/symmetry-judge/index.html",
+    "category": "数学+空间",
+    "createdAt": "2026-03-02T05:39:32.255Z"
   }
 ]

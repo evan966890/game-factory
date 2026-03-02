@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>镜面对称快判</title>
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --text:#e5e7eb; --ok:#10b981; --bad:#ef4444; --accent:#38bdf8; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC",sans-serif;background:linear-gradient(160deg,#0b1022,#131a30);color:var(--text);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:16px}
+    .app{width:min(760px,100%);background:rgba(17,24,39,.92);border:1px solid rgba(148,163,184,.25);border-radius:16px;padding:16px}
+    h1{font-size:1.4rem;margin:0 0 8px}
+    .meta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;font-size:.95rem;color:#cbd5e1}
+    .canvas-wrap{background:#0b1220;border-radius:12px;padding:10px;border:1px solid rgba(148,163,184,.25)}
+    canvas{width:100%;height:auto;display:block;background:#fff;border-radius:10px}
+    .btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    button{padding:12px;border:none;border-radius:10px;font-size:1rem;font-weight:700;color:white}
+    .yes{background:var(--ok)} .no{background:var(--bad)}
+    .next{background:var(--accent);width:100%;margin-top:10px;color:#062036;display:none}
+    .msg{margin-top:10px;min-height:1.4em;font-weight:600}
+    .footer{margin-top:10px;font-size:.9rem;color:#94a3b8}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>镜面对称快判</h1>
+    <div class="meta"><span id="q">题目: 1/10</span><span id="score">得分: 0</span><span id="combo">连对: 0</span></div>
+    <div class="canvas-wrap"><canvas id="cv" width="680" height="360" aria-label="图形题目"></canvas></div>
+    <div class="btns"><button class="yes" id="yesBtn">是对称图形</button><button class="no" id="noBtn">不是对称图形</button></div>
+    <button class="next" id="nextBtn">下一题</button>
+    <div class="msg" id="msg"></div>
+    <div class="footer">玩法：判断图形是否关于中线左右对称。共10题，答对得10分，连对额外+2分。</div>
+  </main>
+<script>
+const cv = document.getElementById('cv'); const ctx = cv.getContext('2d');
+const qEl = document.getElementById('q'), sEl = document.getElementById('score'), cEl = document.getElementById('combo'), mEl = document.getElementById('msg');
+const yesBtn = document.getElementById('yesBtn'), noBtn = document.getElementById('noBtn'), nextBtn = document.getElementById('nextBtn');
+let idx=0, score=0, combo=0, answer=true, locked=false;
+function rand(n){return Math.floor(Math.random()*n)}
+function drawShape(sym){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,cv.width,cv.height);
+  const mid=cv.width/2;
+  ctx.strokeStyle='#cbd5e1';ctx.setLineDash([6,6]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(mid,20);ctx.lineTo(mid,340);ctx.stroke();ctx.setLineDash([]);
+  const left=[]; const count=4+rand(3);
+  for(let i=0;i<count;i++) left.push({x:80+rand(220),y:60+rand(240),r:16+rand(26),c:`hsl(${rand(360)} 80% 55%)`});
+  const right = left.map((p,j)=>({
+    x: sym ? cv.width-p.x : cv.width-p.x + (j===0? (rand(2)?28:-28): (rand(3)-1)*18),
+    y: sym ? p.y : p.y + (j===1?22: (rand(3)-1)*12),
+    r: sym ? p.r : Math.max(10,p.r + (j===2?10:0)),
+    c: p.c
+  }));
+  [...left,...right].forEach(p=>{ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();});
+  ctx.fillStyle='#0f172a';ctx.font='bold 20px sans-serif';ctx.fillText('左侧',150,34);ctx.fillText('右侧',cv.width-210,34);
+}
+function loadQ(){
+  locked=false;nextBtn.style.display='none';mEl.textContent='';
+  answer = Math.random()<0.5; drawShape(answer);
+  qEl.textContent=`题目: ${idx+1}/10`; sEl.textContent=`得分: ${score}`; cEl.textContent=`连对: ${combo}`;
+}
+function judge(userYes){
+  if(locked) return; locked=true;
+  const ok = userYes===answer;
+  if(ok){combo++; score+=10+(combo>1?2:0); mEl.textContent=`✅ 正确！${combo>1?'连对奖励 +2':''}`; mEl.style.color='#34d399';}
+  else {combo=0; mEl.textContent='❌ 答错了，再观察中线两侧的形状与位置'; mEl.style.color='#f87171';}
+  sEl.textContent=`得分: ${score}`; cEl.textContent=`连对: ${combo}`;
+  if(idx===9){nextBtn.textContent='查看结果';}
+  nextBtn.style.display='block';
+}
+function next(){
+  if(!locked) return;
+  idx++;
+  if(idx>=10){
+    mEl.style.color='#fbbf24';
+    mEl.textContent=`🎉 完成挑战！总分 ${score} 分。${score>=95?'你是对称大师！':'再来一局冲更高分！'}`;
+    nextBtn.textContent='再来一局'; nextBtn.onclick=()=>{idx=0;score=0;combo=0;nextBtn.textContent='下一题';nextBtn.onclick=next;loadQ();};
+    return;
+  }
+  loadQ();
+}
+yesBtn.onclick=()=>judge(true); noBtn.onclick=()=>judge(false); nextBtn.onclick=next;
+loadQ();
+</script>
+</body>
+</html>
