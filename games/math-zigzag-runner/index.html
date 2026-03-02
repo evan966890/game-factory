@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>数学曲折跑</title>
+  <style>
+    :root {
+      --bg: #1a1a2e;
+      --card: #16213e;
+      --text: #eaeaea;
+      --muted: #a0a0a0;
+      --primary: #0f3460;
+      --primary-dark: #0a2647;
+      --ok: #4ecca3;
+      --bad: #e94560;
+      --border: #0f3460;
+      --radius: 16px;
+      --ball: #ff6b6b;
+      --path: #4ecca3;
+      --obstacle: #e94560;
+      --shield: #ffd700;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .app {
+      width: min(100%, 600px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      padding: 18px;
+      position: relative;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+      text-align: center;
+      color: var(--ok);
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 0 0 16px;
+      text-align: center;
+    }
+
+    .game-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3/4;
+      background: #0a0a1a;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .ui-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px;
+    }
+
+    .score-display {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .score-item {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .score-value {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--ok);
+    }
+
+    .high-score {
+      color: var(--muted);
+    }
+
+    .distance-display {
+      text-align: center;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 8px 16px;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    .distance-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--ok);
+    }
+
+    .math-popup {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.9);
+      padding: 24px;
+      border-radius: 16px;
+      text-align: center;
+      pointer-events: auto;
+      display: none;
+      z-index: 10;
+    }
+
+    .math-popup.active {
+      display: block;
+      animation: popIn 0.3s ease-out;
+    }
+
+    @keyframes popIn {
+      from {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0;
+      }
+      to {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+      }
+    }
+
+    .math-question {
+      font-size: 2rem;
+      margin-bottom: 16px;
+      color: var(--ok);
+    }
+
+    .math-options {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .math-option {
+      background: var(--primary);
+      border: 2px solid var(--border);
+      color: var(--text);
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      pointer-events: auto;
+    }
+
+    .math-option:hover {
+      background: var(--primary-dark);
+      transform: scale(1.05);
+    }
+
+    .math-option.correct {
+      background: var(--ok);
+      border-color: var(--ok);
+      color: #000;
+    }
+
+    .math-option.wrong {
+      background: var(--bad);
+      border-color: var(--bad);
+    }
+
+    .game-over {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      z-index: 20;
+    }
+
+    .game-over.active {
+      display: flex;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .game-over h2 {
+      font-size: 2rem;
+      color: var(--bad);
+      margin-bottom: 16px;
+    }
+
+    .final-score {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+
+    .final-distance {
+      font-size: 1.2rem;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .restart-btn {
+      background: var(--ok);
+      color: #000;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .restart-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(78, 204, 163, 0.4);
+    }
+
+    .start-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      z-index: 20;
+    }
+
+    .start-screen.hidden {
+      display: none;
+    }
+
+    .start-screen h2 {
+      font-size: 1.8rem;
+      color: var(--ok);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .start-screen p {
+      color: var(--muted);
+      margin-bottom: 24px;
+      text-align: center;
+      max-width: 80%;
+    }
+
+    .start-btn {
+      background: var(--ok);
+      color: #000;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .start-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(78, 204, 163, 0.4);
+    }
+
+    .controls-hint {
+      margin-top: 24px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .shield-indicator {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 215, 0, 0.2);
+      border: 2px solid var(--shield);
+      padding: 8px 16px;
+      border-radius: 8px;
+      color: var(--shield);
+      font-weight: bold;
+      display: none;
+    }
+
+    .shield-indicator.active {
+      display: block;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .combo-display {
+      position: absolute;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(78, 204, 163, 0.2);
+      border: 2px solid var(--ok);
+      padding: 8px 16px;
+      border-radius: 8px;
+      color: var(--ok);
+      font-weight: bold;
+      display: none;
+    }
+
+    .combo-display.active {
+      display: block;
+      animation: comboPop 0.5s ease-out;
+    }
+
+    @keyframes comboPop {
+      0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+      50% { transform: translateX(-50%) scale(1.2); }
+      100% { transform: translateX(-50%) scale(1); opacity: 1; }
+    }
+
+    .difficulty-indicator {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.6);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>🎮 数学曲折跑</h1>
+    <p class="subtitle">点击控制球体滚动，避开障碍，回答数学题</p>
+
+    <div class="game-container">
+      <canvas id="gameCanvas"></canvas>
+
+      <div class="ui-overlay">
+        <div class="score-display">
+          <div class="score-item">
+            <div>得分</div>
+            <div class="score-value" id="score">0</div>
+          </div>
+          <div class="score-item high-score">
+            <div>最高分</div>
+            <div class="score-value" id="highScore">0</div>
+          </div>
+        </div>
+
+        <div class="distance-display">
+          <div>距离</div>
+          <div class="distance-value" id="distance">0m</div>
+        </div>
+      </div>
+
+      <div class="shield-indicator" id="shieldIndicator">🛡️ 护盾激活</div>
+      <div class="combo-display" id="comboDisplay">🔥 连击 x<span id="comboCount">0</span></div>
+      <div class="difficulty-indicator" id="difficultyIndicator">难度: 加法</div>
+
+      <div class="math-popup" id="mathPopup">
+        <div class="math-question" id="mathQuestion">12 + 5 = ?</div>
+        <div class="math-options" id="mathOptions">
+          <!-- Options will be generated by JS -->
+        </div>
+      </div>
+
+      <div class="start-screen" id="startScreen">
+        <h2>数学曲折跑</h2>
+        <p>点击屏幕控制球体在曲折路径上滚动，避开障碍物，每前进 100 米回答一道数学题，答对获得奖励！</p>
+        <button class="start-btn" id="startBtn">开始游戏</button>
+        <div class="controls-hint">💡 点击屏幕改变球体滚动方向</div>
+      </div>
+
+      <div class="game-over" id="gameOver">
+        <h2>游戏结束</h2>
+        <div class="final-score">得分: <span id="finalScore">0</span></div>
+        <div class="final-distance">距离: <span id="finalDistance">0</span>m</div>
+        <button class="restart-btn" id="restartBtn">再来一局</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Game state
+    const state = {
+      isRunning: false,
+      isPaused: false,
+      score: 0,
+      distance: 0,
+      highScore: 0,
+      combo: 0,
+      shieldActive: false,
+      shieldTimer: null,
+      speed: 1,
+      difficulty: 'addition', // addition, subtraction, multiplication, division
+      lastMathDistance: 0,
+      mathInterval: 100, // meters
+      ball: {
+        x: 0,
+        y: 0,
+        radius: 15,
+        velocityX: 2,
+        velocityY: 0,
+        gravity: 0.5,
+        jumpForce: -10,
+        isOnPath: true
+      },
+      path: [],
+      obstacles: [],
+      particles: [],
+      gameLoop: null
+    };
+
+    // Canvas setup
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let canvasWidth, canvasHeight;
+
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      canvasWidth = container.clientWidth;
+      canvasHeight = container.clientHeight;
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+
+      // Reset ball position
+      state.ball.x = canvasWidth * 0.2;
+      state.ball.y = canvasHeight * 0.7;
+    }
+
+    // Initialize game
+    function init() {
+      resizeCanvas();
+      loadHighScore();
+      updateUI();
+      generateInitialPath();
+
+      // Event listeners
+      window.addEventListener('resize', resizeCanvas);
+      canvas.addEventListener('click', handleClick);
+      canvas.addEventListener('touchstart', handleTouch);
+      document.getElementById('startBtn').addEventListener('click', startGame);
+      document.getElementById('restartBtn').addEventListener('click', restartGame);
+    }
+
+    function loadHighScore() {
+      const saved = localStorage.getItem('math-zigzag-runner-highscore');
+      if (saved) {
+        state.highScore = parseInt(saved, 10);
+      }
+    }
+
+    function saveHighScore() {
+      if (state.score > state.highScore) {
+        state.highScore = state.score;
+        localStorage.setItem('math-zigzag-runner-highscore', state.highScore.toString());
+      }
+    }
+
+    function generateInitialPath() {
+      state.path = [];
+      const segmentLength = 100;
+      const amplitude = 50;
+      const centerY = canvasHeight * 0.7;
+
+      for (let i = 0; i < 20; i++) {
+        const x = i * segmentLength;
+        const y = centerY + Math.sin(i * 0.5) * amplitude;
+        state.path.push({ x, y });
+      }
+    }
+
+    function generatePathSegment() {
+      const lastPoint = state.path[state.path.length - 1];
+      const segmentLength = 100;
+      const amplitude = 50;
+      const centerY = canvasHeight * 0.7;
+
+      for (let i = 1; i <= 5; i++) {
+        const x = lastPoint.x + i * segmentLength;
+        const y = centerY + Math.sin((state.path.length + i) * 0.5) * amplitude;
+        state.path.push({ x, y });
+      }
+    }
+
+    function generateObstacle() {
+      const lastObstacle = state.obstacles[state.obstacles.length - 1];
+      const minDistance = 200;
+      const maxDistance = 400;
+
+      if (!lastObstacle || state.ball.x - lastObstacle.x > minDistance + Math.random() * (maxDistance - minDistance)) {
+        const obstacleX = state.ball.x + canvasWidth + Math.random() * 200;
+        const pathY = getPathYAtX(obstacleX);
+        const obstacleY = pathY - 30 - Math.random() * 40;
+
+        state.obstacles.push({
+          x: obstacleX,
+          y: obstacleY,
+          width: 30,
+          height: 30,
+          type: Math.random() > 0.5 ? 'spike' : 'block'
+        });
+      }
+    }
+
+    function getPathYAtX(x) {
+      for (let i = 0; i < state.path.length - 1; i++) {
+        const p1 = state.path[i];
+        const p2 = state.path[i + 1];
+        if (x >= p1.x && x <= p2.x) {
+          const t = (x - p1.x) / (p2.x - p1.x);
+          return p1.y + t * (p2.y - p1.y);
+        }
+      }
+      return canvasHeight * 0.7;
+    }
+
+    function handleClick(e) {
+      if (!state.isRunning || state.isPaused) return;
+      jump();
+    }
+
+    function handleTouch(e) {
+      e.preventDefault();
+      if (!state.isRunning || state.isPaused) return;
+      jump();
+    }
+
+    function jump() {
+      if (state.ball.isOnPath) {
+        state.ball.velocityY = state.ball.jumpForce;
+        state.ball.isOnPath = false;
+      }
+    }
+
+    function startGame() {
+      document.getElementById('startScreen').classList.add('hidden');
+      state.isRunning = true;
+      state.score = 0;
+      state.distance = 0;
+      state.combo = 0;
+      state.shieldActive = false;
+      state.speed = 1;
+      state.difficulty = 'addition';
+      state.lastMathDistance = 0;
+      state.ball.x = canvasWidth * 0.2;
+      state.ball.y = canvasHeight * 0.7;
+      state.ball.velocityX = 2;
+      state.ball.velocityY = 0;
+      state.obstacles = [];
+      state.particles = [];
+      generateInitialPath();
+      updateUI();
+      updateDifficultyIndicator();
+
+      if (state.gameLoop) cancelAnimationFrame(state.gameLoop);
+      gameLoop();
+    }
+
+    function restartGame() {
+      document.getElementById('gameOver').classList.remove('active');
+      startGame();
+    }
+
+    function gameOver() {
+      state.isRunning = false;
+      saveHighScore();
+
+      document.getElementById('finalScore').textContent = state.score;
+      document.getElementById('finalDistance').textContent = Math.floor(state.distance);
+      document.getElementById('gameOver').classList.add('active');
+
+      if (state.gameLoop) {
+        cancelAnimationFrame(state.gameLoop);
+        state.gameLoop = null;
+      }
+    }
+
+    function update() {
+      if (!state.isRunning || state.isPaused) return;
+
+      // Update ball physics
+      state.ball.velocityY += state.ball.gravity;
+      state.ball.y += state.ball.velocityY;
+
+      // Check path collision
+      const pathY = getPathYAtX(state.ball.x);
+      if (state.ball.y + state.ball.radius >= pathY) {
+        state.ball.y = pathY - state.ball.radius;
+        state.ball.velocityY = 0;
+        state.ball.isOnPath = true;
+      }
+
+      // Move ball forward
+      state.ball.x += state.ball.velocityX * state.speed;
+
+      // Update camera (move path and obstacles)
+      const cameraOffset = state.ball.x - canvasWidth * 0.2;
+      state.path.forEach(p => p.x -= cameraOffset);
+      state.obstacles.forEach(o => o.x -= cameraOffset);
+      state.ball.x = canvasWidth * 0.2;
+
+      // Remove off-screen elements
+      state.path = state.path.filter(p => p.x > -200);
+      state.obstacles = state.obstacles.filter(o => o.x > -50);
+
+      // Generate new path segments
+      if (state.path.length < 20) {
+        generatePathSegment();
+      }
+
+      // Generate obstacles
+      generateObstacle();
+
+      // Check obstacle collision
+      for (const obstacle of state.obstacles) {
+        if (checkCollision(state.ball, obstacle)) {
+          if (state.shieldActive) {
+            // Shield absorbs hit
+            state.shieldActive = false;
+            clearTimeout(state.shieldTimer);
+            document.getElementById('shieldIndicator').classList.remove('active');
+            createParticles(obstacle.x, obstacle.y, '#ffd700', 10);
+            // Remove obstacle
+            state.obstacles = state.obstacles.filter(o => o !== obstacle);
+          } else {
+            gameOver();
+            return;
+          }
+        }
+      }
+
+      // Update distance
+      state.distance += state.ball.velocityX * state.speed * 0.1;
+
+      // Check for math question trigger
+      if (state.distance - state.lastMathDistance >= state.mathInterval) {
+        triggerMathQuestion();
+      }
+
+      // Update score
+      state.score = Math.floor(state.distance * 10 + state.combo * 50);
+
+      // Update particles
+      updateParticles();
+
+      // Update UI
+      updateUI();
+    }
+
+    function checkCollision(ball, obstacle) {
+      const dx = ball.x - (obstacle.x + obstacle.width / 2);
+      const dy = ball.y - (obstacle.y + obstacle.height / 2);
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      return distance < ball.radius + Math.min(obstacle.width, obstacle.height) / 2;
+    }
+
+    function triggerMathQuestion() {
+      state.isPaused = true;
+      state.lastMathDistance = state.distance;
+
+      const question = generateMathQuestion();
+      showMathPopup(question);
+    }
+
+    function generateMathQuestion() {
+      let num1, num2, operator, answer;
+
+      switch (state.difficulty) {
+        case 'addition':
+          num1 = Math.floor(Math.random() * 20) + 1;
+          num2 = Math.floor(Math.random() * 20) + 1;
+          operator = '+';
+          answer = num1 + num2;
+          break;
+        case 'subtraction':
+          num1 = Math.floor(Math.random() * 30) + 10;
+          num2 = Math.floor(Math.random() * num1);
+          operator = '-';
+          answer = num1 - num2;
+          break;
+        case 'multiplication':
+          num1 = Math.floor(Math.random() * 10) + 1;
+          num2 = Math.floor(Math.random() * 10) + 1;
+          operator = '×';
+          answer = num1 * num2;
+          break;
+        case 'division':
+          num2 = Math.floor(Math.random() * 9) + 2;
+          answer = Math.floor(Math.random() * 10) + 1;
+          num1 = num2 * answer;
+          operator = '÷';
+          break;
+      }
+
+      const question = `${num1} ${operator} ${num2} = ?`;
+      const options = generateOptions(answer);
+
+      return { question, answer, options };
+    }
+
+    function generateOptions(correctAnswer) {
+      const options = [correctAnswer];
+      while (options.length < 4) {
+        const offset = Math.floor(Math.random() * 10) - 5;
+        const option = correctAnswer + offset;
+        if (option > 0 && !options.includes(option)) {
+          options.push(option);
+        }
+      }
+      return shuffleArray(options);
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function showMathPopup(questionData) {
+      const popup = document.getElementById('mathPopup');
+      const questionEl = document.getElementById('mathQuestion');
+      const optionsEl = document.getElementById('mathOptions');
+
+      questionEl.textContent = questionData.question;
+      optionsEl.innerHTML = '';
+
+      questionData.options.forEach(option => {
+        const btn = document.createElement('button');
+        btn.className = 'math-option';
+        btn.textContent = option;
+        btn.addEventListener('click', () => handleAnswer(option, questionData.answer, btn));
+        optionsEl.appendChild(btn);
+      });
+
+      popup.classList.add('active');
+    }
+
+    function handleAnswer(selected, correct, btn) {
+      const options = document.querySelectorAll('.math-option');
+      options.forEach(opt => opt.disabled = true);
+
+      if (selected === correct) {
+        btn.classList.add('correct');
+        state.combo++;
+        state.shieldActive = true;
+        document.getElementById('shieldIndicator').classList.add('active');
+        document.getElementById('comboDisplay').classList.add('active');
+        document.getElementById('comboCount').textContent = state.combo;
+
+        // Clear previous shield timer
+        if (state.shieldTimer) clearTimeout(state.shieldTimer);
+        state.shieldTimer = setTimeout(() => {
+          state.shieldActive = false;
+          document.getElementById('shieldIndicator').classList.remove('active');
+        }, 5000);
+
+        // Speed boost
+        state.speed = Math.min(state.speed + 0.1, 2);
+
+        createParticles(canvasWidth / 2, canvasHeight / 2, '#4ecca3', 20);
+      } else {
+        btn.classList.add('wrong');
+        state.combo = 0;
+        document.getElementById('comboDisplay').classList.remove('active');
+
+        // Slow down
+        state.speed = Math.max(state.speed - 0.2, 0.5);
+
+        createParticles(canvasWidth / 2, canvasHeight / 2, '#e94560', 10);
+      }
+
+      // Update difficulty based on distance
+      updateDifficulty();
+
+      setTimeout(() => {
+        document.getElementById('mathPopup').classList.remove('active');
+        state.isPaused = false;
+      }, 1000);
+    }
+
+    function updateDifficulty() {
+      if (state.distance > 500) {
+        state.difficulty = 'subtraction';
+      }
+      if (state.distance > 1000) {
+        state.difficulty = 'multiplication';
+      }
+      if (state.distance > 1500) {
+        state.difficulty = 'division';
+      }
+      updateDifficultyIndicator();
+    }
+
+    function updateDifficultyIndicator() {
+      const indicator = document.getElementById('difficultyIndicator');
+      const difficultyNames = {
+        'addition': '加法',
+        'subtraction': '减法',
+        'multiplication': '乘法',
+        'division': '除法'
+      };
+      indicator.textContent = `难度: ${difficultyNames[state.difficulty]}`;
+    }
+
+    function createParticles(x, y, color, count) {
+      for (let i = 0; i < count; i++) {
+        state.particles.push({
+          x,
+          y,
+          vx: (Math.random() - 0.5) * 10,
+          vy: (Math.random() - 0.5) * 10,
+          life: 1,
+          color
+        });
+      }
+    }
+
+    function updateParticles() {
+      state.particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.02;
+      });
+      state.particles = state.particles.filter(p => p.life > 0);
+    }
+
+    function updateUI() {
+      document.getElementById('score').textContent = state.score;
+      document.getElementById('highScore').textContent = state.highScore;
+      document.getElementById('distance').textContent = Math.floor(state.distance) + 'm';
+    }
+
+    function draw() {
+      // Clear canvas
+      ctx.fillStyle = '#0a0a1a';
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+      // Draw path
+      ctx.strokeStyle = '#4ecca3';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      state.path.forEach((point, i) => {
+        if (i === 0) {
+          ctx.moveTo(point.x, point.y);
+        } else {
+          ctx.lineTo(point.x, point.y);
+        }
+      });
+      ctx.stroke();
+
+      // Draw obstacles
+      state.obstacles.forEach(obstacle => {
+        ctx.fillStyle = obstacle.type === 'spike' ? '#e94560' : '#ff6b6b';
+        if (obstacle.type === 'spike') {
+          // Draw spike
+          ctx.beginPath();
+          ctx.moveTo(obstacle.x, obstacle.y + obstacle.height);
+          ctx.lineTo(obstacle.x + obstacle.width / 2, obstacle.y);
+          ctx.lineTo(obstacle.x + obstacle.width, obstacle.y + obstacle.height);
+          ctx.closePath();
+          ctx.fill();
+        } else {
+          // Draw block
+          ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        }
+      });
+
+      // Draw ball
+      ctx.fillStyle = state.shieldActive ? '#ffd700' : '#ff6b6b';
+      ctx.beginPath();
+      ctx.arc(state.ball.x, state.ball.y, state.ball.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw ball shine
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.beginPath();
+      ctx.arc(state.ball.x - 5, state.ball.y - 5, state.ball.radius * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw particles
+      state.particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      state.gameLoop = requestAnimationFrame(gameLoop);
+    }
+
+    // Start initialization
+    init();
+  </script>
+</body>
+</html>

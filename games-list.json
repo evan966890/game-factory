@@ -768,5 +768,11 @@
     "path": "games/math-zigzag-run/index.html",
     "category": "education",
     "createdAt": "2026-03-03T06:56:00Z"
+  },
+  {
+    "name": "数学曲折跑",
+    "path": "games/math-zigzag-runner/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T23:20:46Z"
   }
 ]
