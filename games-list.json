@@ -726,5 +726,11 @@
     "path": "games/idiom-chain-challenge/index.html",
     "category": "语言学习",
     "createdAt": "2026-03-02T15:52:35Z"
+  },
+  {
+    "name": "数独挑战",
+    "path": "games/sudoku-puzzle/index.html",
+    "category": "逻辑推理",
+    "createdAt": "2026-03-03T00:17:00+08:00"
   }
 ]
