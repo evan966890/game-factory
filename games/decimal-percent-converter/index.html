@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>小数百分数转换冲刺</title>
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --ok:#22c55e; --bad:#ef4444; --text:#e5e7eb; --muted:#94a3b8; --accent:#38bdf8; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; background:linear-gradient(160deg,#0b1022,#111827 60%,#0f172a); color:var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:16px; }
+    .card { width:min(720px,100%); background:rgba(17,24,39,.92); border:1px solid #1f2937; border-radius:18px; padding:18px; box-shadow:0 20px 40px rgba(0,0,0,.35); }
+    h1 { margin:0 0 10px; font-size:clamp(22px,5vw,32px); }
+    .sub { color:var(--muted); margin-bottom:14px; }
+    .top { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:12px 0 16px; }
+    .pill { background:#0b1220; border:1px solid #1f2937; border-radius:12px; padding:10px; text-align:center; }
+    .pill b { display:block; font-size:20px; color:#fff; }
+    .qbox { background:#0b1220; border:1px solid #334155; border-radius:14px; padding:16px; text-align:center; margin-bottom:12px; }
+    .qtype { color:var(--accent); font-weight:700; letter-spacing:.5px; font-size:13px; }
+    .question { margin-top:8px; font-size:clamp(24px,7vw,42px); font-weight:800; }
+    .opts { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    button { width:100%; border:1px solid #334155; background:#111827; color:#f8fafc; border-radius:12px; padding:14px 10px; font-size:18px; font-weight:700; }
+    button:active { transform:scale(.98); }
+    .msg { min-height:24px; margin-top:12px; font-weight:700; text-align:center; }
+    .ok { color:var(--ok); } .bad { color:var(--bad); }
+    .actions { display:flex; gap:10px; margin-top:10px; }
+    .actions button { font-size:16px; padding:12px; }
+    .primary { background:#0ea5e9; border-color:#0284c7; color:#03121a; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>小数百分数转换冲刺</h1>
+    <div class="sub">10 题一局：在小数与百分数之间快速转换，答对加 10 分！</div>
+
+    <section class="top">
+      <div class="pill">题号<b id="idx">1 / 10</b></div>
+      <div class="pill">得分<b id="score">0</b></div>
+      <div class="pill">剩余<b id="left">10</b></div>
+    </section>
+
+    <section class="qbox">
+      <div class="qtype" id="qtype">小数 → 百分数</div>
+      <div class="question" id="question">0.25 = ?</div>
+    </section>
+
+    <section class="opts" id="opts"></section>
+    <div class="msg" id="msg"></div>
+
+    <section class="actions">
+      <button id="restart" class="primary">重新开始</button>
+    </section>
+  </main>
+
+<script>
+(() => {
+  const TOTAL = 10;
+  let i = 0, score = 0, answer = '', locked = false;
+  const $ = id => document.getElementById(id);
+  const idx = $('idx'), s = $('score'), left = $('left'), qtype = $('qtype'), q = $('question'), opts = $('opts'), msg = $('msg');
+
+  const fmtDec = n => (Math.round(n*1000)/1000).toString().replace(/\.?0+$/,'');
+  const shuffle = arr => arr.sort(() => Math.random() - 0.5);
+  const unique = arr => [...new Set(arr)];
+
+  function makeQuestion() {
+    const toPercent = Math.random() < 0.5;
+    if (toPercent) {
+      const base = [0.05,0.1,0.12,0.2,0.25,0.3,0.4,0.5,0.75,0.8,1.2,1.5][Math.floor(Math.random()*12)];
+      const correct = `${Math.round(base*100)}%`;
+      const wrong = unique([
+        `${Math.round(base*10)}%`, `${Math.round(base*1000)}%`, `${Math.round((base+0.1)*100)}%`, `${Math.round((base-0.05)*100)}%`
+      ]).filter(x=>x!==correct).slice(0,3);
+      return { type:'小数 → 百分数', ask:`${fmtDec(base)} = ?`, correct, options: shuffle([correct,...wrong]) };
+    } else {
+      const p = [5,10,12,15,20,25,30,40,50,60,75,80,120][Math.floor(Math.random()*13)];
+      const correctNum = p/100;
+      const correct = fmtDec(correctNum);
+      const wrong = unique([
+        fmtDec(p/10), fmtDec((p+5)/100), fmtDec((p-5)/100), fmtDec((p/100)+0.1)
+      ]).filter(x=>x!==correct).slice(0,3);
+      return { type:'百分数 → 小数', ask:`${p}% = ?`, correct, options: shuffle([correct,...wrong]) };
+    }
+  }
+
+  function render() {
+    idx.textContent = `${i+1} / ${TOTAL}`;
+    s.textContent = score;
+    left.textContent = TOTAL - i;
+    if (i >= TOTAL) {
+      qtype.textContent = '挑战完成';
+      q.textContent = `最终得分：${score}`;
+      opts.innerHTML = '';
+      msg.className = 'msg ok';
+      msg.textContent = score >= 80 ? '太棒了！转换已经很熟练！' : '不错，再来一局冲更高分！';
+      return;
+    }
+    const cur = makeQuestion();
+    answer = cur.correct;
+    locked = false;
+    qtype.textContent = cur.type;
+    q.textContent = cur.ask;
+    msg.className = 'msg';
+    msg.textContent = '';
+    opts.innerHTML = '';
+    cur.options.forEach(opt => {
+      const b = document.createElement('button');
+      b.textContent = opt;
+      b.addEventListener('click', () => onPick(opt));
+      opts.appendChild(b);
+    });
+  }
+
+  function onPick(val) {
+    if (locked || i >= TOTAL) return;
+    locked = true;
+    if (val === answer) {
+      score += 10;
+      msg.className = 'msg ok';
+      msg.textContent = '✅ 回答正确！';
+    } else {
+      msg.className = 'msg bad';
+      msg.textContent = `❌ 正确答案是：${answer}`;
+    }
+    setTimeout(() => { i++; render(); }, 550);
+  }
+
+  $('restart').addEventListener('click', () => { i = 0; score = 0; render(); });
+  render();
+})();
+</script>
+</body>
+</html>

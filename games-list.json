@@ -522,5 +522,11 @@
     "path": "games/angle-hunter/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T04:19:06.142578+00:00"
+  },
+  {
+    "name": "小数百分数转换冲刺",
+    "path": "games/decimal-percent-converter/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T12:39:09.223148+08:00"
   }
 ]
