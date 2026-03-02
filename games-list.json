@@ -666,5 +666,11 @@
     "path": "games/fraction-order-sprint/index.html",
     "category": "education",
     "createdAt": "2026-03-02T12:40:03Z"
+  },
+  {
+    "name": "比例平衡实验室",
+    "path": "games/ratio-balance-lab/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T13:00:04Z"
   }
 ]

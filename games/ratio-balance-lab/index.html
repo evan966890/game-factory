@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>比例平衡实验室</title>
+  <style>
+    :root{--bg:#0b1020;--card:#111a32;--accent:#22d3ee;--ok:#34d399;--bad:#fb7185;--text:#e5e7eb;--muted:#93c5fd}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(circle at top,#14213d,#020617 65%);color:var(--text);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:14px}
+    .app{width:min(820px,100%);background:rgba(17,26,50,.94);border:1px solid #243b67;border-radius:18px;padding:18px;box-shadow:0 16px 40px rgba(0,0,0,.35)}
+    h1{margin:0 0 8px;font-size:clamp(1.35rem,4.1vw,2.1rem)} .sub{margin:0 0 14px;color:var(--muted);font-size:.95rem}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+    .stat{background:#0b1327;border:1px solid #273b63;border-radius:12px;padding:8px;text-align:center}
+    .stat b{display:block;font-size:1.2rem}
+    .panel{background:#0b1327;border:1px solid #273b63;border-radius:14px;padding:14px}
+    .equation{font-size:clamp(1.2rem,4vw,1.8rem);font-weight:800;text-align:center;margin-bottom:12px;line-height:1.45}
+    .options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    button{border:none;border-radius:12px;padding:13px;font-size:1.03rem;font-weight:700;color:var(--text);background:#1d2d4a;touch-action:manipulation}
+    button:active{transform:scale(.98)}
+    .ok{outline:2px solid var(--ok)} .bad{outline:2px solid var(--bad)}
+    .msg{min-height:24px;margin-top:10px;font-weight:700}
+    .progress{height:10px;background:#1d2d4a;border-radius:999px;overflow:hidden;margin-top:12px}
+    .bar{height:100%;width:100%;background:linear-gradient(90deg,#22d3ee,#34d399);transition:width .25s linear}
+    .actions{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+    .ghost{background:#0f1b35;border:1px solid #314d7e}
+    @media (max-width:620px){.stats{grid-template-columns:repeat(2,1fr)}.options{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>比例平衡实验室</h1>
+    <p class="sub">判断哪个数字能让比例式成立。45 秒限时，连续答对会获得连击加分。</p>
+
+    <section class="stats">
+      <div class="stat"><span>得分</span><b id="score">0</b></div>
+      <div class="stat"><span>题数</span><b id="round">0</b></div>
+      <div class="stat"><span>连击</span><b id="combo">0</b></div>
+      <div class="stat"><span>剩余</span><b id="time">45</b>s</div>
+    </section>
+
+    <section class="panel">
+      <div id="equation" class="equation">点击“开始游戏”</div>
+      <div class="options">
+        <button id="opt0" disabled>选项 A</button>
+        <button id="opt1" disabled>选项 B</button>
+        <button id="opt2" disabled>选项 C</button>
+        <button id="opt3" disabled>选项 D</button>
+      </div>
+      <div id="msg" class="msg"></div>
+      <div class="progress"><div id="bar" class="bar"></div></div>
+      <div class="actions">
+        <button id="start">开始游戏</button>
+        <button id="restart" class="ghost" hidden>再来一局</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const els = {
+      score:$('score'), round:$('round'), combo:$('combo'), time:$('time'), bar:$('bar'), equation:$('equation'), msg:$('msg'),
+      options:[$('opt0'),$('opt1'),$('opt2'),$('opt3')], start:$('start'), restart:$('restart')
+    };
+    let state = {};
+
+    const rand = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+
+    function uniqueOptions(answer){
+      const set = new Set([answer]);
+      while(set.size<4){
+        const delta = rand(-6,6) || 1;
+        const val = Math.max(1, answer + delta);
+        set.add(val);
+      }
+      return [...set].sort(()=>Math.random()-0.5);
+    }
+
+    function nextQuestion(){
+      const a = rand(2,12), b = rand(2,15), d = rand(2,12);
+      const c = Math.round((b*d)/a);
+      // 确保整数且范围适中
+      if (c < 1 || c > 40 || a*c !== b*d) return nextQuestion();
+      const opts = uniqueOptions(c);
+      state.answer = c;
+      state.options = opts;
+      els.equation.textContent = `${a} : ${b} = ${d} : x`;
+      els.options.forEach((btn, i) => {
+        btn.disabled = false;
+        btn.className = '';
+        btn.textContent = `${String.fromCharCode(65+i)}. ${opts[i]}`;
+      });
+    }
+
+    function update(){
+      els.score.textContent = state.score;
+      els.round.textContent = state.round;
+      els.combo.textContent = state.combo;
+      els.time.textContent = state.time;
+      els.bar.style.width = `${(state.time/45)*100}%`;
+    }
+
+    function choose(i){
+      if(!state.running) return;
+      state.round++;
+      const choice = state.options[i];
+      const ok = choice === state.answer;
+      const gain = 10 + Math.min(30, state.combo * 3);
+      if(ok){
+        state.combo++;
+        state.score += gain;
+        els.msg.textContent = `✅ 正确！x = ${state.answer}，+${gain} 分`;
+      }else{
+        state.combo = 0;
+        els.msg.textContent = `❌ 错误，正确答案是 ${state.answer}`;
+      }
+      els.options.forEach((btn, idx)=>{
+        btn.disabled = true;
+        if(state.options[idx]===state.answer) btn.classList.add('ok');
+      });
+      if(!ok) els.options[i].classList.add('bad');
+      update();
+      setTimeout(()=> state.running && nextQuestion(), 420);
+    }
+
+    function endGame(){
+      state.running = false;
+      clearInterval(state.timer);
+      els.options.forEach(btn=>btn.disabled = true);
+      els.equation.textContent = `时间到！最终得分 ${state.score}`;
+      els.msg.textContent = `共完成 ${state.round} 题，最高连击 ${state.bestCombo}`;
+      els.restart.hidden = false;
+    }
+
+    function start(){
+      state = {running:true, score:0, round:0, combo:0, bestCombo:0, time:45, timer:null, answer:null, options:[]};
+      els.start.hidden = true;
+      els.restart.hidden = true;
+      els.msg.textContent = '';
+      nextQuestion();
+      update();
+      state.timer = setInterval(()=>{
+        if(!state.running) return;
+        state.time--;
+        state.bestCombo = Math.max(state.bestCombo, state.combo);
+        update();
+        if(state.time<=0) endGame();
+      }, 1000);
+    }
+
+    els.options.forEach((btn,i)=>btn.addEventListener('click',()=>choose(i)));
+    els.start.addEventListener('click', start);
+    els.restart.addEventListener('click', start);
+  </script>
+</body>
+</html>
