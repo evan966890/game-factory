@@ -1,79 +1,755 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>数学矿工大亨</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数学矿工大亨</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --secondary: #f5a623;
+            --success: #7ed321;
+            --danger: #d0021b;
+            --dark: #333;
+            --light: #f8f9fa;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 5px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .mine-area {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        
+        .mine-btn {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(145deg, #f0c14b, #e6a800);
+            color: #333;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+            transition: all 0.1s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .mine-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .mine-btn::after {
+            content: '⛏️';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+        }
+        
+        .click-count {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .panels {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .panel {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: var(--shadow);
+        }
+        
+        .panel h3 {
+            margin-bottom: 10px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .upgrade-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .upgrade-info {
+            flex: 1;
+        }
+        
+        .upgrade-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        
+        .upgrade-desc {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .upgrade-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        
+        .upgrade-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .upgrade-btn:not(:disabled):hover {
+            background: #357abd;
+        }
+        
+        .achievement-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+        
+        .achievement-item.unlocked {
+            opacity: 1;
+            background: #e8f5e9;
+        }
+        
+        .achievement-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+        
+        .achievement-info {
+            flex: 1;
+        }
+        
+        .achievement-name {
+            font-weight: bold;
+        }
+        
+        .achievement-desc {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        /* Math Quiz Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.3s;
+        }
+        
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+        
+        .modal h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .math-question {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 20px 0;
+            color: var(--dark);
+        }
+        
+        .math-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.5rem;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .math-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .modal-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .modal-btn:hover {
+            background: #357abd;
+        }
+        
+        .reward-text {
+            margin-top: 15px;
+            font-weight: bold;
+            color: var(--success);
+        }
+        
+        .error-text {
+            color: var(--danger);
+        }
+        
+        /* Floating numbers */
+        .floating-number {
+            position: absolute;
+            font-weight: bold;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+        }
+        
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+        
+        /* Achievement notification */
+        .achievement-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .achievement-notification.show {
+            opacity: 1;
+        }
+        
+        /* Responsive */
+        @media (max-width: 400px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .mine-btn {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .mine-btn::after {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="game-container">
-    <!-- 顶部资源栏 -->
-    <header class="resource-bar">
-      <div class="gold-display">
-        <span class="gold-icon">💰</span>
-        <span class="gold-amount" id="goldAmount">0</span>
-      </div>
-      <div class="production-display">
-        <span>产出: +<span id="clickPower">1</span>/点击 +<span id="autoPower">0</span>/秒</span>
-      </div>
-    </header>
-
-    <!-- 主要点击区域 -->
-    <main class="mine-area">
-      <button class="ore-button" id="oreButton">
-        <div class="ore-visual">⛏️</div>
-        <div class="ore-text">点击挖矿</div>
-      </button>
-      <div class="click-effects" id="clickEffects"></div>
-    </main>
-
-    <!-- Tab导航 -->
-    <nav class="tab-nav">
-      <button class="tab-btn active" data-tab="upgrades">🔧 升级</button>
-      <button class="tab-btn" data-tab="miners">👷 矿工</button>
-      <button class="tab-btn" data-tab="achievements">🏆 成就</button>
-    </nav>
-
-    <!-- 内容区域 -->
-    <section class="content-area">
-      <!-- 升级面板 -->
-      <div class="tab-panel active" id="upgradesPanel">
-        <div class="upgrade-list" id="upgradeList"></div>
-      </div>
-
-      <!-- 矿工面板 -->
-      <div class="tab-panel" id="minersPanel">
-        <div class="miner-list" id="minerList"></div>
-      </div>
-
-      <!-- 成就面板 -->
-      <div class="tab-panel" id="achievementsPanel">
-        <div class="achievement-list" id="achievementList"></div>
-      </div>
-    </section>
-  </div>
-
-  <!-- 数学题弹窗 -->
-  <div class="math-modal" id="mathModal">
-    <div class="math-card">
-      <div class="math-header">🧮 数学挑战！</div>
-      <div class="math-question" id="mathQuestion">5 + 3 = ?</div>
-      <div class="math-input-area">
-        <input type="number" id="mathInput" placeholder="输入答案" autofocus>
-        <button class="math-submit" id="mathSubmit">提交</button>
-      </div>
-      <div class="math-result" id="mathResult"></div>
-      <div class="math-reward">答对获得 2x 金币奖励！</div>
+    <div class="container">
+        <div class="header">
+            <h1>⛏️ 数学矿工大亨</h1>
+            <p>点击挖矿，答对数学题，成为矿业大亨！</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="gold">0</div>
+                <div class="stat-label">💰 金币</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="multiplier">1.0x</div>
+                <div class="stat-label">✨ 奖励倍率</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="correct">0</div>
+                <div class="stat-label">✅ 答对题数</div>
+            </div>
+        </div>
+        
+        <div class="mine-area">
+            <button class="mine-btn" id="mineBtn"></button>
+            <div class="click-count">点击次数: <span id="clickCount">0</span>/10</div>
+        </div>
+        
+        <div class="panels">
+            <div class="panel">
+                <h3>🔧 升级</h3>
+                <div id="upgrades"></div>
+            </div>
+            
+            <div class="panel">
+                <h3>🏆 成就</h3>
+                <div id="achievements"></div>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <!-- 成就通知 -->
-  <div class="achievement-toast" id="achievementToast">
-    <div class="toast-icon">🏆</div>
-    <div class="toast-text" id="toastText">成就解锁！</div>
-  </div>
-
-  <script src="game.js"></script>
+    
+    <!-- Math Quiz Modal -->
+    <div class="modal-overlay" id="mathModal">
+        <div class="modal">
+            <h2>🧮 数学挑战</h2>
+            <div class="math-question" id="mathQuestion">5 + 3 = ?</div>
+            <input type="number" class="math-input" id="mathInput" placeholder="输入答案">
+            <button class="modal-btn" id="submitAnswer">提交答案</button>
+            <div class="reward-text" id="rewardText"></div>
+        </div>
+    </div>
+    
+    <!-- Achievement Notification -->
+    <div class="achievement-notification" id="achievementNotification">
+        🏆 成就解锁！
+    </div>
+    
+    <script>
+        // Game State
+        let gameState = {
+            gold: 0,
+            clickCount: 0,
+            totalClicks: 0,
+            correctAnswers: 0,
+            multiplier: 1.0,
+            multiplierEndTime: 0,
+            upgrades: {
+                pickaxe: { level: 0, cost: 10, effect: 1 },
+                miner: { level: 0, cost: 100, effect: 1 },
+                multiplier: { level: 0, cost: 500, effect: 0.1 }
+            },
+            achievements: {
+                firstClick: { unlocked: false, name: "第一次挖掘", desc: "点击挖矿按钮" },
+                click100: { unlocked: false, name: "勤劳矿工", desc: "累计点击100次" },
+                gold1000: { unlocked: false, name: "小富翁", desc: "拥有1000金币" },
+                correct10: { unlocked: false, name: "数学小能手", desc: "答对10道题" },
+                correct100: { unlocked: false, name: "数学大师", desc: "答对100道题" },
+                upgrade5: { unlocked: false, name: "升级达人", desc: "购买5次升级" }
+            },
+            lastSave: Date.now(),
+            offlineEarnings: 0
+        };
+        
+        // DOM Elements
+        const goldEl = document.getElementById('gold');
+        const multiplierEl = document.getElementById('multiplier');
+        const correctEl = document.getElementById('correct');
+        const clickCountEl = document.getElementById('clickCount');
+        const mineBtn = document.getElementById('mineBtn');
+        const upgradesEl = document.getElementById('upgrades');
+        const achievementsEl = document.getElementById('achievements');
+        const mathModal = document.getElementById('mathModal');
+        const mathQuestionEl = document.getElementById('mathQuestion');
+        const mathInput = document.getElementById('mathInput');
+        const submitAnswer = document.getElementById('submitAnswer');
+        const rewardText = document.getElementById('rewardText');
+        const achievementNotification = document.getElementById('achievementNotification');
+        
+        // Initialize game
+        function init() {
+            loadGame();
+            renderUpgrades();
+            renderAchievements();
+            updateUI();
+            setupEventListeners();
+            startAutoSave();
+            startOfflineEarnings();
+        }
+        
+        // Event Listeners
+        function setupEventListeners() {
+            mineBtn.addEventListener('click', handleMineClick);
+            submitAnswer.addEventListener('click', checkAnswer);
+            mathInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkAnswer();
+            });
+        }
+        
+        // Mine click handler
+        function handleMineClick() {
+            const now = Date.now();
+            let clickValue = 1 + gameState.upgrades.pickaxe.level * gameState.upgrades.pickaxe.effect;
+            
+            // Apply multiplier if active
+            if (now < gameState.multiplierEndTime) {
+                clickValue *= gameState.multiplier;
+            }
+            
+            gameState.gold += clickValue;
+            gameState.clickCount++;
+            gameState.totalClicks++;
+            
+            // Show floating number
+            showFloatingNumber(clickValue);
+            
+            // Check for math quiz
+            if (gameState.clickCount >= 10) {
+                showMathQuiz();
+            }
+            
+            // Check achievements
+            checkAchievements();
+            
+            updateUI();
+        }
+        
+        // Show floating number animation
+        function showFloatingNumber(value) {
+            const number = document.createElement('div');
+            number.className = 'floating-number';
+            number.textContent = `+${formatNumber(value)}`;
+            number.style.left = `${Math.random() * 60 + 20}%`;
+            number.style.top = '50%';
+            number.style.color = value > 1 ? '#f5a623' : '#4a90e2';
+            document.body.appendChild(number);
+            
+            setTimeout(() => number.remove(), 1000);
+        }
+        
+        // Show math quiz
+        function showMathQuiz() {
+            gameState.clickCount = 0;
+            generateMathQuestion();
+            mathModal.classList.add('active');
+            mathInput.value = '';
+            mathInput.focus();
+            rewardText.textContent = '';
+        }
+        
+        // Generate math question based on progress
+        function generateMathQuestion() {
+            const difficulty = Math.min(4, Math.floor(gameState.correctAnswers / 25) + 1);
+            let a, b, operator, answer;
+            
+            switch(difficulty) {
+                case 1: // Addition
+                    a = Math.floor(Math.random() * 10) + 1;
+                    b = Math.floor(Math.random() * 10) + 1;
+                    operator = '+';
+                    answer = a + b;
+                    break;
+                case 2: // Subtraction
+                    a = Math.floor(Math.random() * 10) + 5;
+                    b = Math.floor(Math.random() * a);
+                    operator = '-';
+                    answer = a - b;
+                    break;
+                case 3: // Multiplication
+                    a = Math.floor(Math.random() * 5) + 1;
+                    b = Math.floor(Math.random() * 5) + 1;
+                    operator = '×';
+                    answer = a * b;
+                    break;
+                case 4: // Division
+                    b = Math.floor(Math.random() * 5) + 1;
+                    answer = Math.floor(Math.random() * 5) + 1;
+                    a = b * answer;
+                    operator = '÷';
+                    break;
+            }
+            
+            mathQuestionEl.textContent = `${a} ${operator} ${b} = ?`;
+            mathQuestionEl.dataset.answer = answer;
+        }
+        
+        // Check answer
+        function checkAnswer() {
+            const userAnswer = parseInt(mathInput.value);
+            const correctAnswer = parseInt(mathQuestionEl.dataset.answer);
+            
+            if (userAnswer === correctAnswer) {
+                // Correct answer
+                gameState.correctAnswers++;
+                gameState.multiplier = 2.0 + gameState.upgrades.multiplier.level * gameState.upgrades.multiplier.effect;
+                gameState.multiplierEndTime = Date.now() + 30000; // 30 seconds
+                
+                rewardText.textContent = `✅ 正确！奖励倍率 ${gameState.multiplier.toFixed(1)}x 持续30秒！`;
+                rewardText.className = 'reward-text';
+                
+                setTimeout(() => {
+                    mathModal.classList.remove('active');
+                }, 1500);
+            } else {
+                // Wrong answer
+                rewardText.textContent = `❌ 错误！正确答案是 ${correctAnswer}`;
+                rewardText.className = 'reward-text error-text';
+            }
+            
+            checkAchievements();
+            updateUI();
+        }
+        
+        // Buy upgrade
+        function buyUpgrade(type) {
+            const upgrade = gameState.upgrades[type];
+            if (gameState.gold >= upgrade.cost) {
+                gameState.gold -= upgrade.cost;
+                upgrade.level++;
+                upgrade.cost = Math.floor(upgrade.cost * 1.5);
+                
+                renderUpgrades();
+                checkAchievements();
+                updateUI();
+            }
+        }
+        
+        // Render upgrades
+        function renderUpgrades() {
+            const upgrades = [
+                { type: 'pickaxe', name: '⛏️ 高级镐子', desc: '每次点击 +1 金币' },
+                { type: 'miner', name: '🤖 矿工机器人', desc: '每秒自动产出金币' },
+                { type: 'multiplier', name: '✨ 奖励强化', desc: '数学题奖励倍率 +0.1' }
+            ];
+            
+            upgradesEl.innerHTML = upgrades.map(upgrade => {
+                const data = gameState.upgrades[upgrade.type];
+                const canAfford = gameState.gold >= data.cost;
+                return `
+                    <div class="upgrade-item">
+                        <div class="upgrade-info">
+                            <div class="upgrade-name">${upgrade.name} (Lv.${data.level})</div>
+                            <div class="upgrade-desc">${upgrade.desc}</div>
+                        </div>
+                        <button class="upgrade-btn" 
+                                onclick="buyUpgrade('${upgrade.type}')" 
+                                ${!canAfford ? 'disabled' : ''}>
+                            ${formatNumber(data.cost)} 💰
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Render achievements
+        function renderAchievements() {
+            achievementsEl.innerHTML = Object.entries(gameState.achievements).map(([key, ach]) => `
+                <div class="achievement-item ${ach.unlocked ? 'unlocked' : ''}">
+                    <div class="achievement-icon">${ach.unlocked ? '🏆' : '🔒'}</div>
+                    <div class="achievement-info">
+                        <div class="achievement-name">${ach.name}</div>
+                        <div class="achievement-desc">${ach.desc}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Check achievements
+        function checkAchievements() {
+            const achievements = gameState.achievements;
+            
+            if (!achievements.firstClick.unlocked && gameState.totalClicks >= 1) {
+                unlockAchievement('firstClick');
+            }
+            if (!achievements.click100.unlocked && gameState.totalClicks >= 100) {
+                unlockAchievement('click100');
+            }
+            if (!achievements.gold1000.unlocked && gameState.gold >= 1000) {
+                unlockAchievement('gold1000');
+            }
+            if (!achievements.correct10.unlocked && gameState.correctAnswers >= 10) {
+                unlockAchievement('correct10');
+            }
+            if (!achievements.correct100.unlocked && gameState.correctAnswers >= 100) {
+                unlockAchievement('correct100');
+            }
+            
+            const totalUpgrades = Object.values(gameState.upgrades).reduce((sum, u) => sum + u.level, 0);
+            if (!achievements.upgrade5.unlocked && totalUpgrades >= 5) {
+                unlockAchievement('upgrade5');
+            }
+        }
+        
+        // Unlock achievement
+        function unlockAchievement(key) {
+            gameState.achievements[key].unlocked = true;
+            achievementNotification.textContent = `🏆 成就解锁: ${gameState.achievements[key].name}`;
+            achievementNotification.classList.add('show');
+            setTimeout(() => achievementNotification.classList.remove('show'), 3000);
+            renderAchievements();
+        }
+        
+        // Update UI
+        function updateUI() {
+            goldEl.textContent = formatNumber(gameState.gold);
+            multiplierEl.textContent = `${gameState.multiplier.toFixed(1)}x`;
+            correctEl.textContent = gameState.correctAnswers;
+            clickCountEl.textContent = gameState.clickCount;
+            
+            // Update multiplier display
+            const now = Date.now();
+            if (now < gameState.multiplierEndTime) {
+                multiplierEl.style.color = '#f5a623';
+            } else {
+                multiplierEl.style.color = '#4a90e2';
+                gameState.multiplier = 1.0 + gameState.upgrades.multiplier.level * gameState.upgrades.multiplier.effect;
+            }
+        }
+        
+        // Format number
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return Math.floor(num);
+        }
+        
+        // Save game
+        function saveGame() {
+            gameState.lastSave = Date.now();
+            localStorage.setItem('mathMinerTycoon', JSON.stringify(gameState));
+        }
+        
+        // Load game
+        function loadGame() {
+            const saved = localStorage.getItem('mathMinerTycoon');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                gameState = { ...gameState, ...parsed };
+            }
+        }
+        
+        // Auto save
+        function startAutoSave() {
+            setInterval(saveGame, 10000);
+        }
+        
+        // Offline earnings
+        function startOfflineEarnings() {
+            const now = Date.now();
+            const timeDiff = now - gameState.lastSave;
+            if (timeDiff > 60000 && gameState.upgrades.miner.level > 0) {
+                const offlineGold = Math.floor(timeDiff / 1000) * gameState.upgrades.miner.level * gameState.upgrades.miner.effect;
+                gameState.gold += offlineGold;
+                gameState.offlineEarnings = offlineGold;
+                
+                setTimeout(() => {
+                    alert(`欢迎回来！离线期间获得了 ${formatNumber(offlineGold)} 金币！`);
+                }, 1000);
+            }
+            
+            // Start auto miner
+            setInterval(() => {
+                if (gameState.upgrades.miner.level > 0) {
+                    const autoGold = gameState.upgrades.miner.level * gameState.upgrades.miner.effect;
+                    gameState.gold += autoGold;
+                    updateUI();
+                }
+            }, 1000);
+        }
+        
+        // Initialize on load
+        init();
+    </script>
 </body>
 </html>

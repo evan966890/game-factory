@@ -1,0 +1,6 @@
+user_name: Evan
+communication_language: 中文
+document_output_language: 中文
+output_folder: _bmad-output
+tool_supports_subagents: true
+tool_supports_agent_teams: false
