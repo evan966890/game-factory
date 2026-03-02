@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>坐标寻宝</title>
+  <style>
+    :root {
+      --bg: #f4f8ff;
+      --card: #ffffff;
+      --text: #1f2a44;
+      --primary: #3a7afe;
+      --ok: #1f9d55;
+      --bad: #d64545;
+      --muted: #60708f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+    .app {
+      width: 100%;
+      max-width: 560px;
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(25, 50, 95, 0.12);
+      padding: 16px;
+    }
+    h1 { margin: 0 0 8px; font-size: 1.3rem; }
+    .sub { margin: 0 0 12px; color: var(--muted); font-size: 0.95rem; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .stat {
+      background: #eef3ff;
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    .prompt {
+      background: #f7faff;
+      border: 1px solid #dce7ff;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .point { font-weight: 700; font-size: 1.4rem; letter-spacing: 0.5px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.06s ease;
+    }
+    button:active { transform: scale(0.98); }
+    .opt { background: #eaf1ff; color: #20407f; }
+    .opt:hover { background: #dfe9ff; }
+    .actions { display: flex; gap: 10px; }
+    .primary { flex: 1; background: var(--primary); color: #fff; }
+    .secondary { background: #e9edf7; color: #32415e; }
+    .msg {
+      min-height: 24px;
+      margin: 8px 0 0;
+      font-weight: 600;
+      text-align: center;
+    }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    @media (max-width: 420px) {
+      .stat { font-size: 0.82rem; }
+      button { font-size: 0.95rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>🧭 坐标寻宝</h1>
+    <p class="sub">判断点所在象限或坐标轴，10 题一局，看看你能得几分！</p>
+
+    <section class="stats" aria-label="游戏数据">
+      <div class="stat">题目<br><strong id="qIdx">1</strong>/10</div>
+      <div class="stat">得分<br><strong id="score">0</strong></div>
+      <div class="stat">连对<br><strong id="streak">0</strong></div>
+    </section>
+
+    <section class="prompt" aria-live="polite">
+      点坐标：<div class="point" id="point">(2, 3)</div>
+    </section>
+
+    <section class="grid" aria-label="答案选项">
+      <button class="opt" data-answer="Q1">第一象限</button>
+      <button class="opt" data-answer="Q2">第二象限</button>
+      <button class="opt" data-answer="Q3">第三象限</button>
+      <button class="opt" data-answer="Q4">第四象限</button>
+      <button class="opt" data-answer="X">在 x 轴上</button>
+      <button class="opt" data-answer="Y">在 y 轴上</button>
+    </section>
+
+    <div class="actions">
+      <button class="primary" id="nextBtn">开始 / 下一题</button>
+      <button class="secondary" id="restartBtn">重开</button>
+    </div>
+
+    <p class="msg" id="msg"></p>
+  </main>
+
+  <script>
+    (() => {
+      const TOTAL = 10;
+      let current = null;
+      let index = 0;
+      let score = 0;
+      let streak = 0;
+      let locked = true;
+
+      const qIdxEl = document.getElementById('qIdx');
+      const scoreEl = document.getElementById('score');
+      const streakEl = document.getElementById('streak');
+      const pointEl = document.getElementById('point');
+      const msgEl = document.getElementById('msg');
+      const nextBtn = document.getElementById('nextBtn');
+      const restartBtn = document.getElementById('restartBtn');
+      const opts = [...document.querySelectorAll('.opt')];
+
+      function randint(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function classify(x, y) {
+        if (y === 0 && x !== 0) return 'X';
+        if (x === 0 && y !== 0) return 'Y';
+        if (x > 0 && y > 0) return 'Q1';
+        if (x < 0 && y > 0) return 'Q2';
+        if (x < 0 && y < 0) return 'Q3';
+        return 'Q4';
+      }
+
+      function newQuestion() {
+        let x = 0, y = 0;
+        while (x === 0 && y === 0) {
+          x = randint(-6, 6);
+          y = randint(-6, 6);
+        }
+        current = { x, y, ans: classify(x, y) };
+      }
+
+      function render() {
+        qIdxEl.textContent = Math.min(index + 1, TOTAL);
+        scoreEl.textContent = score;
+        streakEl.textContent = streak;
+        pointEl.textContent = current ? `(${current.x}, ${current.y})` : '(?, ?)';
+      }
+
+      function setMsg(text = '', cls = '') {
+        msgEl.className = `msg ${cls}`.trim();
+        msgEl.textContent = text;
+      }
+
+      function loadNext() {
+        if (index >= TOTAL) {
+          setMsg(`本局结束！总分 ${score}/${TOTAL}，连对峰值很棒！`, 'ok');
+          locked = true;
+          return;
+        }
+        newQuestion();
+        render();
+        locked = false;
+        setMsg('请选择答案');
+      }
+
+      opts.forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (locked || !current) return;
+          const val = btn.dataset.answer;
+          if (val === current.ans) {
+            score += 1;
+            streak += 1;
+            setMsg('✅ 回答正确！', 'ok');
+          } else {
+            streak = 0;
+            const map = { Q1: '第一象限', Q2: '第二象限', Q3: '第三象限', Q4: '第四象限', X: 'x 轴', Y: 'y 轴' };
+            setMsg(`❌ 正确答案：${map[current.ans]}`, 'bad');
+          }
+          index += 1;
+          locked = true;
+          render();
+        });
+      });
+
+      nextBtn.addEventListener('click', loadNext);
+
+      restartBtn.addEventListener('click', () => {
+        index = 0;
+        score = 0;
+        streak = 0;
+        current = null;
+        locked = true;
+        render();
+        setMsg('已重开，点击“开始 / 下一题”');
+      });
+
+      render();
+      setMsg('点击“开始 / 下一题”开始挑战');
+    })();
+  </script>
+</body>
+</html>

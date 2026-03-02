@@ -594,5 +594,11 @@
     "path": "games/angle-hunter/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T08:19:40.754689+00:00"
+  },
+  {
+    "name": "坐标寻宝",
+    "path": "games/coordinate-treasure-hunt/index.html",
+    "category": "数学+空间",
+    "createdAt": "2026-03-02T16:39:54.533159+08:00"
   }
 ]
