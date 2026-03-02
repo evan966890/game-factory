@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>周长搭建实验室</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--ok:#22c55e;--bad:#ef4444;--accent:#38bdf8;--text:#e5e7eb}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#020617,#0f172a 45%,#1e293b);color:var(--text)}
+    .wrap{max-width:780px;margin:0 auto;padding:16px}
+    .card{background:rgba(17,24,39,.92);border:1px solid #334155;border-radius:16px;padding:14px;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+    h1{font-size:1.35rem;margin:0 0 6px}.sub{font-size:.92rem;color:#cbd5e1;margin-bottom:12px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pill{background:#0b1220;border:1px solid #334155;border-radius:12px;padding:10px;text-align:center}
+    .v{font-weight:700;font-size:1.15rem;color:#f8fafc}
+    .q{margin:12px 0;padding:12px;background:#0b1220;border:1px solid #334155;border-radius:12px}
+    .shape{font-size:1rem;line-height:1.5}.target{margin-top:8px;color:#7dd3fc}
+    .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button{border:1px solid #334155;background:#111827;color:#e2e8f0;padding:11px 10px;border-radius:12px;font-size:1rem}
+    button:active{transform:scale(.98)}
+    .ok{border-color:#14532d;background:#052e16;color:#bbf7d0}.bad{border-color:#7f1d1d;background:#450a0a;color:#fecaca}
+    .footer{display:flex;gap:8px;margin-top:10px} .footer button{flex:1;background:#0369a1;border-color:#0c4a6e}
+    .toast{min-height:24px;text-align:center;font-size:.95rem;margin-top:10px}
+    @media (max-width:460px){.opts{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>周长搭建实验室</h1>
+      <div class="sub">根据图形边长，选出正确周长。20 题挑战，练习几何直觉与心算速度。</div>
+      <div class="grid">
+        <div class="pill">题号<div class="v" id="idx">1 / 20</div></div>
+        <div class="pill">分数<div class="v" id="score">0</div></div>
+        <div class="pill">连对<div class="v" id="streak">0</div></div>
+        <div class="pill">剩余<div class="v" id="left">20</div></div>
+      </div>
+      <div class="q">
+        <div class="shape" id="shape"></div>
+        <div class="target" id="hint"></div>
+      </div>
+      <div class="opts" id="opts"></div>
+      <div class="toast" id="toast"></div>
+      <div class="footer">
+        <button id="restart">重新开始</button>
+      </div>
+    </div>
+  </div>
+<script>
+(() => {
+  const total = 20;
+  let i = 0, score = 0, streak = 0, current;
+  const $ = id => document.getElementById(id);
+
+  function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+  function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=rand(0,i);[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+
+  function makeQ(){
+    const t = rand(1,3);
+    let text='', p=0;
+    if(t===1){ // rectangle
+      const l=rand(3,18), w=rand(2,14); p=2*(l+w);
+      text=`📐 长方形：长 ${l} cm，宽 ${w} cm`;
+    }else if(t===2){ // triangle
+      const a=rand(3,14), b=rand(3,14), c=rand(3,14); p=a+b+c;
+      text=`🔺 三角形三边：${a} cm、${b} cm、${c} cm`;
+    }else{ // regular polygon
+      const n=[5,6,8][rand(0,2)], s=rand(2,12); p=n*s;
+      text=`🧩 正${n}边形：每边 ${s} cm`;
+    }
+    const opts = new Set([p]);
+    while(opts.size<4){
+      const delta = rand(-12,12);
+      const v = Math.max(6, p + (delta===0?rand(2,6):delta));
+      opts.add(v);
+    }
+    return {text,p,opts:shuffle([...opts])};
+  }
+
+  function render(){
+    if(i>=total){
+      $('shape').textContent = `🏁 挑战完成！总分 ${score}`;
+      $('hint').textContent = score>=16? '太棒了，几何感觉很稳！':'再来一局，把正确率拉高！';
+      $('opts').innerHTML='';
+      $('toast').textContent='';
+      $('idx').textContent = `${total} / ${total}`;
+      $('left').textContent='0';
+      return;
+    }
+    current = makeQ();
+    $('shape').textContent = current.text;
+    $('hint').textContent = '请选择该图形的周长：';
+    $('opts').innerHTML='';
+    current.opts.forEach(v=>{
+      const b=document.createElement('button'); b.textContent=v+' cm';
+      b.onclick=()=>answer(v,b); $('opts').appendChild(b);
+    });
+    $('idx').textContent = `${i+1} / ${total}`;
+    $('left').textContent = String(total-i);
+  }
+
+  function answer(v,btn){
+    const buttons=[...$('opts').querySelectorAll('button')];
+    buttons.forEach(b=>b.disabled=true);
+    const ok=v===current.p;
+    if(ok){score += 10 + Math.min(streak,5); streak++; btn.classList.add('ok'); $('toast').textContent='✅ 正确！';}
+    else{streak=0; btn.classList.add('bad'); $('toast').textContent=`❌ 正确答案是 ${current.p} cm`; buttons.find(b=>b.textContent===current.p+' cm')?.classList.add('ok')}
+    $('score').textContent=String(score); $('streak').textContent=String(streak);
+    i++;
+    setTimeout(render, 550);
+  }
+
+  function reset(){i=0;score=0;streak=0;$('score').textContent='0';$('streak').textContent='0';$('toast').textContent='';render()}
+  $('restart').addEventListener('click', reset);
+  reset();
+})();
+</script>
+</body>
+</html>

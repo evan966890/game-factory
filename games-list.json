@@ -702,5 +702,11 @@
     "path": "games/percent-discount-dash/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T22:43:07.571235+08:00"
+  },
+  {
+    "name": "周长搭建实验室",
+    "path": "games/perimeter-builder-lab/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T15:03:16.580708+00:00"
   }
 ]
