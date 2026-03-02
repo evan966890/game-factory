@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>数学方块塔</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #FF9800;
+            --background-color: #1a1a2e;
+            --card-color: #16213e;
+            --text-color: #ffffff;
+            --block-color: #4CAF50;
+            --tower-color: #2E7D32;
+            --success-color: #4CAF50;
+            --danger-color: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--background-color) 0%, #0f3460 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #aaa;
+            font-size: 1rem;
+        }
+
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .tower-container {
+            width: 100%;
+            max-width: 400px;
+            height: 400px;
+            background: var(--card-color);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .tower {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+        }
+
+        .block {
+            width: 80px;
+            height: 30px;
+            background: var(--block-color);
+            border-radius: 5px;
+            margin-bottom: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .block.perfect {
+            background: #FFD700;
+            box-shadow: 0 0 10px #FFD700;
+        }
+
+        .block.good {
+            background: #4CAF50;
+        }
+
+        .block.ok {
+            background: #FF9800;
+        }
+
+        .block.miss {
+            background: #f44336;
+        }
+
+        .falling-block {
+            position: absolute;
+            width: 80px;
+            height: 30px;
+            background: var(--block-color);
+            border-radius: 5px;
+            transition: top 0.1s linear;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .score-panel {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+
+        .score-item {
+            background: var(--card-color);
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .score-item .label {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .score-item .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .instructions {
+            background: var(--card-color);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+        }
+
+        .instructions p {
+            color: #aaa;
+            line-height: 1.5;
+        }
+
+        .math-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .math-modal.active {
+            display: flex;
+        }
+
+        .math-content {
+            background: var(--card-color);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+        }
+
+        .math-content h2 {
+            margin-bottom: 20px;
+            color: var(--secondary-color);
+        }
+
+        .math-question {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        .math-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.5rem;
+            text-align: center;
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            background: var(--background-color);
+            color: var(--text-color);
+            margin-bottom: 20px;
+        }
+
+        .math-input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+        }
+
+        .math-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .math-btn {
+            padding: 12px 30px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .math-btn.submit {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .math-btn.submit:hover {
+            background: #45a049;
+        }
+
+        .math-btn.skip {
+            background: #666;
+            color: white;
+        }
+
+        .math-btn.skip:hover {
+            background: #555;
+        }
+
+        .achievement-panel {
+            background: var(--card-color);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .achievement-panel h3 {
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+            text-align: center;
+        }
+
+        .achievement-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .achievement {
+            background: var(--background-color);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        .achievement.unlocked {
+            opacity: 1;
+            border: 2px solid var(--primary-color);
+        }
+
+        .achievement .icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .achievement .name {
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .game-over-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-over-modal.active {
+            display: flex;
+        }
+
+        .game-over-content {
+            background: var(--card-color);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+        }
+
+        .game-over-content h2 {
+            margin-bottom: 20px;
+            color: var(--danger-color);
+        }
+
+        .final-score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .high-score {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        .game-over-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .game-over-btn {
+            padding: 12px 30px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .game-over-btn.restart {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .game-over-btn.restart:hover {
+            background: #45a049;
+        }
+
+        .game-over-btn.menu {
+            background: #666;
+            color: white;
+        }
+
+        .game-over-btn.menu:hover {
+            background: #555;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-color);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .notification.achievement {
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .tower-container {
+                height: 300px;
+            }
+
+            .block {
+                width: 60px;
+                height: 25px;
+            }
+
+            .falling-block {
+                width: 60px;
+                height: 25px;
+            }
+
+            .score-panel {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .score-item {
+                padding: 10px 20px;
+            }
+
+            .math-content {
+                padding: 20px;
+            }
+
+            .math-question {
+                font-size: 1.5rem;
+            }
+
+            .math-input {
+                font-size: 1.2rem;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧱 数学方块塔</h1>
+            <p>堆叠方块，答对数学题，建造最高塔！</p>
+        </div>
+
+        <div class="game-area">
+            <div class="tower-container" id="towerContainer">
+                <div class="tower" id="tower"></div>
+                <div class="falling-block" id="fallingBlock"></div>
+            </div>
+
+            <div class="score-panel">
+                <div class="score-item">
+                    <div class="label">当前分数</div>
+                    <div class="value" id="currentScore">0</div>
+                </div>
+                <div class="score-item">
+                    <div class="label">最高分</div>
+                    <div class="value" id="highScore">0</div>
+                </div>
+                <div class="score-item">
+                    <div class="label">堆叠层数</div>
+                    <div class="value" id="layerCount">0</div>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h3>游戏说明</h3>
+                <p>点击屏幕放置方块，对齐得分。每堆叠 5 个方块会弹出数学题，答对获得 2 倍分数奖励！</p>
+            </div>
+
+            <div class="achievement-panel">
+                <h3>🏆 成就系统</h3>
+                <div class="achievement-list" id="achievementList">
+                    <!-- Achievements will be added dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Math Question Modal -->
+    <div class="math-modal" id="mathModal">
+        <div class="math-content">
+            <h2>🧮 数学挑战</h2>
+            <div class="math-question" id="mathQuestion">5 + 3 = ?</div>
+            <input type="number" class="math-input" id="mathInput" placeholder="输入答案" autofocus>
+            <div class="math-buttons">
+                <button class="math-btn submit" id="submitAnswer">提交答案</button>
+                <button class="math-btn skip" id="skipQuestion">跳过</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div class="game-over-modal" id="gameOverModal">
+        <div class="game-over-content">
+            <h2>游戏结束</h2>
+            <div class="final-score" id="finalScore">0</div>
+            <div class="high-score" id="finalHighScore">最高分: 0</div>
+            <div class="game-over-buttons">
+                <button class="game-over-btn restart" id="restartBtn">再来一局</button>
+                <button class="game-over-btn menu" id="menuBtn">返回菜单</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-content" id="notificationContent"></div>
+    </div>
+
+    <script>
+        // Game State
+        const gameState = {
+            score: 0,
+            highScore: 0,
+            layerCount: 0,
+            lastBlockX: 0,
+            lastBlockWidth: 80,
+            fallingBlockX: 0,
+            fallingBlockY: 0,
+            fallingBlockWidth: 80,
+            isFalling: false,
+            gameActive: false,
+            mathQuestionCount: 0,
+            correctAnswers: 0,
+            achievements: {
+                firstStack: { name: '初次堆叠', icon: '🧱', unlocked: false, condition: () => gameState.layerCount >= 1 },
+                stack10: { name: '堆叠高手', icon: '🏗️', unlocked: false, condition: () => gameState.layerCount >= 10 },
+                stack50: { name: '建筑大师', icon: '🏛️', unlocked: false, condition: () => gameState.layerCount >= 50 },
+                score100: { name: '百分达人', icon: '💯', unlocked: false, condition: () => gameState.score >= 100 },
+                score500: { name: '五百分王', icon: '👑', unlocked: false, condition: () => gameState.score >= 500 },
+                math10: { name: '数学新手', icon: '🔢', unlocked: false, condition: () => gameState.correctAnswers >= 10 },
+                math50: { name: '数学高手', icon: '🧮', unlocked: false, condition: () => gameState.correctAnswers >= 50 },
+                perfectStack: { name: '完美对齐', icon: '✨', unlocked: false, condition: () => false } // Special case
+            }
+        };
+
+        // DOM Elements
+        const towerContainer = document.getElementById('towerContainer');
+        const tower = document.getElementById('tower');
+        const fallingBlock = document.getElementById('fallingBlock');
+        const currentScoreEl = document.getElementById('currentScore');
+        const highScoreEl = document.getElementById('highScore');
+        const layerCountEl = document.getElementById('layerCount');
+        const mathModal = document.getElementById('mathModal');
+        const mathQuestion = document.getElementById('mathQuestion');
+        const mathInput = document.getElementById('mathInput');
+        const submitAnswer = document.getElementById('submitAnswer');
+        const skipQuestion = document.getElementById('skipQuestion');
+        const gameOverModal = document.getElementById('gameOverModal');
+        const finalScore = document.getElementById('finalScore');
+        const finalHighScore = document.getElementById('finalHighScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const menuBtn = document.getElementById('menuBtn');
+        const notification = document.getElementById('notification');
+        const notificationContent = document.getElementById('notificationContent');
+        const achievementList = document.getElementById('achievementList');
+
+        // Initialize Game
+        function initGame() {
+            loadGameState();
+            renderAchievements();
+            updateUI();
+            startGame();
+        }
+
+        // Load game state from localStorage
+        function loadGameState() {
+            const saved = localStorage.getItem('mathBlockTowerState');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                gameState.highScore = parsed.highScore || 0;
+                // Reset achievements on load (they are per session)
+                for (const key in gameState.achievements) {
+                    gameState.achievements[key].unlocked = false;
+                }
+            }
+        }
+
+        // Save game state to localStorage
+        function saveGameState() {
+            const toSave = {
+                highScore: gameState.highScore
+            };
+            localStorage.setItem('mathBlockTowerState', JSON.stringify(toSave));
+        }
+
+        // Start the game
+        function startGame() {
+            gameState.score = 0;
+            gameState.layerCount = 0;
+            gameState.lastBlockX = towerContainer.offsetWidth / 2 - 40;
+            gameState.lastBlockWidth = 80;
+            gameState.mathQuestionCount = 0;
+            gameState.correctAnswers = 0;
+            gameState.gameActive = true;
+
+            // Reset achievements
+            for (const key in gameState.achievements) {
+                gameState.achievements[key].unlocked = false;
+            }
+
+            // Clear tower
+            tower.innerHTML = '';
+
+            // Add base block
+            addBlockToTower(towerContainer.offsetWidth / 2 - 40, 80, 'good');
+
+            // Start falling block
+            startFallingBlock();
+
+            updateUI();
+            renderAchievements();
+        }
+
+        // Start falling block animation
+        function startFallingBlock() {
+            if (!gameState.gameActive) return;
+
+            gameState.fallingBlockX = Math.random() * (towerContainer.offsetWidth - gameState.fallingBlockWidth);
+            gameState.fallingBlockY = 0;
+            gameState.isFalling = true;
+
+            fallingBlock.style.left = gameState.fallingBlockX + 'px';
+            fallingBlock.style.top = gameState.fallingBlockY + 'px';
+            fallingBlock.style.display = 'block';
+
+            animateFallingBlock();
+        }
+
+        // Animate falling block
+        function animateFallingBlock() {
+            if (!gameState.isFalling || !gameState.gameActive) return;
+
+            gameState.fallingBlockY += 5;
+            fallingBlock.style.top = gameState.fallingBlockY + 'px';
+
+            // Check if block reached the tower
+            const towerTop = towerContainer.offsetHeight - (gameState.layerCount * 32); // 30px block + 2px margin
+            if (gameState.fallingBlockY >= towerTop - 30) {
+                placeBlock();
+                return;
+            }
+
+            requestAnimationFrame(animateFallingBlock);
+        }
+
+        // Place the falling block
+        function placeBlock() {
+            gameState.isFalling = false;
+            fallingBlock.style.display = 'none';
+
+            // Calculate alignment
+            const lastBlockLeft = gameState.lastBlockX;
+            const lastBlockRight = lastBlockLeft + gameState.lastBlockWidth;
+            const fallingBlockLeft = gameState.fallingBlockX;
+            const fallingBlockRight = fallingBlockLeft + gameState.fallingBlockWidth;
+
+            const overlapLeft = Math.max(lastBlockLeft, fallingBlockLeft);
+            const overlapRight = Math.min(lastBlockRight, fallingBlockRight);
+            const overlapWidth = Math.max(0, overlapRight - overlapLeft);
+
+            let blockType = 'miss';
+            let scoreMultiplier = 0;
+
+            if (overlapWidth >= gameState.lastBlockWidth * 0.9) {
+                blockType = 'perfect';
+                scoreMultiplier = 2;
+                showNotification('完美对齐！+2分', 'success');
+                unlockAchievement('perfectStack');
+            } else if (overlapWidth >= gameState.lastBlockWidth * 0.7) {
+                blockType = 'good';
+                scoreMultiplier = 1.5;
+                showNotification('很好！+1.5分', 'success');
+            } else if (overlapWidth >= gameState.lastBlockWidth * 0.5) {
+                blockType = 'ok';
+                scoreMultiplier = 1;
+                showNotification('还行！+1分', 'success');
+            } else {
+                blockType = 'miss';
+                scoreMultiplier = 0;
+                showNotification('错过！游戏结束', 'danger');
+                endGame();
+                return;
+            }
+
+            // Update game state
+            gameState.layerCount++;
+            const baseScore = Math.floor(overlapWidth / 10);
+            gameState.score += Math.floor(baseScore * scoreMultiplier);
+
+            // Update last block position (center of overlap)
+            gameState.lastBlockX = overlapLeft + (overlapWidth - gameState.fallingBlockWidth) / 2;
+            gameState.lastBlockWidth = gameState.fallingBlockWidth;
+
+            // Add block to tower
+            addBlockToTower(gameState.lastBlockX, gameState.fallingBlockWidth, blockType);
+
+            // Check for math question
+            if (gameState.layerCount % 5 === 0) {
+                setTimeout(() => showMathQuestion(), 500);
+            } else {
+                // Start next block
+                setTimeout(() => startFallingBlock(), 300);
+            }
+
+            // Check achievements
+            checkAchievements();
+
+            updateUI();
+        }
+
+        // Add block to tower
+        function addBlockToTower(x, width, type) {
+            const block = document.createElement('div');
+            block.className = `block ${type}`;
+            block.style.width = width + 'px';
+            block.style.left = (x - (towerContainer.offsetWidth / 2 - width / 2)) + 'px';
+            tower.appendChild(block);
+        }
+
+        // Show math question
+        function showMathQuestion() {
+            const difficulty = Math.min(4, Math.floor(gameState.layerCount / 10) + 1);
+            const question = generateMathQuestion(difficulty);
+            mathQuestion.textContent = question.text;
+            mathQuestion.dataset.answer = question.answer;
+            mathInput.value = '';
+            mathModal.classList.add('active');
+            mathInput.focus();
+        }
+
+        // Generate math question
+        function generateMathQuestion(difficulty) {
+            let num1, num2, operator, answer;
+
+            switch (difficulty) {
+                case 1: // Addition
+                    num1 = Math.floor(Math.random() * 10) + 1;
+                    num2 = Math.floor(Math.random() * 10) + 1;
+                    operator = '+';
+                    answer = num1 + num2;
+                    break;
+                case 2: // Subtraction
+                    num1 = Math.floor(Math.random() * 10) + 5;
+                    num2 = Math.floor(Math.random() * num1);
+                    operator = '-';
+                    answer = num1 - num2;
+                    break;
+                case 3: // Multiplication
+                    num1 = Math.floor(Math.random() * 10) + 1;
+                    num2 = Math.floor(Math.random() * 10) + 1;
+                    operator = '×';
+                    answer = num1 * num2;
+                    break;
+                case 4: // Division
+                    num2 = Math.floor(Math.random() * 10) + 1;
+                    answer = Math.floor(Math.random() * 10) + 1;
+                    num1 = num2 * answer;
+                    operator = '÷';
+                    break;
+            }
+
+            return {
+                text: `${num1} ${operator} ${num2} = ?`,
+                answer: answer
+            };
+        }
+
+        // Submit math answer
+        function submitMathAnswer() {
+            const userAnswer = parseInt(mathInput.value);
+            const correctAnswer = parseInt(mathQuestion.dataset.answer);
+
+            gameState.mathQuestionCount++;
+
+            if (userAnswer === correctAnswer) {
+                gameState.correctAnswers++;
+                const bonus = Math.floor(gameState.score * 1); // 100% bonus
+                gameState.score += bonus;
+                showNotification(`正确！+${bonus}分奖励`, 'success');
+            } else {
+                showNotification(`错误！正确答案是 ${correctAnswer}`, 'danger');
+            }
+
+            mathModal.classList.remove('active');
+            checkAchievements();
+            updateUI();
+
+            // Start next block
+            setTimeout(() => startFallingBlock(), 300);
+        }
+
+        // Skip math question
+        function skipMathQuestion() {
+            mathModal.classList.remove('active');
+            showNotification('跳过题目，无奖励', 'danger');
+            setTimeout(() => startFallingBlock(), 300);
+        }
+
+        // Check achievements
+        function checkAchievements() {
+            for (const key in gameState.achievements) {
+                const achievement = gameState.achievements[key];
+                if (!achievement.unlocked && achievement.condition()) {
+                    unlockAchievement(key);
+                }
+            }
+        }
+
+        // Unlock achievement
+        function unlockAchievement(key) {
+            const achievement = gameState.achievements[key];
+            if (achievement.unlocked) return;
+
+            achievement.unlocked = true;
+            showNotification(`🏆 解锁成就：${achievement.name}`, 'achievement');
+            renderAchievements();
+        }
+
+        // Render achievements
+        function renderAchievements() {
+            achievementList.innerHTML = '';
+            for (const key in gameState.achievements) {
+                const achievement = gameState.achievements[key];
+                const div = document.createElement('div');
+                div.className = `achievement ${achievement.unlocked ? 'unlocked' : ''}`;
+                div.innerHTML = `
+                    <div class="icon">${achievement.icon}</div>
+                    <div class="name">${achievement.name}</div>
+                `;
+                achievementList.appendChild(div);
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            notificationContent.textContent = message;
+            notification.className = `notification ${type} show`;
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        // Update UI
+        function updateUI() {
+            currentScoreEl.textContent = gameState.score;
+            highScoreEl.textContent = gameState.highScore;
+            layerCountEl.textContent = gameState.layerCount;
+        }
+
+        // End game
+        function endGame() {
+            gameState.gameActive = false;
+
+            // Update high score
+            if (gameState.score > gameState.highScore) {
+                gameState.highScore = gameState.score;
+                saveGameState();
+            }
+
+            // Show game over modal
+            finalScore.textContent = gameState.score;
+            finalHighScore.textContent = `最高分: ${gameState.highScore}`;
+            gameOverModal.classList.add('active');
+        }
+
+        // Restart game
+        function restartGame() {
+            gameOverModal.classList.remove('active');
+            startGame();
+        }
+
+        // Event Listeners
+        towerContainer.addEventListener('click', () => {
+            if (gameState.gameActive && !gameState.isFalling) {
+                startFallingBlock();
+            }
+        });
+
+        submitAnswer.addEventListener('click', submitMathAnswer);
+        skipQuestion.addEventListener('click', skipMathQuestion);
+        mathInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') submitMathAnswer();
+        });
+
+        restartBtn.addEventListener('click', restartGame);
+        menuBtn.addEventListener('click', () => {
+            gameOverModal.classList.remove('active');
+            // In a real game, this would go to a menu screen
+            // For now, just restart
+            startGame();
+        });
+
+        // Initialize on load
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>

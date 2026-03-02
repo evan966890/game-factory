@@ -750,12 +750,17 @@
     "path": "games/loop-challenge/index.html",
     "category": "编程入门",
     "createdAt": "2026-03-03T01:36:00+08:00"
-  }
-  ,
+  },
   {
     "name": "数学矿工大亨",
     "path": "games/math-miner-tycoon/index.html",
     "category": "教育idle",
     "createdAt": "2026-03-03T01:56:00+08:00"
+  },
+  {
+    "name": "数学方块塔",
+    "path": "games/math-block-tower/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T03:56:00Z"
   }
 ]
