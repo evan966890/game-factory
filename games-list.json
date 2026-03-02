@@ -510,5 +510,11 @@
     "path": "games/weight-conversion-lab/index.html",
     "category": "education",
     "createdAt": "2026-03-02T03:39:15Z"
+  },
+  {
+    "name": "生态平衡实验室",
+    "path": "games/ecosystem-balance-lab/index.html",
+    "category": "科学",
+    "createdAt": "2026-03-02T11:59:14.969943+08:00"
   }
 ]
