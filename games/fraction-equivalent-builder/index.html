@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>等值分数建造师</title>
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --ok:#22c55e; --bad:#ef4444; --accent:#38bdf8; --text:#e5e7eb; }
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC",sans-serif;background:linear-gradient(160deg,#0f172a,#1e293b);color:var(--text)}
+    .wrap{max-width:720px;margin:0 auto;padding:16px}
+    .card{background:rgba(17,24,39,.88);backdrop-filter:blur(4px);border:1px solid #334155;border-radius:16px;padding:16px;margin:12px 0}
+    h1{font-size:1.4rem;margin:.2rem 0 0.8rem}.muted{color:#94a3b8;font-size:.95rem}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.pill{background:#1e293b;border:1px solid #334155;border-radius:999px;padding:6px 12px}
+    .q{font-size:2rem;font-weight:700;text-align:center;margin:12px 0}
+    .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button{appearance:none;border:none;border-radius:12px;padding:14px 12px;font-size:1.05rem;font-weight:700;background:#1e293b;color:var(--text);border:1px solid #334155;cursor:pointer}
+    button:active{transform:scale(.98)}
+    .ok{background:rgba(34,197,94,.2)!important;border-color:var(--ok)!important}
+    .bad{background:rgba(239,68,68,.2)!important;border-color:var(--bad)!important}
+    .cta{background:linear-gradient(135deg,#0ea5e9,#6366f1)}
+    .bar{height:10px;background:#1e293b;border-radius:999px;overflow:hidden;border:1px solid #334155}
+    .bar>i{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#22c55e);width:100%;transform-origin:left center}
+    @media (max-width:480px){.q{font-size:1.7rem}.opts{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>🧱 等值分数建造师</h1>
+      <div class="muted">在 90 秒内选出和目标分数等值的选项，连续答对会触发连击加分！</div>
+      <div class="row" style="margin-top:10px">
+        <div class="pill">得分：<b id="score">0</b></div>
+        <div class="pill">连击：<b id="combo">0</b></div>
+        <div class="pill">剩余：<b id="time">90</b>s</div>
+      </div>
+      <div class="card" style="margin:12px 0 0;padding:10px">
+        <div class="muted">进度</div>
+        <div class="bar"><i id="bar"></i></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="muted">目标分数</div>
+      <div class="q" id="target">1/2</div>
+      <div class="opts" id="opts"></div>
+      <div id="msg" class="muted" style="margin-top:10px;min-height:1.4em"></div>
+    </div>
+
+    <div class="card" id="end" hidden>
+      <h2 style="margin:.2rem 0">🎉 回合结束</h2>
+      <p>你的总分：<b id="final">0</b></p>
+      <p id="summary" class="muted"></p>
+      <button class="cta" id="restart">再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    const $ = s => document.querySelector(s);
+    const state = {score:0,combo:0,time:90, timer:null, answer:null, total:90};
+
+    function gcd(a,b){ while(b){ [a,b]=[b,a%b]; } return a; }
+    function simp(n,d){ const g=gcd(n,d); return [n/g,d/g]; }
+    function fmt(n,d){ return `${n}/${d}`; }
+
+    function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+    function genQuestion(){
+      let n=rand(1,9), d=rand(n+1,12);
+      [n,d] = simp(n,d);
+      const k = rand(2,7);
+      const correct = [n*k, d*k];
+      const opts = [correct];
+      while(opts.length<4){
+        const mode = rand(1,3);
+        let a,b;
+        if(mode===1){ a=rand(1,20); b=rand(2,24); }
+        else if(mode===2){ a=Math.max(1,correct[0]+rand(-5,5)); b=Math.max(2,correct[1]+rand(-5,5)); }
+        else { a=rand(1,18); b=rand(2,20); }
+        const s1 = simp(a,b), s2 = simp(n,d);
+        if(s1[0]===s2[0] && s1[1]===s2[1]) continue;
+        if(opts.some(x=>x[0]===a && x[1]===b)) continue;
+        opts.push([a,b]);
+      }
+      opts.sort(()=>Math.random()-0.5);
+      state.answer = fmt(correct[0],correct[1]);
+      $('#target').textContent = fmt(n,d);
+      const box = $('#opts'); box.innerHTML='';
+      opts.forEach(o=>{
+        const b=document.createElement('button');
+        b.textContent=fmt(o[0],o[1]);
+        b.onclick=()=>judge(b);
+        box.appendChild(b);
+      });
+      $('#msg').textContent='';
+    }
+
+    function judge(btn){
+      const all=[...document.querySelectorAll('#opts button')];
+      all.forEach(x=>x.disabled=true);
+      const pick=btn.textContent;
+      const ok = pick===state.answer;
+      if(ok){
+        state.combo += 1;
+        const gain = 10 + Math.min(20,(state.combo-1)*2);
+        state.score += gain;
+        btn.classList.add('ok');
+        $('#msg').textContent = `✅ 正确！+${gain}`;
+      }else{
+        state.combo = 0;
+        btn.classList.add('bad');
+        const right = all.find(x=>x.textContent===state.answer);
+        if(right) right.classList.add('ok');
+        $('#msg').textContent = `❌ 正确答案是 ${state.answer}`;
+      }
+      sync();
+      setTimeout(genQuestion, 500);
+    }
+
+    function sync(){
+      $('#score').textContent = state.score;
+      $('#combo').textContent = state.combo;
+      $('#time').textContent = state.time;
+      $('#bar').style.transform = `scaleX(${Math.max(0,state.time/state.total)})`;
+    }
+
+    function endGame(){
+      clearInterval(state.timer);
+      document.querySelectorAll('#opts button').forEach(b=>b.disabled=true);
+      $('#final').textContent = state.score;
+      $('#summary').textContent = state.score>=220 ? '太强了！你的分数已经是分数大师级别。' : state.score>=140 ? '表现不错，再练习几局就能冲上大师！' : '继续加油，记住等值分数要同时乘同一个数。';
+      $('#end').hidden = false;
+    }
+
+    function start(){
+      state.score=0; state.combo=0; state.time=90; state.total=90;
+      $('#end').hidden=true;
+      sync();
+      genQuestion();
+      clearInterval(state.timer);
+      state.timer = setInterval(()=>{
+        state.time -= 1;
+        sync();
+        if(state.time<=0) endGame();
+      },1000);
+    }
+
+    $('#restart').addEventListener('click', start);
+    start();
+  </script>
+</body>
+</html>

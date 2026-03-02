@@ -558,5 +558,11 @@
     "path": "games/angle-sniper/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T06:19:40.649911Z"
+  },
+  {
+    "name": "等值分数建造师",
+    "path": "games/fraction-equivalent-builder/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T06:39:33Z"
   }
 ]
