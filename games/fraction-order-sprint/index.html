@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>分数快排挑战</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--accent:#22d3ee;--ok:#34d399;--bad:#fb7185;--text:#e5e7eb}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#020617,#0f172a 55%,#111827);color:var(--text);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:16px}
+    .app{width:min(760px,100%);background:rgba(17,24,39,.92);border:1px solid #1f2937;border-radius:18px;padding:18px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+    h1{margin:0 0 6px;font-size:clamp(1.3rem,3.8vw,2rem)} .sub{margin:0 0 14px;color:#93c5fd;font-size:.95rem}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+    .stat{background:#0b1220;border:1px solid #243244;border-radius:12px;padding:8px;text-align:center}
+    .stat b{display:block;font-size:1.2rem}
+    .card{background:#0b1220;border:1px solid #243244;border-radius:14px;padding:14px}
+    .question{font-size:1.06rem;margin-bottom:12px}
+    .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button{border:none;border-radius:12px;padding:14px;font-size:1.05rem;background:#1f2937;color:var(--text);font-weight:700;touch-action:manipulation}
+    button:active{transform:scale(.98)}
+    .ok{outline:2px solid var(--ok)} .bad{outline:2px solid var(--bad)}
+    .msg{min-height:24px;margin-top:10px;font-weight:700}
+    .progress{height:10px;background:#1f2937;border-radius:999px;overflow:hidden;margin-top:12px}
+    .bar{height:100%;background:linear-gradient(90deg,#22d3ee,#34d399);width:100%;transition:width .25s linear}
+    .footer{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+    .ghost{background:#0f172a;border:1px solid #334155}
+    @media (max-width:560px){.stats{grid-template-columns:1fr 1fr}.choices{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>分数快排挑战</h1>
+    <p class="sub">30 秒内判断哪一个分数更大，连续答对会有连击加分。</p>
+
+    <section class="stats">
+      <div class="stat"><span>得分</span><b id="score">0</b></div>
+      <div class="stat"><span>题数</span><b id="round">0</b></div>
+      <div class="stat"><span>连击</span><b id="combo">0</b></div>
+      <div class="stat"><span>剩余</span><b id="time">30</b>s</div>
+    </section>
+
+    <section class="card">
+      <div id="question" class="question">点击“开始游戏”</div>
+      <div class="choices">
+        <button id="a" disabled>A</button>
+        <button id="b" disabled>B</button>
+      </div>
+      <div id="msg" class="msg"></div>
+      <div class="progress"><div id="bar" class="bar"></div></div>
+      <div class="footer">
+        <button id="start">开始游戏</button>
+        <button id="restart" class="ghost" hidden>再来一局</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const els = { score:$('score'), round:$('round'), combo:$('combo'), time:$('time'), question:$('question'), msg:$('msg'), bar:$('bar'), a:$('a'), b:$('b'), start:$('start'), restart:$('restart') };
+    let state = {};
+
+    function gcd(a,b){ while(b){ [a,b] = [b, a%b]; } return a; }
+    function makeFraction(){
+      let d = 2 + Math.floor(Math.random()*11);
+      let n = 1 + Math.floor(Math.random()*(d-1));
+      const g = gcd(n,d); n/=g; d/=g;
+      return {n,d,v:n/d,text:`${n}/${d}`};
+    }
+    function nextQuestion(){
+      let l = makeFraction(), r = makeFraction();
+      while (Math.abs(l.v-r.v)<0.03) r = makeFraction();
+      state.correct = l.v > r.v ? 'a' : 'b';
+      els.question.textContent = '哪个分数更大？';
+      els.a.textContent = l.text;
+      els.b.textContent = r.text;
+      ['a','b'].forEach(k=>{ els[k].disabled=false; els[k].className=''; });
+    }
+    function update(){
+      els.score.textContent = state.score;
+      els.round.textContent = state.round;
+      els.combo.textContent = state.combo;
+      els.time.textContent = state.time;
+      els.bar.style.width = `${(state.time/30)*100}%`;
+    }
+    function choose(key){
+      if (!state.running) return;
+      state.round++;
+      const ok = key===state.correct;
+      if(ok){ state.combo++; state.score += 10 + Math.min(20, state.combo*2); els.msg.textContent = `✅ 回答正确！+${10 + Math.min(20, state.combo*2)}`; }
+      else { state.combo = 0; els.msg.textContent = '❌ 答错了，连击清零'; }
+      els[key].classList.add(ok?'ok':'bad');
+      els[state.correct].classList.add('ok');
+      ['a','b'].forEach(k=>els[k].disabled=true);
+      update();
+      setTimeout(()=> state.running && nextQuestion(), 360);
+    }
+    function endGame(){
+      state.running = false;
+      ['a','b'].forEach(k=>els[k].disabled=true);
+      els.question.textContent = `时间到！最终得分 ${state.score}`;
+      els.msg.textContent = `你共完成 ${state.round} 题，最高连击 ${state.bestCombo}`;
+      els.restart.hidden = false;
+    }
+    function start(){
+      state = {running:true, score:0, round:0, combo:0, bestCombo:0, time:30};
+      els.start.hidden = true; els.restart.hidden = true; els.msg.textContent = '';
+      nextQuestion(); update();
+      clearInterval(state.timer);
+      state.timer = setInterval(()=>{
+        if(!state.running) return;
+        state.time--; state.bestCombo = Math.max(state.bestCombo, state.combo); update();
+        if(state.time<=0){ clearInterval(state.timer); endGame(); }
+      },1000);
+    }
+    els.a.addEventListener('click',()=>choose('a'));
+    els.b.addEventListener('click',()=>choose('b'));
+    els.start.addEventListener('click',start);
+    els.restart.addEventListener('click',start);
+  </script>
+</body>
+</html>

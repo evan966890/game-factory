@@ -660,5 +660,11 @@
     "path": "games/fraction-percent-bridge/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T20:20:05.942364+08:00"
+  },
+  {
+    "name": "分数快排挑战",
+    "path": "games/fraction-order-sprint/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T12:40:03Z"
   }
 ]
