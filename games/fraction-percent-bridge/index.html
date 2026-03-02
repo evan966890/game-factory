@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>分数百分数连线桥</title>
+  <style>
+    :root {
+      --bg: #f3f8ff;
+      --card: #ffffff;
+      --text: #16324f;
+      --accent: #2f80ed;
+      --ok: #17a673;
+      --bad: #e74c3c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #f5fbff 0%, #eaf2ff 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(680px, 100%);
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: 0 10px 28px rgba(30, 90, 170, 0.12);
+      padding: 18px;
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(22px, 5vw, 30px); }
+    .desc { margin: 0 0 14px; color: #4a6480; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .pill {
+      background: #eef5ff;
+      border-radius: 10px;
+      padding: 8px 10px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .question {
+      background: #f8fbff;
+      border: 2px solid #dbe9ff;
+      border-radius: 14px;
+      padding: 18px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .frac {
+      font-size: clamp(34px, 9vw, 48px);
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    button.option {
+      border: 0;
+      border-radius: 12px;
+      padding: 14px 10px;
+      font-size: clamp(18px, 4.5vw, 22px);
+      font-weight: 700;
+      background: #e8f1ff;
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 0.05s ease, background .2s;
+      min-height: 58px;
+    }
+    button.option:active { transform: scale(0.98); }
+    button.option.correct { background: #d8f8ed; color: #0f6a48; }
+    button.option.wrong { background: #ffe0dc; color: #922b21; }
+    .message {
+      margin-top: 10px;
+      font-weight: 700;
+      min-height: 24px;
+    }
+    .message.ok { color: var(--ok); }
+    .message.bad { color: var(--bad); }
+    .controls { margin-top: 14px; display: flex; gap: 10px; }
+    .controls button {
+      flex: 1;
+      border: 0;
+      border-radius: 10px;
+      padding: 12px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    @media (max-width: 480px) {
+      .options { grid-template-columns: 1fr; }
+      .app { padding: 14px; }
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>分数百分数连线桥</h1>
+    <p class="desc">在 60 秒内，把分数快速转换成百分数！答对加分，答错扣时。</p>
+
+    <section class="stats" aria-live="polite">
+      <div class="pill">得分：<span id="score">0</span></div>
+      <div class="pill">剩余时间：<span id="time">60</span>s</div>
+      <div class="pill">题目：<span id="round">1</span>/10</div>
+    </section>
+
+    <section class="question">
+      <div>这个分数对应的百分数是：</div>
+      <div class="frac" id="fraction">1/2</div>
+    </section>
+
+    <section class="options" id="options"></section>
+    <div id="message" class="message"></div>
+
+    <div class="controls">
+      <button id="restart">重新开始</button>
+    </div>
+  </main>
+
+  <script>
+    const pool = [
+      [1,2],[1,4],[3,4],[1,5],[2,5],[3,5],[4,5],[1,8],[3,8],[5,8],
+      [7,8],[1,10],[3,10],[7,10],[9,10],[1,20],[3,20],[7,20],[9,20],[11,20],
+      [13,20],[17,20],[19,20],[2,25],[7,25],[11,25],[13,25],[17,25],[4,25],
+      [1,50],[3,50],[9,50],[17,50],[21,50],[33,50],[37,50]
+    ];
+
+    const scoreEl = document.getElementById('score');
+    const timeEl = document.getElementById('time');
+    const roundEl = document.getElementById('round');
+    const fractionEl = document.getElementById('fraction');
+    const optionsEl = document.getElementById('options');
+    const msgEl = document.getElementById('message');
+    const restartBtn = document.getElementById('restart');
+
+    let score = 0;
+    let round = 1;
+    let totalRounds = 10;
+    let timeLeft = 60;
+    let timer = null;
+    let currentAnswer = 50;
+    let locked = false;
+
+    function pickQuestion() {
+      const [a,b] = pool[Math.floor(Math.random() * pool.length)];
+      currentAnswer = Math.round((a / b) * 100);
+      fractionEl.textContent = `${a}/${b}`;
+      roundEl.textContent = `${round}/${totalRounds}`;
+
+      const options = new Set([currentAnswer]);
+      while (options.size < 4) {
+        const delta = [5,10,15,20][Math.floor(Math.random() * 4)] * (Math.random() > 0.5 ? 1 : -1);
+        const val = Math.max(1, Math.min(99, currentAnswer + delta));
+        options.add(val);
+      }
+      renderOptions([...options].sort(() => Math.random() - 0.5));
+    }
+
+    function renderOptions(arr) {
+      optionsEl.innerHTML = '';
+      arr.forEach(v => {
+        const btn = document.createElement('button');
+        btn.className = 'option';
+        btn.textContent = `${v}%`;
+        btn.addEventListener('click', () => judge(v, btn));
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    function judge(v, btn) {
+      if (locked || timeLeft <= 0) return;
+      locked = true;
+      const buttons = [...document.querySelectorAll('.option')];
+      const rightBtn = buttons.find(b => parseInt(b.textContent) === currentAnswer);
+
+      if (v === currentAnswer) {
+        score += 10;
+        msgEl.textContent = '✅ 回答正确，+10 分';
+        msgEl.className = 'message ok';
+        btn.classList.add('correct');
+      } else {
+        score = Math.max(0, score - 5);
+        timeLeft = Math.max(0, timeLeft - 3);
+        msgEl.textContent = `❌ 正确答案是 ${currentAnswer}%（-5 分，-3 秒）`;
+        msgEl.className = 'message bad';
+        btn.classList.add('wrong');
+        if (rightBtn) rightBtn.classList.add('correct');
+      }
+      scoreEl.textContent = score;
+      timeEl.textContent = timeLeft;
+
+      setTimeout(() => {
+        round++;
+        if (round > totalRounds || timeLeft <= 0) {
+          endGame();
+          return;
+        }
+        locked = false;
+        msgEl.textContent = '';
+        msgEl.className = 'message';
+        pickQuestion();
+      }, 700);
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        if (timeLeft <= 0) endGame();
+      }, 1000);
+    }
+
+    function endGame() {
+      clearInterval(timer);
+      locked = true;
+      optionsEl.innerHTML = '';
+      msgEl.textContent = `🎉 挑战结束！最终得分 ${score} 分。点击“重新开始”再来一局。`;
+      msgEl.className = 'message ok';
+    }
+
+    function restart() {
+      score = 0;
+      round = 1;
+      timeLeft = 60;
+      locked = false;
+      scoreEl.textContent = score;
+      timeEl.textContent = timeLeft;
+      msgEl.textContent = '';
+      msgEl.className = 'message';
+      pickQuestion();
+      startTimer();
+    }
+
+    restartBtn.addEventListener('click', restart);
+    restart();
+  </script>
+</body>
+</html>

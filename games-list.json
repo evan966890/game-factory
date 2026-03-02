@@ -654,5 +654,11 @@
     "path": "games/angle-runner/index.html",
     "category": "数学",
     "createdAt": "2026-03-02T11:39:32.894832Z"
+  },
+  {
+    "name": "分数百分数连线桥",
+    "path": "games/fraction-percent-bridge/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T20:20:05.942364+08:00"
   }
 ]
