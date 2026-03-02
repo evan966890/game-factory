@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>数学矿工大亨</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game-container">
+    <!-- 顶部资源栏 -->
+    <header class="resource-bar">
+      <div class="gold-display">
+        <span class="gold-icon">💰</span>
+        <span class="gold-amount" id="goldAmount">0</span>
+      </div>
+      <div class="production-display">
+        <span>产出: +<span id="clickPower">1</span>/点击 +<span id="autoPower">0</span>/秒</span>
+      </div>
+    </header>
+
+    <!-- 主要点击区域 -->
+    <main class="mine-area">
+      <button class="ore-button" id="oreButton">
+        <div class="ore-visual">⛏️</div>
+        <div class="ore-text">点击挖矿</div>
+      </button>
+      <div class="click-effects" id="clickEffects"></div>
+    </main>
+
+    <!-- Tab导航 -->
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="upgrades">🔧 升级</button>
+      <button class="tab-btn" data-tab="miners">👷 矿工</button>
+      <button class="tab-btn" data-tab="achievements">🏆 成就</button>
+    </nav>
+
+    <!-- 内容区域 -->
+    <section class="content-area">
+      <!-- 升级面板 -->
+      <div class="tab-panel active" id="upgradesPanel">
+        <div class="upgrade-list" id="upgradeList"></div>
+      </div>
+
+      <!-- 矿工面板 -->
+      <div class="tab-panel" id="minersPanel">
+        <div class="miner-list" id="minerList"></div>
+      </div>
+
+      <!-- 成就面板 -->
+      <div class="tab-panel" id="achievementsPanel">
+        <div class="achievement-list" id="achievementList"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- 数学题弹窗 -->
+  <div class="math-modal" id="mathModal">
+    <div class="math-card">
+      <div class="math-header">🧮 数学挑战！</div>
+      <div class="math-question" id="mathQuestion">5 + 3 = ?</div>
+      <div class="math-input-area">
+        <input type="number" id="mathInput" placeholder="输入答案" autofocus>
+        <button class="math-submit" id="mathSubmit">提交</button>
+      </div>
+      <div class="math-result" id="mathResult"></div>
+      <div class="math-reward">答对获得 2x 金币奖励！</div>
+    </div>
+  </div>
+
+  <!-- 成就通知 -->
+  <div class="achievement-toast" id="achievementToast">
+    <div class="toast-icon">🏆</div>
+    <div class="toast-text" id="toastText">成就解锁！</div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

@@ -751,4 +751,11 @@
     "category": "编程入门",
     "createdAt": "2026-03-03T01:36:00+08:00"
   }
+  ,
+  {
+    "name": "数学矿工大亨",
+    "path": "games/math-miner-tycoon/index.html",
+    "category": "教育idle",
+    "createdAt": "2026-03-03T01:56:00+08:00"
+  }
 ]
