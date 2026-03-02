@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>均值中位数众数冲刺</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #22d3ee;
+      --ok: #34d399;
+      --bad: #fb7185;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .app {
+      width: min(720px, 100%);
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid #334155;
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 14px 40px rgba(0,0,0,.35);
+    }
+    h1 { margin: 0 0 6px; font-size: clamp(22px, 5vw, 30px); }
+    .sub { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .stat {
+      background: #0b1220;
+      border: 1px solid #243244;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+    .label { color: var(--muted); font-size: 12px; }
+    .value { font-size: 20px; font-weight: 700; margin-top: 4px; }
+    .card {
+      background: #0b1220;
+      border: 1px solid #243244;
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .qtype { color: var(--accent); font-weight: 700; margin-bottom: 8px; }
+    .numbers {
+      font-size: clamp(20px, 4vw, 26px);
+      font-weight: 700;
+      letter-spacing: .4px;
+      margin: 4px 0 12px;
+      word-break: break-word;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    button.option, .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #0f172a;
+      background: #bae6fd;
+    }
+    button.option:disabled { opacity: .65; cursor: not-allowed; }
+    .feedback { min-height: 24px; margin-top: 10px; font-weight: 700; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .footer { margin-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .btn { background: var(--accent); }
+    .hidden { display: none; }
+    @media (max-width: 560px) { .options { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>均值中位数众数冲刺</h1>
+    <p class="sub">10 题限时练习：快速判断 Mean / Median / Mode！</p>
+
+    <section class="stats">
+      <div class="stat"><div class="label">题号</div><div class="value" id="round">1/10</div></div>
+      <div class="stat"><div class="label">得分</div><div class="value" id="score">0</div></div>
+      <div class="stat"><div class="label">倒计时</div><div class="value" id="timer">60</div></div>
+    </section>
+
+    <section class="card" id="quiz">
+      <div class="qtype" id="qtype"></div>
+      <div class="numbers" id="numbers"></div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="footer">
+        <span id="tip" class="sub">答错不扣分，答对 +10 分</span>
+        <button class="btn hidden" id="nextBtn">下一题</button>
+      </div>
+    </section>
+
+    <section class="card hidden" id="result">
+      <h2>完成！</h2>
+      <p id="summary"></p>
+      <button class="btn" id="restartBtn">再来一局</button>
+    </section>
+  </main>
+
+  <script>
+    const totalRounds = 10;
+    let round = 1, score = 0, seconds = 60, timer = null;
+    let currentAnswer = null, locked = false;
+
+    const el = id => document.getElementById(id);
+    const roundEl = el('round'), scoreEl = el('score'), timerEl = el('timer');
+    const qtypeEl = el('qtype'), numbersEl = el('numbers'), optionsEl = el('options');
+    const feedbackEl = el('feedback'), nextBtn = el('nextBtn');
+    const quizEl = el('quiz'), resultEl = el('result'), summaryEl = el('summary');
+
+    function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function pick(arr) { return arr[randInt(0, arr.length - 1)]; }
+
+    function makeSet() {
+      const len = randInt(5, 7);
+      const arr = Array.from({length: len}, () => randInt(1, 15));
+      // 确保经常有众数
+      arr[randInt(0, len - 1)] = arr[randInt(0, len - 1)];
+      return arr;
+    }
+
+    function mean(arr) { return +(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1); }
+    function median(arr) {
+      const s = [...arr].sort((a,b)=>a-b);
+      const m = Math.floor(s.length/2);
+      return s.length % 2 ? s[m] : +((s[m-1]+s[m])/2).toFixed(1);
+    }
+    function mode(arr) {
+      const map = {};
+      for (const n of arr) map[n] = (map[n]||0)+1;
+      const max = Math.max(...Object.values(map));
+      const modes = Object.entries(map).filter(([,c])=>c===max).map(([n])=>+n).sort((a,b)=>a-b);
+      return modes[0]; // 单选题取最小众数
+    }
+
+    function uniqueOptions(answer) {
+      const set = new Set([answer]);
+      while (set.size < 4) {
+        const delta = randInt(-4, 4);
+        const val = +(answer + delta + (Math.random() < 0.4 ? 0.5 : 0)).toFixed(1);
+        if (val >= 0) set.add(val);
+      }
+      return [...set].sort(()=>Math.random()-0.5);
+    }
+
+    function renderQuestion() {
+      locked = false;
+      feedbackEl.textContent = '';
+      feedbackEl.className = 'feedback';
+      nextBtn.classList.add('hidden');
+
+      const arr = makeSet();
+      const type = pick(['mean','median','mode']);
+      const labels = { mean:'求平均数 (Mean)', median:'求中位数 (Median)', mode:'求众数 (Mode)' };
+      const answerMap = { mean: mean(arr), median: median(arr), mode: mode(arr) };
+      currentAnswer = answerMap[type];
+
+      qtypeEl.textContent = labels[type];
+      numbersEl.textContent = arr.join(' , ');
+      roundEl.textContent = `${round}/${totalRounds}`;
+      scoreEl.textContent = score;
+
+      optionsEl.innerHTML = '';
+      uniqueOptions(currentAnswer).forEach(opt => {
+        const b = document.createElement('button');
+        b.className = 'option';
+        b.textContent = opt;
+        b.addEventListener('click', () => choose(opt));
+        optionsEl.appendChild(b);
+      });
+    }
+
+    function choose(opt) {
+      if (locked) return;
+      locked = true;
+      const ok = Number(opt) === Number(currentAnswer);
+      if (ok) {
+        score += 10;
+        scoreEl.textContent = score;
+        feedbackEl.textContent = '✅ 正确！';
+        feedbackEl.classList.add('ok');
+      } else {
+        feedbackEl.textContent = `❌ 正确答案是 ${currentAnswer}`;
+        feedbackEl.classList.add('bad');
+      }
+      [...optionsEl.querySelectorAll('button')].forEach(btn => btn.disabled = true);
+      nextBtn.classList.remove('hidden');
+    }
+
+    function next() {
+      round++;
+      if (round > totalRounds) return finish();
+      renderQuestion();
+    }
+
+    function finish() {
+      clearInterval(timer);
+      quizEl.classList.add('hidden');
+      resultEl.classList.remove('hidden');
+      summaryEl.textContent = `本局得分 ${score} 分（共 ${totalRounds} 题）`;
+    }
+
+    function start() {
+      round = 1; score = 0; seconds = 60;
+      timerEl.textContent = seconds;
+      roundEl.textContent = `1/${totalRounds}`;
+      scoreEl.textContent = '0';
+      quizEl.classList.remove('hidden');
+      resultEl.classList.add('hidden');
+      renderQuestion();
+
+      clearInterval(timer);
+      timer = setInterval(() => {
+        seconds--;
+        timerEl.textContent = seconds;
+        if (seconds <= 0) finish();
+      }, 1000);
+    }
+
+    nextBtn.addEventListener('click', next);
+    el('restartBtn').addEventListener('click', start);
+    start();
+  </script>
+</body>
+</html>
