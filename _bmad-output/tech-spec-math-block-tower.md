@@ -1,147 +1,147 @@
 ---
 title: '数学方块塔'
 slug: 'math-block-tower'
-created: '2026-03-03'
+created: '2026-03-03T05:36:00+08:00'
 status: 'ready-for-dev'
 stepsCompleted: [1, 2, 3, 4]
-tech_stack: ["HTML", "CSS", "JavaScript"]
-files_to_modify: ["game-factory/games/math-block-tower/index.html"]
-code_patterns: ["Canvas API", "localStorage", "CSS动画", "模态框", "响应式设计"]
-test_patterns: ["手动测试", "移动端测试"]
+tech_stack: ['HTML', 'CSS', 'JavaScript']
+files_to_modify: ['game-factory/games/math-block-tower/index.html', 'game-factory/games-list.json', 'game-factory/CHANGELOG.md']
+code_patterns: ['Single HTML file with inline CSS and JS', 'Mobile-first responsive design', 'LocalStorage for persistence']
+test_patterns: ['Manual testing in browser', 'Mobile device simulation via browser dev tools']
 ---
 
 # Tech-Spec: 数学方块塔
 
-**Created:** 2026-03-03
+**Created:** 2026-03-03T05:36:00+08:00
 
 ## Overview
 
 ### Problem Statement
 
-如何将经典的Stack Tower堆叠玩法与数学教育内容自然融合，创造一个既有趣又有教育价值的浏览器游戏？
+将 Stack Tower 的堆叠玩法与数学教育结合，创建一款既有趣又有教育意义的游戏。玩家通过点击放置方块来堆叠高塔，同时每堆叠一定数量的方块后需要回答数学问题，答对可获得额外分数奖励。游戏旨在提升玩家的数学计算能力，同时保持娱乐性和上瘾性。
 
 ### Solution
 
-基于Stack Tower的核心玩法（点击放置方块，对齐得分，建造最高塔），每堆叠5个方块弹出一道数学题，答对获得2倍分数奖励。难度随堆叠高度递进：加法 → 减法 → 乘法 → 除法。
+基于 Stack Tower 的核心玩法：点击屏幕放置方块，对齐得分，堆叠高度增加。每堆叠 5 个方块弹出一道数学题，答对获得 2 倍分数奖励。数学题难度随堆叠高度递进：加法 → 减法 → 乘法 → 除法。游戏包含分数系统、最高分记录、成就系统和本地存储。
 
 ### Scope
 
 **In Scope:**
-- 核心堆叠玩法：点击放置方块，对齐得分
-- 数学题弹出机制：每5层一道题
-- 难度递进系统：加减乘除随高度解锁
-- 分数系统：基础分 + 答题奖励
-- 最高分记录：本地存储
-- 移动端适配：单指操作
+- 堆叠机制：点击放置方块，对齐得分，堆叠高度增加
+- 数学题生成：每堆叠 5 个方块弹出一道数学题，难度递进
+- 分数系统：基础得分 + 答题奖励
+- 最高分记录：本地存储保存最高分
+- 成就系统：堆叠 50 层、答对 50 题等成就
+- 视觉反馈：方块颜色渐变，堆叠动画，得分特效
+- 响应式设计：移动端优先，支持触摸操作
 
 **Out of Scope:**
-- 多人对战模式
-- 复杂3D图形
-- 音效系统（可选）
-- 社交分享功能
+- 多人模式或在线排行榜
+- 复杂图形或 3D 效果
+- 音效（可后续添加）
+- 用户账户系统
 
 ## Context for Development
 
 ### Codebase Patterns
 
-游戏工厂采用纯HTML/CSS/JS实现，每个游戏独立目录，包含单个index.html文件。移动端优先，响应式设计，离线可用。现有游戏使用CSS变量定义主题色，使用flexbox/grid布局，使用CSS动画实现视觉反馈。
+- 游戏工厂使用纯 HTML/CSS/JS 开发，无框架依赖
+- 移动端优先，响应式设计
+- 离线可用，无外部资源依赖
+- 游戏性优先：手感、节奏、反馈比功能完整更重要
+- 单个 HTML 文件模式：所有 CSS 和 JavaScript 内联在 index.html 中
+- 使用 CSS 变量定义主题颜色
+- 使用 localStorage 保存游戏状态和最高分
 
 ### Files to Reference
 
 | File | Purpose |
 | ---- | ------- |
-| game-factory/games/addition-practice/index.html | 参考现有教育游戏结构，CSS变量定义，响应式布局 |
-| game-factory/templates/ | 参考游戏模板 |
+| `game-factory/games/addition-practice/index.html` | 参考单文件游戏结构 |
+| `game-factory/games-list.json` | 游戏注册文件 |
+| `game-factory/CHANGELOG.md` | 更新日志 |
 
 ### Technical Decisions
 
-- 使用Canvas API进行游戏渲染（堆叠方块）
-- 使用localStorage保存最高分
-- 使用CSS动画实现视觉反馈（方块放置、得分特效）
-- 使用模态框显示数学题
-- 使用响应式设计适配移动端
-- 使用CSS变量定义主题色
-- 使用flexbox/grid布局
-- 使用单指操作（点击/触摸）
+- 使用 DOM 元素实现堆叠，而不是 Canvas，更简单且易于动画
+- 数学题生成：使用 JavaScript 随机生成题目，难度随堆叠高度递进
+- 本地存储：使用 localStorage 保存最高分和成就
+- 动画：使用 CSS transitions 和 animations 实现流畅效果
+- 响应式设计：使用 CSS 媒体查询和 viewport 单位
+- 单文件架构：所有代码内联在 index.html 中，便于部署
 
 ## Implementation Plan
 
 ### Tasks
 
 - [ ] Task 1: 创建游戏目录结构
-  - File: `game-factory/games/math-block-tower/index.html`
-  - Action: 创建目录和基础HTML文件
-  - Notes: 包含完整的HTML结构、CSS样式和JavaScript代码
+  - File: `game-factory/games/math-block-tower/`
+  - Action: 创建目录
+  - Notes: 确保目录存在
 
-- [ ] Task 2: 实现Canvas渲染引擎
+- [ ] Task 2: 实现 HTML 结构
   - File: `game-factory/games/math-block-tower/index.html`
-  - Action: 创建Canvas元素，设置渲染上下文，实现基础绘制函数
-  - Notes: 使用requestAnimationFrame实现60fps动画
+  - Action: 创建 HTML 文件，包含游戏容器、分数显示、数学题弹窗等元素
+  - Notes: 使用语义化 HTML，确保移动端友好
 
-- [ ] Task 3: 实现方块堆叠逻辑
-  - File: `game-factory/games/math-block-tower/index.html`
-  - Action: 实现方块类，堆叠逻辑，对齐检测，得分计算
-  - Notes: 方块从左到右移动，点击放置，对齐度决定得分
+- [ ] Task 3: 实现 CSS 样式
+  - File: `game-factory/games/math-block-tower/index.html` (内联在 <style> 标签中)
+  - Action: 添加 CSS 样式，包括响应式布局、方块样式、动画效果
+  - Notes: 使用 CSS 变量定义主题颜色，确保移动端触摸区域足够大
 
-- [ ] Task 4: 实现数学题弹出系统
-  - File: `game-factory/games/math-block-tower/index.html`
-  - Action: 实现数学题生成器，模态框显示，答题逻辑
-  - Notes: 每5层弹出一道题，难度随高度递进
+- [ ] Task 4: 实现 JavaScript 逻辑
+  - File: `game-factory/games/math-block-tower/index.html` (内联在 <script> 标签中)
+  - Action: 添加 JavaScript 代码，实现方块生成和放置、对齐检测和得分计算、数学题生成和验证、分数系统和最高分记录、成就系统、本地存储
+  - Notes: 确保代码模块化，易于维护
 
-- [ ] Task 5: 实现分数计算和显示
+- [ ] Task 5: 测试和调试
   - File: `game-factory/games/math-block-tower/index.html`
-  - Action: 实现分数系统，显示当前分数、最高分、堆叠高度
-  - Notes: 基础分 + 答题奖励，使用CSS动画显示得分特效
+  - Action: 在浏览器中打开游戏，测试堆叠、数学题、分数系统，确保移动端触摸操作流畅
+  - Notes: 使用浏览器开发者工具模拟移动设备
 
-- [ ] Task 6: 实现最高分记录
-  - File: `game-factory/games/math-block-tower/index.html`
-  - Action: 使用localStorage保存和读取最高分
-  - Notes: 游戏结束时更新最高分
+- [ ] Task 6: 注册游戏到 games-list.json
+  - File: `game-factory/games-list.json`
+  - Action: 添加新游戏条目，包含名称、描述、链接等信息
+  - Notes: 确保 JSON 格式正确
 
-- [ ] Task 7: 实现移动端适配
-  - File: `game-factory/games/math-block-tower/index.html`
-  - Action: 添加触摸事件支持，响应式布局，移动端优化
-  - Notes: 单指操作，适配不同屏幕尺寸
-
-- [ ] Task 8: 测试和优化
-  - File: `game-factory/games/math-block-tower/index.html`
-  - Action: 测试核心玩法，修复bug，优化性能
-  - Notes: 确保游戏流畅运行，无明显bug
+- [ ] Task 7: 更新 CHANGELOG.md
+  - File: `game-factory/CHANGELOG.md`
+  - Action: 在文件顶部添加新游戏条目
+  - Notes: 使用 bash 追加，不要用 Edit 工具
 
 ### Acceptance Criteria
 
-- [ ] AC 1: Given 游戏加载完成，when 玩家点击屏幕，then 方块从当前位置落下并堆叠
-- [ ] AC 2: Given 方块堆叠，when 方块与下方方块对齐，then 获得基础分数（对齐度越高分数越高）
-- [ ] AC 3: Given 堆叠达到5层，when 方块放置完成，then 弹出数学题模态框
-- [ ] AC 4: Given 数学题弹出，when 玩家选择正确答案，then 获得2倍分数奖励并继续游戏
-- [ ] AC 5: Given 数学题弹出，when 玩家选择错误答案，then 不获得奖励并继续游戏
-- [ ] AC 6: Given 堆叠高度增加，when 达到特定高度，then 数学题难度递进（加法→减法→乘法→除法）
-- [ ] AC 7: Given 游戏结束，when 玩家分数超过最高分，then 更新本地存储的最高分
-- [ ] AC 8: Given 移动端设备，when 玩家触摸屏幕，then 方块正常落下并堆叠
+- [ ] AC 1: Given 游戏已加载，when 玩家点击/触摸屏幕，then 方块被放置在当前堆叠位置
+- [ ] AC 2: Given 方块被放置，when 方块与下方方块对齐，then 玩家获得分数，堆叠高度增加
+- [ ] AC 3: Given 方块被放置，when 方块未对齐，then 游戏结束，显示最终分数
+- [ ] AC 4: Given 堆叠高度达到 5 的倍数，when 方块放置后，then 弹出数学题
+- [ ] AC 5: Given 数学题弹出，when 玩家输入正确答案，then 获得 2 倍分数奖励，数学题关闭
+- [ ] AC 6: Given 数学题弹出，when 玩家输入错误答案，then 数学题关闭，无奖励
+- [ ] AC 7: Given 游戏结束，when 玩家点击“再来一局”，then 游戏重置，分数清零
+- [ ] AC 8: Given 游戏结束，when 当前分数高于最高分，then 最高分被更新并保存到本地存储
+- [ ] AC 9: Given 玩家达成成就条件（如堆叠 50 层），when 条件满足，then 成就被解锁并显示通知
+- [ ] AC 10: Given 游戏在移动设备上运行，when 玩家触摸操作，then 响应灵敏，无延迟
 
 ## Additional Context
 
 ### Dependencies
 
-- 无外部依赖，纯HTML/CSS/JS
-- 使用Canvas API（浏览器内置）
-- 使用localStorage（浏览器内置）
-- 使用CSS动画（浏览器内置）
+- 无外部依赖，纯 HTML/CSS/JS
+- 无第三方库或服务
 
 ### Testing Strategy
 
-- 手动测试核心玩法：方块放置、对齐检测、得分计算
-- 测试数学题弹出机制：每5层弹出，难度递进
-- 测试分数计算：基础分、答题奖励、最高分更新
-- 测试移动端适配：触摸事件、响应式布局
-- 测试本地存储：最高分保存和读取
-- 测试边界情况：方块完全错位、连续答题、游戏结束
+- 手动测试：在浏览器中打开游戏，测试堆叠、数学题、分数系统
+- 移动端测试：使用浏览器开发者工具模拟移动设备
+- 边界测试：测试方块对齐边缘情况、数学题难度递进
+- 性能测试：确保动画流畅，无卡顿
 
 ### Notes
 
-- 高风险项目：Canvas性能优化，确保60fps流畅运行
-- 已知限制：无音效系统（可选功能）
-- 未来考虑：添加音效、社交分享、成就系统（当前版本不包含）
-- 参考Stack Tower的玩法，但加入教育元素
-- 游戏节奏由慢到快，有心流体验
-- 配色协调，UI干净，移动端优先
+- 高风险项目：数学题生成逻辑可能影响游戏流畅性，需要优化
+- 已知限制：无音效，可后续添加
+- 未来考虑：添加更多数学运算类型（如平方根、百分比）
+- 参考 Stack Tower 的手感和节奏
+- 确保数学题不会过于频繁，影响游戏流畅性
+- 视觉反馈要明显，增强玩家成就感
+- 保持游戏简洁，避免功能膨胀
