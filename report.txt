@@ -1,0 +1,8 @@
+🎮 本轮新增 1 个游戏
+
+《数学方块塔》
+灵感来源：Stack Tower + 数学教育
+点击堆叠方块，对齐得分，每5层弹出数学题，答对获得2倍分数奖励，难度从加法递进到除法
+▶️ 试玩：https://evan966890.github.io/game-factory/games/math-block-tower/
+
+📊 游戏工厂累计：128 个游戏

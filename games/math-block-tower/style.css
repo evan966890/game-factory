@@ -1,0 +1,264 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+#game-container {
+    width: 100%;
+    max-width: 400px;
+    height: 100vh;
+    max-height: 700px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#header {
+    padding: 15px;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+#game-area {
+    flex: 1;
+    position: relative;
+    background: linear-gradient(to bottom, #e0e5ec 0%, #c9d6e3 100%);
+    overflow: hidden;
+}
+
+#tower {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+}
+
+.block {
+    width: 80px;
+    height: 30px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border-radius: 5px;
+    margin: 2px 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.1s ease;
+    position: relative;
+}
+
+.block.perfect {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    box-shadow: 0 0 20px rgba(79, 172, 254, 0.6);
+}
+
+.block.partial {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.block.miss {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    opacity: 0.7;
+}
+
+#current-block {
+    position: absolute;
+    width: 80px;
+    height: 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    left: 50%;
+    transform: translateX(-50%);
+    top: 20px;
+    transition: top 0.05s linear;
+}
+
+#footer {
+    padding: 15px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#restart-btn {
+    padding: 10px 20px;
+    background: white;
+    color: #f5576c;
+    border: none;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#restart-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+#restart-btn:active {
+    transform: scale(0.95);
+}
+
+/* 数学题模态框 */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 300px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.modal-content h2 {
+    color: #667eea;
+    margin-bottom: 20px;
+}
+
+#math-question {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 20px 0;
+    color: #333;
+}
+
+#math-answer {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+#math-answer:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+#submit-answer {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+#submit-answer:hover {
+    transform: scale(1.02);
+}
+
+#math-feedback {
+    margin-top: 15px;
+    font-weight: bold;
+    min-height: 20px;
+}
+
+#math-feedback.correct {
+    color: #4caf50;
+}
+
+#math-feedback.incorrect {
+    color: #f44336;
+}
+
+/* 成就通知 */
+.notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 30px;
+    font-weight: bold;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+    transition: transform 0.5s ease;
+}
+
+.notification.show {
+    transform: translateX(-50%) translateY(0);
+}
+
+/* 响应式设计 */
+@media (max-width: 400px) {
+    #game-container {
+        border-radius: 0;
+        max-height: none;
+    }
+    
+    .block {
+        width: 70px;
+        height: 25px;
+    }
+    
+    #current-block {
+        width: 70px;
+        height: 25px;
+    }
+}
+
+@media (max-height: 600px) {
+    #header, #footer {
+        padding: 10px;
+        font-size: 12px;
+    }
+    
+    .block {
+        height: 25px;
+    }
+    
+    #current-block {
+        height: 25px;
+    }
+}
