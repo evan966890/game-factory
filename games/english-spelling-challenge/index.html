@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>英语单词拼写挑战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .stat {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .word-display {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .chinese-meaning {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .hint {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .input-area {
+            margin-bottom: 20px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 10px;
+            text-align: center;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        input:focus {
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        
+        button:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-check {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-skip {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .btn-start {
+            background: #2196F3;
+            color: white;
+            width: 100%;
+            padding: 20px;
+            font-size: 1.2rem;
+        }
+        
+        .feedback {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .feedback.correct {
+            background: rgba(76, 175, 80, 0.3);
+            color: #4CAF50;
+        }
+        
+        .feedback.wrong {
+            background: rgba(244, 67, 54, 0.3);
+            color: #F44336;
+        }
+        
+        .feedback.info {
+            background: rgba(33, 150, 243, 0.3);
+            color: #2196F3;
+        }
+        
+        .game-over {
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .final-score {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stats-summary {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-summary p {
+            margin: 10px 0;
+            font-size: 1.1rem;
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .chinese-meaning {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔤 英语单词拼写挑战</h1>
+        
+        <div id="start-screen">
+            <div class="word-display">
+                <div class="chinese-meaning">准备好了吗？</div>
+                <div class="hint">60秒内拼写尽可能多的英语单词</div>
+            </div>
+            <button class="btn-start" onclick="startGame()">开始挑战</button>
+        </div>
+        
+        <div id="game-screen" style="display: none;">
+            <div class="stats">
+                <div class="stat">
+                    <div>时间</div>
+                    <div class="stat-value" id="timer">60</div>
+                </div>
+                <div class="stat">
+                    <div>得分</div>
+                    <div class="stat-value" id="score">0</div>
+                </div>
+                <div class="stat">
+                    <div>正确</div>
+                    <div class="stat-value" id="correct-count">0</div>
+                </div>
+            </div>
+            
+            <div class="word-display">
+                <div class="chinese-meaning" id="chinese-meaning">苹果</div>
+                <div class="hint" id="word-hint">提示：5个字母，以 a 开头</div>
+            </div>
+            
+            <div class="input-area">
+                <input type="text" id="user-input" placeholder="输入英文单词..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="buttons">
+                <button class="btn-check" onclick="checkAnswer()">检查</button>
+                <button class="btn-skip" onclick="skipWord()">跳过</button>
+            </div>
+        </div>
+        
+        <div id="game-over" class="game-over" style="display: none;">
+            <h2>🎉 挑战结束！</h2>
+            <div class="final-score" id="final-score">0</div>
+            <div class="stats-summary">
+                <p>✅ 正确拼写：<span id="final-correct">0</span> 个</p>
+                <p>❌ 错误尝试：<span id="final-wrong">0</span> 次</p>
+                <p>📊 准确率：<span id="accuracy">0</span>%</p>
+            </div>
+            <button class="btn-start" onclick="startGame()">再玩一次</button>
+        </div>
+    </div>
+
+    <script>
+        // 单词库：中文 -> 英文
+        const wordList = [
+            { chinese: "苹果", english: "apple" },
+            { chinese: "香蕉", english: "banana" },
+            { chinese: "猫", english: "cat" },
+            { chinese: "狗", english: "dog" },
+            { chinese: "书", english: "book" },
+            { chinese: "学校", english: "school" },
+            { chinese: "家", english: "home" },
+            { chinese: "朋友", english: "friend" },
+            { chinese: "水", english: "water" },
+            { chinese: "食物", english: "food" },
+            { chinese: "太阳", english: "sun" },
+            { chinese: "月亮", english: "moon" },
+            { chinese: "星星", english: "star" },
+            { chinese: "天空", english: "sky" },
+            { chinese: "树", english: "tree" },
+            { chinese: "花", english: "flower" },
+            { chinese: "鸟", english: "bird" },
+            { chinese: "鱼", english: "fish" },
+            { chinese: "车", english: "car" },
+            { chinese: "房子", english: "house" },
+            { chinese: "电脑", english: "computer" },
+            { chinese: "手机", english: "phone" },
+            { chinese: "时间", english: "time" },
+            { chinese: "日期", english: "date" },
+            { chinese: "年", english: "year" },
+            { chinese: "月", english: "month" },
+            { chinese: "日", english: "day" },
+            { chinese: "小时", english: "hour" },
+            { chinese: "分钟", english: "minute" },
+            { chinese: "秒", english: "second" },
+            { chinese: "红色", english: "red" },
+            { chinese: "蓝色", english: "blue" },
+            { chinese: "绿色", english: "green" },
+            { chinese: "黄色", english: "yellow" },
+            { chinese: "黑色", english: "black" },
+            { chinese: "白色", english: "white" },
+            { chinese: "大", english: "big" },
+            { chinese: "小", english: "small" },
+            { chinese: "长", english: "long" },
+            { chinese: "短", english: "short" },
+            { chinese: "高", english: "tall" },
+            { chinese: "矮", english: "short" },
+            { chinese: "快", english: "fast" },
+            { chinese: "慢", english: "slow" },
+            { chinese: "好", english: "good" },
+            { chinese: "坏", english: "bad" },
+            { chinese: "新", english: "new" },
+            { chinese: "旧", english: "old" },
+            { chinese: "热", english: "hot" },
+            { chinese: "冷", english: "cold" },
+            { chinese: "快乐", english: "happy" },
+            { chinese: "悲伤", english: "sad" },
+            { chinese: "爱", english: "love" },
+            { chinese: "喜欢", english: "like" },
+            { chinese: "吃", english: "eat" },
+            { chinese: "喝", english: "drink" },
+            { chinese: "睡", english: "sleep" },
+            { chinese: "走", english: "walk" },
+            { chinese: "跑", english: "run" },
+            { chinese: "看", english: "see" },
+            { chinese: "听", english: "hear" },
+            { chinese: "说", english: "say" },
+            { chinese: "读", english: "read" },
+            { chinese: "写", english: "write" },
+            { chinese: "学习", english: "study" },
+            { chinese: "工作", english: "work" },
+            { chinese: "玩", english: "play" },
+            { chinese: "帮助", english: "help" },
+            { chinese: "给", english: "give" },
+            { chinese: "拿", english: "take" },
+            { chinese: "买", english: "buy" },
+            { chinese: "卖", english: "sell" },
+            { chinese: "打开", english: "open" },
+            { chinese: "关闭", english: "close" },
+            { chinese: "开始", english: "start" },
+            { chinese: "结束", english: "end" },
+            { chinese: "来", english: "come" },
+            { chinese: "去", english: "go" },
+            { chinese: "在", english: "at" },
+            { chinese: "在...里", english: "in" },
+            { chinese: "在...上", english: "on" },
+            { chinese: "和", english: "and" },
+            { chinese: "或", english: "or" },
+            { chinese: "但", english: "but" },
+            { chinese: "因为", english: "because" },
+            { chinese: "所以", english: "so" },
+            { chinese: "如果", english: "if" },
+            { chinese: "当", english: "when" },
+            { chinese: "哪里", english: "where" },
+            { chinese: "什么", english: "what" },
+            { chinese: "谁", english: "who" },
+            { chinese: "为什么", english: "why" },
+            { chinese: "如何", english: "how" },
+            { chinese: "多少", english: "how many" },
+            { chinese: "多大", english: "how old" },
+            { chinese: "名字", english: "name" },
+            { chinese: "年龄", english: "age" },
+            { chinese: "颜色", english: "color" },
+            { chinese: "数字", english: "number" },
+            { chinese: "一", english: "one" },
+            { chinese: "二", english: "two" },
+            { chinese: "三", english: "three" },
+            { chinese: "四", english: "four" },
+            { chinese: "五", english: "five" },
+            { chinese: "六", english: "six" },
+            { chinese: "七", english: "seven" },
+            { chinese: "八", english: "eight" },
+            { chinese: "九", english: "nine" },
+            { chinese: "十", english: "ten" }
+        ];
+
+        let currentWord = null;
+        let score = 0;
+        let correctCount = 0;
+        let wrongCount = 0;
+        let timeLeft = 60;
+        let timerInterval = null;
+        let usedWords = [];
+
+        function startGame() {
+            // 重置游戏状态
+            score = 0;
+            correctCount = 0;
+            wrongCount = 0;
+            timeLeft = 60;
+            usedWords = [];
+            
+            // 更新UI
+            document.getElementById('score').textContent = score;
+            document.getElementById('correct-count').textContent = correctCount;
+            document.getElementById('timer').textContent = timeLeft;
+            
+            // 显示游戏界面
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-over').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            
+            // 开始计时器
+            timerInterval = setInterval(updateTimer, 1000);
+            
+            // 显示第一个单词
+            showNextWord();
+            
+            // 聚焦输入框
+            document.getElementById('user-input').focus();
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            document.getElementById('timer').textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function showNextWord() {
+            // 选择未使用过的单词
+            let availableWords = wordList.filter(w => !usedWords.includes(w.english));
+            
+            if (availableWords.length === 0) {
+                // 所有单词都用过了，重置
+                usedWords = [];
+                availableWords = wordList;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * availableWords.length);
+            currentWord = availableWords[randomIndex];
+            usedWords.push(currentWord.english);
+            
+            // 显示中文意思
+            document.getElementById('chinese-meaning').textContent = currentWord.chinese;
+            
+            // 生成提示
+            const hint = generateHint(currentWord.english);
+            document.getElementById('word-hint').textContent = hint;
+            
+            // 清空输入框和反馈
+            document.getElementById('user-input').value = '';
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = 'feedback';
+            
+            // 聚焦输入框
+            document.getElementById('user-input').focus();
+        }
+
+        function generateHint(word) {
+            const length = word.length;
+            const firstLetter = word[0].toUpperCase();
+            const lastLetter = word[word.length - 1].toUpperCase();
+            
+            // 随机选择一种提示方式
+            const hintTypes = [
+                `提示：${length}个字母，以 ${firstLetter} 开头`,
+                `提示：${length}个字母，以 ${lastLetter} 结尾`,
+                `提示：${length}个字母，首尾是 ${firstLetter}...${lastLetter}`,
+                `提示：${length}个字母`,
+                `提示：以 ${firstLetter} 开头`
+            ];
+            
+            return hintTypes[Math.floor(Math.random() * hintTypes.length)];
+        }
+
+        function checkAnswer() {
+            if (!currentWord) return;
+            
+            const userInput = document.getElementById('user-input').value.trim().toLowerCase();
+            const correctAnswer = currentWord.english.toLowerCase();
+            
+            if (userInput === correctAnswer) {
+                // 正确
+                score += 10;
+                correctCount++;
+                document.getElementById('score').textContent = score;
+                document.getElementById('correct-count').textContent = correctCount;
+                
+                showFeedback('correct', '✅ 正确！+10分');
+                
+                // 延迟后显示下一个单词
+                setTimeout(showNextWord, 800);
+            } else {
+                // 错误
+                wrongCount++;
+                showFeedback('wrong', `❌ 错误！正确答案是：${currentWord.english}`);
+                
+                // 延迟后显示下一个单词
+                setTimeout(showNextWord, 1500);
+            }
+        }
+
+        function skipWord() {
+            if (!currentWord) return;
+            
+            showFeedback('info', `⏭️ 跳过！答案是：${currentWord.english}`);
+            
+            // 延迟后显示下一个单词
+            setTimeout(showNextWord, 1000);
+        }
+
+        function showFeedback(type, message) {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = message;
+            feedback.className = `feedback ${type}`;
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            
+            // 计算准确率
+            const totalAttempts = correctCount + wrongCount;
+            const accuracy = totalAttempts > 0 ? Math.round((correctCount / totalAttempts) * 100) : 0;
+            
+            // 更新最终统计
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('final-correct').textContent = correctCount;
+            document.getElementById('final-wrong').textContent = wrongCount;
+            document.getElementById('accuracy').textContent = accuracy;
+            
+            // 显示游戏结束界面
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('game-over').style.display = 'block';
+        }
+
+        // 支持回车键提交
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        // 防止iOS缩放
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>
