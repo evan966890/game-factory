@@ -1,5 +1,11 @@
 [
   {
+    "name": "数学方块塔",
+    "path": "games/math-block-tower/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T04:16:00Z"
+  },
+  {
     "name": "加法练习",
     "path": "games/addition-practice/index.html",
     "category": "education",
