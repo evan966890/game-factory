@@ -1,629 +1,989 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>数学方块塔</title>
-  <style>
-    :root {
-      --bg: #f0f8ff;
-      --card: #ffffff;
-      --text: #2c3e50;
-      --muted: #7f8c8d;
-      --primary: #3498db;
-      --primary-dark: #2980b9;
-      --ok: #27ae60;
-      --bad: #e74c3c;
-      --border: #bdc3c7;
-      --radius: 12px;
-      --block-size: 60px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>数学方块塔 - 教育堆叠游戏</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #2196F3;
+            --accent-color: #FF9800;
+            --danger-color: #F44336;
+            --background-color: #f5f5f5;
+            --text-color: #333;
+            --block-size: 60px;
+            --tower-width: 200px;
+        }
 
-    * { box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    body {
-      margin: 0;
-      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-      color: var(--text);
-      background: linear-gradient(180deg, #e3f2fd 0%, var(--bg) 50%, #e8f5e9 100%);
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 16px;
-      overflow: hidden;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
 
-    .header {
-      width: min(100%, 500px);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
 
-    .score-box {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 8px 16px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
+        .header {
+            margin-bottom: 20px;
+        }
 
-    .score-label {
-      font-size: 0.8rem;
-      color: var(--muted);
-      margin-bottom: 2px;
-    }
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
 
-    .score-value {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: var(--primary);
-    }
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+        }
 
-    .game-container {
-      width: min(100%, 500px);
-      height: 60vh;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      position: relative;
-      overflow: hidden;
-      touch-action: manipulation;
-    }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
 
-    .tower {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: var(--block-size);
-      display: flex;
-      flex-direction: column-reverse;
-      align-items: center;
-    }
+        .stat {
+            text-align: center;
+        }
 
-    .block {
-      width: var(--block-size);
-      height: var(--block-size);
-      background: linear-gradient(135deg, #3498db, #2980b9);
-      border-radius: 8px;
-      margin-bottom: 2px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-      font-size: 1.2rem;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      transition: transform 0.1s ease;
-    }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
 
-    .block.current {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      animation: pulse 1s infinite;
-    }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
 
-    @keyframes pulse {
-      0%, 100% { transform: translateX(-50%) scale(1); }
-      50% { transform: translateX(-50%) scale(1.05); }
-    }
+        .tower-container {
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+            position: relative;
+        }
 
-    .block.placed {
-      animation: drop 0.3s ease;
-    }
+        .tower {
+            width: var(--tower-width);
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            position: relative;
+        }
 
-    @keyframes drop {
-      0% { transform: translateY(-20px); opacity: 0; }
-      100% { transform: translateY(0); opacity: 1; }
-    }
+        .block {
+            width: var(--block-size);
+            height: 30px;
+            border-radius: 5px;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
 
-    .math-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.7);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 100;
-    }
+        .block.perfect {
+            animation: perfect-pulse 0.5s ease;
+        }
 
-    .math-modal.active {
-      display: flex;
-    }
+        .block.good {
+            animation: good-pulse 0.5s ease;
+        }
 
-    .math-card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 24px;
-      width: min(90%, 400px);
-      text-align: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    }
+        .block.miss {
+            animation: miss-shake 0.5s ease;
+        }
 
-    .math-question {
-      font-size: 2rem;
-      margin-bottom: 20px;
-      color: var(--text);
-    }
+        @keyframes perfect-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(76, 175, 80, 0.8); }
+            100% { transform: scale(1); }
+        }
 
-    .math-input {
-      width: 100%;
-      padding: 12px;
-      font-size: 1.5rem;
-      text-align: center;
-      border: 2px solid var(--border);
-      border-radius: var(--radius);
-      margin-bottom: 16px;
-      outline: none;
-    }
+        @keyframes good-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); box-shadow: 0 0 15px rgba(33, 150, 243, 0.8); }
+            100% { transform: scale(1); }
+        }
 
-    .math-input:focus {
-      border-color: var(--primary);
-    }
+        @keyframes miss-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
 
-    .math-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 1.2rem;
-      border-radius: var(--radius);
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+        .current-block {
+            width: var(--block-size);
+            height: 30px;
+            border-radius: 5px;
+            position: absolute;
+            top: 0;
+            transition: left 0.1s linear;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
 
-    .math-btn:hover {
-      background: var(--primary-dark);
-    }
+        .controls {
+            margin-bottom: 20px;
+        }
 
-    .game-over-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 100;
-    }
+        .btn {
+            background: linear-gradient(135deg, var(--primary-color), #45a049);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+            touch-action: manipulation;
+        }
 
-    .game-over-modal.active {
-      display: flex;
-    }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.6);
+        }
 
-    .game-over-card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 32px;
-      width: min(90%, 400px);
-      text-align: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    }
+        .btn:active {
+            transform: translateY(0);
+        }
 
-    .game-over-title {
-      font-size: 2rem;
-      margin-bottom: 16px;
-      color: var(--bad);
-    }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
 
-    .final-score {
-      font-size: 3rem;
-      font-weight: bold;
-      color: var(--primary);
-      margin-bottom: 8px;
-    }
+        .difficulty-indicator {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--secondary-color);
+        }
 
-    .high-score {
-      font-size: 1.2rem;
-      color: var(--muted);
-      margin-bottom: 24px;
-    }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
 
-    .restart-btn {
-      background: var(--ok);
-      color: white;
-      border: none;
-      padding: 16px 32px;
-      font-size: 1.3rem;
-      border-radius: var(--radius);
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+        .modal.active {
+            display: flex;
+        }
 
-    .restart-btn:hover {
-      background: #219653;
-    }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 350px;
+            width: 90%;
+            text-align: center;
+            animation: modal-appear 0.3s ease;
+        }
 
-    .achievement-toast {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--ok);
-      color: white;
-      padding: 12px 24px;
-      border-radius: var(--radius);
-      font-size: 1.1rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      opacity: 0;
-      transition: opacity 0.3s;
-      z-index: 200;
-    }
+        @keyframes modal-appear {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
 
-    .achievement-toast.show {
-      opacity: 1;
-    }
+        .modal-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
 
-    .instructions {
-      width: min(100%, 500px);
-      text-align: center;
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-  </style>
+        .math-question {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin: 20px 0;
+            padding: 20px;
+            background: #e3f2fd;
+            border-radius: 10px;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 24px;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .answer-input:focus {
+            border-color: var(--secondary-color);
+        }
+
+        .modal-btn {
+            background: linear-gradient(135deg, var(--secondary-color), #1976D2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+        }
+
+        .modal-btn.secondary {
+            background: linear-gradient(135deg, #9e9e9e, #757575);
+        }
+
+        .achievement-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--accent-color), #F57C00);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(255, 152, 0, 0.5);
+            z-index: 1001;
+            animation: achievement-slide 0.5s ease;
+            display: none;
+        }
+
+        .achievement-popup.active {
+            display: block;
+        }
+
+        @keyframes achievement-slide {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .achievement-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .achievement-desc {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .achievements-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .achievements-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .achievement-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            padding: 8px;
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .achievement-item.unlocked {
+            background: #e8f5e9;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .achievement-item.locked {
+            background: #f5f5f5;
+            border-left: 4px solid #ddd;
+            opacity: 0.7;
+        }
+
+        .achievement-icon {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .game-over-modal .modal-content {
+            max-width: 400px;
+        }
+
+        .final-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 20px 0;
+        }
+
+        .high-score {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .stats-summary {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-item-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .stat-item-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 20px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .tower-container {
+                height: 250px;
+            }
+
+            :root {
+                --block-size: 50px;
+                --tower-width: 180px;
+            }
+
+            .math-question {
+                font-size: 28px;
+            }
+
+            .answer-input {
+                font-size: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="header">
-    <div class="score-box">
-      <div class="score-label">分数</div>
-      <div class="score-value" id="score">0</div>
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">📐 数学方块塔</h1>
+            <p class="subtitle">堆叠方块，解答数学题，建造最高塔！</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="score">0</div>
+                <div class="stat-label">分数</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="height">0</div>
+                <div class="stat-label">高度</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="high-score">0</div>
+                <div class="stat-label">最高分</div>
+            </div>
+        </div>
+
+        <div class="tower-container">
+            <div class="tower" id="tower"></div>
+            <div class="current-block" id="current-block"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="place-btn">放置方块</button>
+        </div>
+
+        <div class="difficulty-indicator" id="difficulty">
+            当前难度：加法 (+)
+        </div>
+
+        <div class="achievements-panel">
+            <div class="achievements-title">🏆 成就</div>
+            <div id="achievements-list"></div>
+        </div>
     </div>
-    <div class="score-box">
-      <div class="score-label">最高分</div>
-      <div class="score-value" id="high-score">0</div>
+
+    <!-- 数学题弹窗 -->
+    <div class="modal" id="math-modal">
+        <div class="modal-content">
+            <div class="modal-title">🧮 数学挑战</div>
+            <div class="math-question" id="math-question">5 + 3 = ?</div>
+            <input type="number" class="answer-input" id="answer-input" placeholder="输入答案" autofocus>
+            <div>
+                <button class="modal-btn" id="submit-answer">提交答案</button>
+                <button class="modal-btn secondary" id="skip-question">跳过</button>
+            </div>
+        </div>
     </div>
-    <div class="score-box">
-      <div class="score-label">层数</div>
-      <div class="score-value" id="height">0</div>
+
+    <!-- 游戏结束弹窗 -->
+    <div class="modal game-over-modal" id="game-over-modal">
+        <div class="modal-content">
+            <div class="modal-title">🎮 游戏结束</div>
+            <div class="final-score" id="final-score">0</div>
+            <div class="high-score" id="final-high-score">最高分: 0</div>
+            <div class="stats-summary">
+                <div class="stat-item">
+                    <div class="stat-item-value" id="final-height">0</div>
+                    <div class="stat-item-label">堆叠高度</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-item-value" id="final-correct">0</div>
+                    <div class="stat-item-label">答对题数</div>
+                </div>
+            </div>
+            <button class="modal-btn" id="restart-btn">再来一局</button>
+        </div>
     </div>
-  </div>
 
-  <div class="game-container" id="game-container">
-    <div class="tower" id="tower"></div>
-    <div class="block current" id="current-block">1</div>
-  </div>
-
-  <div class="instructions">
-    点击屏幕放置方块，对齐得分。每堆叠 5 个方块回答数学题，答对获得双倍分数！
-  </div>
-
-  <div class="math-modal" id="math-modal">
-    <div class="math-card">
-      <div class="math-question" id="math-question">5 + 3 = ?</div>
-      <input type="number" class="math-input" id="math-input" placeholder="输入答案">
-      <button class="math-btn" id="math-submit">提交</button>
+    <!-- 成就解锁弹窗 -->
+    <div class="achievement-popup" id="achievement-popup">
+        <div class="achievement-title">🎉 成就解锁！</div>
+        <div class="achievement-desc" id="achievement-desc"></div>
     </div>
-  </div>
 
-  <div class="game-over-modal" id="game-over-modal">
-    <div class="game-over-card">
-      <div class="game-over-title">游戏结束</div>
-      <div class="final-score" id="final-score">0</div>
-      <div class="high-score" id="final-high-score">最高分：0</div>
-      <button class="restart-btn" id="restart-btn">再来一局</button>
-    </div>
-  </div>
+    <script>
+        // 游戏状态
+        const gameState = {
+            score: 0,
+            height: 0,
+            highScore: 0,
+            correctAnswers: 0,
+            totalQuestions: 0,
+            currentDifficulty: 0, // 0: 加法, 1: 减法, 2: 乘法, 3: 除法
+            blocks: [],
+            isPlaying: false,
+            isPaused: false,
+            currentBlockPosition: 0,
+            currentBlockDirection: 1,
+            currentBlockSpeed: 2,
+            animationId: null,
+            achievements: {
+                firstTower: false,
+                height50: false,
+                height100: false,
+                correct50: false,
+                correct100: false,
+                score1000: false,
+                score5000: false,
+                perfectStack10: false
+            },
+            perfectStackCount: 0
+        };
 
-  <div class="achievement-toast" id="achievement-toast">成就解锁！</div>
+        // 难度配置
+        const difficulties = [
+            { name: '加法', symbol: '+', color: '#4CAF50' },
+            { name: '减法', symbol: '-', color: '#2196F3' },
+            { name: '乘法', symbol: '×', color: '#FF9800' },
+            { name: '除法', symbol: '÷', color: '#F44336' }
+        ];
 
-  <script>
-    // 游戏状态
-    let score = 0;
-    let highScore = parseInt(localStorage.getItem('mathTowerHighScore')) || 0;
-    let height = 0;
-    let currentBlockWidth = 60;
-    let currentBlockPosition = 0;
-    let isMoving = true;
-    let moveDirection = 1;
-    let moveSpeed = 2;
-    let gameRunning = true;
-    let mathQuestionCount = 0;
-    let achievements = JSON.parse(localStorage.getItem('mathTowerAchievements')) || {};
+        // 成就配置
+        const achievementsConfig = [
+            { id: 'firstTower', name: '初建者', desc: '堆叠第一个方块', condition: () => gameState.height >= 1 },
+            { id: 'height50', name: '建筑师', desc: '堆叠高度达到50层', condition: () => gameState.height >= 50 },
+            { id: 'height100', name: '摩天大楼', desc: '堆叠高度达到100层', condition: () => gameState.height >= 100 },
+            { id: 'correct50', name: '数学小能手', desc: '答对50道数学题', condition: () => gameState.correctAnswers >= 50 },
+            { id: 'correct100', name: '数学大师', desc: '答对100道数学题', condition: () => gameState.correctAnswers >= 100 },
+            { id: 'score1000', name: '千分达人', desc: '单局得分达到1000分', condition: () => gameState.score >= 1000 },
+            { id: 'score5000', name: '五千分王者', desc: '单局得分达到5000分', condition: () => gameState.score >= 5000 },
+            { id: 'perfectStack10', name: '完美堆叠', desc: '连续10次完美对齐', condition: () => gameState.perfectStackCount >= 10 }
+        ];
 
-    // DOM 元素
-    const scoreEl = document.getElementById('score');
-    const highScoreEl = document.getElementById('high-score');
-    const heightEl = document.getElementById('height');
-    const towerEl = document.getElementById('tower');
-    const currentBlockEl = document.getElementById('current-block');
-    const gameContainer = document.getElementById('game-container');
-    const mathModal = document.getElementById('math-modal');
-    const mathQuestionEl = document.getElementById('math-question');
-    const mathInputEl = document.getElementById('math-input');
-    const mathSubmitBtn = document.getElementById('math-submit');
-    const gameOverModal = document.getElementById('game-over-modal');
-    const finalScoreEl = document.getElementById('final-score');
-    const finalHighScoreEl = document.getElementById('final-high-score');
-    const restartBtn = document.getElementById('restart-btn');
-    const achievementToast = document.getElementById('achievement-toast');
+        // DOM元素
+        const elements = {
+            score: document.getElementById('score'),
+            height: document.getElementById('height'),
+            highScore: document.getElementById('high-score'),
+            tower: document.getElementById('tower'),
+            currentBlock: document.getElementById('current-block'),
+            placeBtn: document.getElementById('place-btn'),
+            difficulty: document.getElementById('difficulty'),
+            mathModal: document.getElementById('math-modal'),
+            mathQuestion: document.getElementById('math-question'),
+            answerInput: document.getElementById('answer-input'),
+            submitAnswer: document.getElementById('submit-answer'),
+            skipQuestion: document.getElementById('skip-question'),
+            gameOverModal: document.getElementById('game-over-modal'),
+            finalScore: document.getElementById('final-score'),
+            finalHighScore: document.getElementById('final-high-score'),
+            finalHeight: document.getElementById('final-height'),
+            finalCorrect: document.getElementById('final-correct'),
+            restartBtn: document.getElementById('restart-btn'),
+            achievementPopup: document.getElementById('achievement-popup'),
+            achievementDesc: document.getElementById('achievement-desc'),
+            achievementsList: document.getElementById('achievements-list')
+        };
 
-    // 初始化
-    function init() {
-      score = 0;
-      height = 0;
-      currentBlockWidth = 60;
-      currentBlockPosition = 0;
-      isMoving = true;
-      moveDirection = 1;
-      moveSpeed = 2;
-      gameRunning = true;
-      mathQuestionCount = 0;
-      
-      towerEl.innerHTML = '';
-      currentBlockEl.style.width = currentBlockWidth + 'px';
-      currentBlockEl.style.height = currentBlockWidth + 'px';
-      currentBlockEl.style.left = '50%';
-      currentBlockEl.style.transform = 'translateX(-50%)';
-      currentBlockEl.textContent = height + 1;
-      
-      updateScore();
-      updateHighScore();
-      updateHeight();
-      
-      gameOverModal.classList.remove('active');
-      mathModal.classList.remove('active');
-      
-      requestAnimationFrame(gameLoop);
-    }
-
-    // 游戏循环
-    function gameLoop() {
-      if (!gameRunning) return;
-      
-      if (isMoving) {
-        currentBlockPosition += moveSpeed * moveDirection;
-        
-        // 边界检测
-        const containerWidth = gameContainer.offsetWidth;
-        const maxPosition = (containerWidth - currentBlockWidth) / 2;
-        
-        if (currentBlockPosition > maxPosition) {
-          currentBlockPosition = maxPosition;
-          moveDirection = -1;
-        } else if (currentBlockPosition < -maxPosition) {
-          currentBlockPosition = -maxPosition;
-          moveDirection = 1;
+        // 初始化游戏
+        function initGame() {
+            loadGameData();
+            updateUI();
+            updateAchievementsList();
+            startGame();
         }
-        
-        currentBlockEl.style.left = `calc(50% + ${currentBlockPosition}px)`;
-      }
-      
-      requestAnimationFrame(gameLoop);
-    }
 
-    // 放置方块
-    function placeBlock() {
-      if (!gameRunning || !isMoving) return;
-      
-      isMoving = false;
-      
-      // 计算对齐度
-      const lastBlock = towerEl.lastElementChild;
-      let alignment = 1;
-      
-      if (lastBlock) {
-        const lastBlockRect = lastBlock.getBoundingClientRect();
-        const currentBlockRect = currentBlockEl.getBoundingClientRect();
-        
-        const lastCenter = lastBlockRect.left + lastBlockRect.width / 2;
-        const currentCenter = currentBlockRect.left + currentBlockRect.width / 2;
-        
-        const offset = Math.abs(lastCenter - currentCenter);
-        const maxOffset = currentBlockWidth;
-        
-        alignment = Math.max(0, 1 - offset / maxOffset);
-        
-        // 调整方块宽度
-        if (alignment < 0.9) {
-          currentBlockWidth = Math.max(20, currentBlockWidth * alignment);
+        // 加载游戏数据
+        function loadGameData() {
+            const savedData = localStorage.getItem('mathBlockTower');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                gameState.highScore = data.highScore || 0;
+                gameState.achievements = data.achievements || gameState.achievements;
+            }
         }
-      }
-      
-      // 创建新方块
-      const newBlock = document.createElement('div');
-      newBlock.className = 'block placed';
-      newBlock.style.width = currentBlockWidth + 'px';
-      newBlock.style.height = currentBlockWidth + 'px';
-      newBlock.textContent = height + 1;
-      
-      // 计算分数
-      const blockScore = Math.round(10 * alignment);
-      score += blockScore;
-      height++;
-      
-      // 添加到塔
-      towerEl.appendChild(newBlock);
-      
-      // 更新显示
-      updateScore();
-      updateHeight();
-      
-      // 检查成就
-      checkAchievements();
-      
-      // 检查是否需要数学题
-      if (height % 5 === 0) {
-        setTimeout(() => showMathQuestion(), 500);
-      } else {
-        setTimeout(() => nextBlock(), 300);
-      }
-    }
 
-    // 下一个方块
-    function nextBlock() {
-      if (!gameRunning) return;
-      
-      currentBlockPosition = 0;
-      isMoving = true;
-      moveDirection = 1;
-      moveSpeed = Math.min(5, 2 + height * 0.1);
-      
-      currentBlockEl.style.width = currentBlockWidth + 'px';
-      currentBlockEl.style.height = currentBlockWidth + 'px';
-      currentBlockEl.style.left = '50%';
-      currentBlockEl.style.transform = 'translateX(-50%)';
-      currentBlockEl.textContent = height + 1;
-      
-      // 检查游戏结束（方块太小）
-      if (currentBlockWidth < 25) {
-        gameOver();
-      }
-    }
+        // 保存游戏数据
+        function saveGameData() {
+            const data = {
+                highScore: gameState.highScore,
+                achievements: gameState.achievements
+            };
+            localStorage.setItem('mathBlockTower', JSON.stringify(data));
+        }
 
-    // 显示数学题
-    function showMathQuestion() {
-      const difficulty = Math.min(4, Math.floor(height / 20) + 1);
-      const question = generateMathQuestion(difficulty);
-      
-      mathQuestionEl.textContent = question.text;
-      mathInputEl.value = '';
-      mathModal.classList.add('active');
-      mathInputEl.focus();
-      
-      mathSubmitBtn.onclick = () => checkMathAnswer(question.answer);
-      mathInputEl.onkeydown = (e) => {
-        if (e.key === 'Enter') checkMathAnswer(question.answer);
-      };
-    }
+        // 开始游戏
+        function startGame() {
+            gameState.score = 0;
+            gameState.height = 0;
+            gameState.correctAnswers = 0;
+            gameState.totalQuestions = 0;
+            gameState.currentDifficulty = 0;
+            gameState.blocks = [];
+            gameState.isPlaying = true;
+            gameState.isPaused = false;
+            gameState.perfectStackCount = 0;
 
-    // 生成数学题
-    function generateMathQuestion(difficulty) {
-      let a, b, operator, answer;
-      
-      switch(difficulty) {
-        case 1: // 加法
-          a = Math.floor(Math.random() * 10) + 1;
-          b = Math.floor(Math.random() * 10) + 1;
-          operator = '+';
-          answer = a + b;
-          break;
-        case 2: // 减法
-          a = Math.floor(Math.random() * 10) + 5;
-          b = Math.floor(Math.random() * a) + 1;
-          operator = '-';
-          answer = a - b;
-          break;
-        case 3: // 乘法
-          a = Math.floor(Math.random() * 10) + 1;
-          b = Math.floor(Math.random() * 10) + 1;
-          operator = '×';
-          answer = a * b;
-          break;
-        case 4: // 除法
-          b = Math.floor(Math.random() * 9) + 2;
-          answer = Math.floor(Math.random() * 10) + 1;
-          a = b * answer;
-          operator = '÷';
-          break;
-      }
-      
-      return { text: `${a} ${operator} ${b} = ?`, answer };
-    }
+            // 清空塔
+            elements.tower.innerHTML = '';
 
-    // 检查数学题答案
-    function checkMathAnswer(correctAnswer) {
-      const userAnswer = parseInt(mathInputEl.value);
-      
-      if (userAnswer === correctAnswer) {
-        // 答对，双倍分数奖励
-        const bonus = Math.round(10 * (currentBlockWidth / 60));
-        score += bonus;
-        mathQuestionCount++;
-        updateScore();
-        checkAchievements();
-      }
-      
-      mathModal.classList.remove('active');
-      setTimeout(() => nextBlock(), 300);
-    }
+            // 初始化当前方块
+            gameState.currentBlockPosition = 0;
+            gameState.currentBlockDirection = 1;
+            gameState.currentBlockSpeed = 2;
+            updateCurrentBlock();
 
-    // 游戏结束
-    function gameOver() {
-      gameRunning = false;
-      
-      // 更新最高分
-      if (score > highScore) {
-        highScore = score;
-        localStorage.setItem('mathTowerHighScore', highScore);
-        updateHighScore();
-      }
-      
-      finalScoreEl.textContent = score;
-      finalHighScoreEl.textContent = `最高分：${highScore}`;
-      gameOverModal.classList.add('active');
-    }
+            // 开始动画
+            animate();
 
-    // 检查成就
-    function checkAchievements() {
-      const newAchievements = [];
-      
-      if (height >= 50 && !achievements['height50']) {
-        achievements['height50'] = true;
-        newAchievements.push('堆叠 50 层');
-      }
-      
-      if (mathQuestionCount >= 50 && !achievements['math50']) {
-        achievements['math50'] = true;
-        newAchievements.push('答对 50 题');
-      }
-      
-      if (score >= 1000 && !achievements['score1000']) {
-        achievements['score1000'] = true;
-        newAchievements.push('得分 1000');
-      }
-      
-      if (newAchievements.length > 0) {
-        localStorage.setItem('mathTowerAchievements', JSON.stringify(achievements));
-        showAchievementToast(newAchievements.join('、'));
-      }
-    }
+            updateUI();
+        }
 
-    // 显示成就提示
-    function showAchievementToast(text) {
-      achievementToast.textContent = `成就解锁：${text}`;
-      achievementToast.classList.add('show');
-      setTimeout(() => achievementToast.classList.remove('show'), 3000);
-    }
+        // 动画循环
+        function animate() {
+            if (!gameState.isPlaying || gameState.isPaused) return;
 
-    // 更新分数显示
-    function updateScore() {
-      scoreEl.textContent = score;
-    }
+            // 移动当前方块
+            gameState.currentBlockPosition += gameState.currentBlockDirection * gameState.currentBlockSpeed;
 
-    // 更新最高分显示
-    function updateHighScore() {
-      highScoreEl.textContent = highScore;
-    }
+            // 边界检测
+            const maxWidth = 200 - 60; // tower width - block width
+            if (gameState.currentBlockPosition <= 0) {
+                gameState.currentBlockPosition = 0;
+                gameState.currentBlockDirection = 1;
+            } else if (gameState.currentBlockPosition >= maxWidth) {
+                gameState.currentBlockPosition = maxWidth;
+                gameState.currentBlockDirection = -1;
+            }
 
-    // 更新层数显示
-    function updateHeight() {
-      heightEl.textContent = height;
-    }
+            updateCurrentBlock();
+            gameState.animationId = requestAnimationFrame(animate);
+        }
 
-    // 事件监听
-    gameContainer.addEventListener('click', placeBlock);
-    gameContainer.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      placeBlock();
-    });
+        // 更新当前方块位置
+        function updateCurrentBlock() {
+            elements.currentBlock.style.left = gameState.currentBlockPosition + 'px';
+            elements.currentBlock.style.backgroundColor = getBlockColor(gameState.height);
+        }
 
-    restartBtn.addEventListener('click', init);
+        // 获取方块颜色
+        function getBlockColor(height) {
+            const hue = (height * 10) % 360;
+            return `hsl(${hue}, 70%, 60%)`;
+        }
 
-    // 开始游戏
-    init();
-  </script>
+        // 放置方块
+        function placeBlock() {
+            if (!gameState.isPlaying || gameState.isPaused) return;
+
+            // 停止动画
+            cancelAnimationFrame(gameState.animationId);
+
+            // 计算对齐精度
+            const alignment = calculateAlignment();
+
+            // 创建方块元素
+            const block = document.createElement('div');
+            block.className = 'block';
+            block.style.backgroundColor = getBlockColor(gameState.height);
+
+            // 添加对齐效果
+            if (alignment >= 90) {
+                block.classList.add('perfect');
+                gameState.perfectStackCount++;
+            } else if (alignment >= 70) {
+                block.classList.add('good');
+                gameState.perfectStackCount = 0;
+            } else {
+                block.classList.add('miss');
+                gameState.perfectStackCount = 0;
+            }
+
+            // 添加到塔
+            elements.tower.appendChild(block);
+            gameState.blocks.push(block);
+
+            // 更新高度
+            gameState.height++;
+
+            // 计算得分
+            let points = Math.floor(alignment / 10) * 10;
+            if (alignment >= 90) points *= 2; // 完美对齐双倍分数
+
+            gameState.score += points;
+
+            // 检查是否需要数学题
+            if (gameState.height % 5 === 0) {
+                showMathQuestion();
+            } else {
+                // 继续下一个方块
+                nextBlock();
+            }
+
+            // 检查成就
+            checkAchievements();
+
+            updateUI();
+        }
+
+        // 计算对齐精度
+        function calculateAlignment() {
+            const lastBlock = gameState.blocks[gameState.blocks.length - 1];
+            if (!lastBlock) return 100; // 第一个方块总是完美对齐
+
+            // 简化计算：基于当前位置的随机精度
+            const position = gameState.currentBlockPosition;
+            const maxWidth = 200 - 60;
+            const center = maxWidth / 2;
+            const distance = Math.abs(position - center);
+            const alignment = Math.max(0, 100 - (distance / center) * 100);
+
+            return Math.floor(alignment);
+        }
+
+        // 下一个方块
+        function nextBlock() {
+            // 重置当前方块位置
+            gameState.currentBlockPosition = 0;
+            gameState.currentBlockDirection = 1;
+
+            // 随着高度增加，速度加快
+            gameState.currentBlockSpeed = 2 + Math.floor(gameState.height / 10) * 0.5;
+
+            // 更新当前方块颜色
+            updateCurrentBlock();
+
+            // 重新开始动画
+            animate();
+        }
+
+        // 显示数学题
+        function showMathQuestion() {
+            gameState.isPaused = true;
+            gameState.totalQuestions++;
+
+            // 生成题目
+            const question = generateMathQuestion();
+            elements.mathQuestion.textContent = question.text;
+            elements.mathQuestion.dataset.answer = question.answer;
+
+            // 显示弹窗
+            elements.mathModal.classList.add('active');
+            elements.answerInput.value = '';
+            elements.answerInput.focus();
+        }
+
+        // 生成数学题
+        function generateMathQuestion() {
+            const difficulty = gameState.currentDifficulty;
+            let num1, num2, answer, text;
+
+            switch (difficulty) {
+                case 0: // 加法
+                    num1 = Math.floor(Math.random() * 50) + 1;
+                    num2 = Math.floor(Math.random() * 50) + 1;
+                    answer = num1 + num2;
+                    text = `${num1} + ${num2} = ?`;
+                    break;
+                case 1: // 减法
+                    num1 = Math.floor(Math.random() * 50) + 20;
+                    num2 = Math.floor(Math.random() * 20) + 1;
+                    answer = num1 - num2;
+                    text = `${num1} - ${num2} = ?`;
+                    break;
+                case 2: // 乘法
+                    num1 = Math.floor(Math.random() * 12) + 1;
+                    num2 = Math.floor(Math.random() * 12) + 1;
+                    answer = num1 * num2;
+                    text = `${num1} × ${num2} = ?`;
+                    break;
+                case 3: // 除法
+                    num2 = Math.floor(Math.random() * 10) + 2;
+                    answer = Math.floor(Math.random() * 10) + 1;
+                    num1 = num2 * answer;
+                    text = `${num1} ÷ ${num2} = ?`;
+                    break;
+            }
+
+            return { text, answer };
+        }
+
+        // 提交答案
+        function submitAnswer() {
+            const userAnswer = parseInt(elements.answerInput.value);
+            const correctAnswer = parseInt(elements.mathQuestion.dataset.answer);
+
+            if (userAnswer === correctAnswer) {
+                // 答对了
+                gameState.correctAnswers++;
+                gameState.score *= 2; // 双倍分数奖励
+
+                // 显示正确反馈
+                showFeedback('正确！分数翻倍！', 'success');
+            } else {
+                // 答错了
+                showFeedback(`错误！正确答案是 ${correctAnswer}`, 'error');
+            }
+
+            // 关闭弹窗
+            elements.mathModal.classList.remove('active');
+            gameState.isPaused = false;
+
+            // 检查难度递进
+            checkDifficultyProgression();
+
+            // 继续游戏
+            nextBlock();
+
+            // 检查成就
+            checkAchievements();
+
+            updateUI();
+        }
+
+        // 跳过问题
+        function skipQuestion() {
+            elements.mathModal.classList.remove('active');
+            gameState.isPaused = false;
+            nextBlock();
+        }
+
+        // 显示反馈
+        function showFeedback(message, type) {
+            // 简单反馈，可以扩展为更复杂的动画
+            console.log(`[${type}] ${message}`);
+        }
+
+        // 检查难度递进
+        function checkDifficultyProgression() {
+            const height = gameState.height;
+            let newDifficulty = 0;
+
+            if (height >= 60) {
+                newDifficulty = 3; // 除法
+            } else if (height >= 40) {
+                newDifficulty = 2; // 乘法
+            } else if (height >= 20) {
+                newDifficulty = 1; // 减法
+            }
+
+            if (newDifficulty !== gameState.currentDifficulty) {
+                gameState.currentDifficulty = newDifficulty;
+                updateDifficultyDisplay();
+            }
+        }
+
+        // 更新难度显示
+        function updateDifficultyDisplay() {
+            const diff = difficulties[gameState.currentDifficulty];
+            elements.difficulty.textContent = `当前难度：${diff.name} (${diff.symbol})`;
+            elements.difficulty.style.color = diff.color;
+        }
+
+        // 检查成就
+        function checkAchievements() {
+            achievementsConfig.forEach(achievement => {
+                if (!gameState.achievements[achievement.id] && achievement.condition()) {
+                    gameState.achievements[achievement.id] = true;
+                    showAchievementPopup(achievement.name, achievement.desc);
+                    updateAchievementsList();
+                    saveGameData();
+                }
+            });
+        }
+
+        // 显示成就弹窗
+        function showAchievementPopup(name, desc) {
+            elements.achievementDesc.textContent = `${name}: ${desc}`;
+            elements.achievementPopup.classList.add('active');
+
+            setTimeout(() => {
+                elements.achievementPopup.classList.remove('active');
+            }, 3000);
+        }
+
+        // 更新成就列表
+        function updateAchievementsList() {
+            elements.achievementsList.innerHTML = '';
+
+            achievementsConfig.forEach(achievement => {
+                const item = document.createElement('div');
+                item.className = `achievement-item ${gameState.achievements[achievement.id] ? 'unlocked' : 'locked'}`;
+
+                const icon = document.createElement('span');
+                icon.className = 'achievement-icon';
+                icon.textContent = gameState.achievements[achievement.id] ? '🏆' : '🔒';
+
+                const text = document.createElement('span');
+                text.textContent = achievement.name;
+
+                item.appendChild(icon);
+                item.appendChild(text);
+                elements.achievementsList.appendChild(item);
+            });
+        }
+
+        // 游戏结束
+        function gameOver() {
+            gameState.isPlaying = false;
+            cancelAnimationFrame(gameState.animationId);
+
+            // 更新最高分
+            if (gameState.score > gameState.highScore) {
+                gameState.highScore = gameState.score;
+                saveGameData();
+            }
+
+            // 显示游戏结束弹窗
+            elements.finalScore.textContent = gameState.score;
+            elements.finalHighScore.textContent = `最高分: ${gameState.highScore}`;
+            elements.finalHeight.textContent = gameState.height;
+            elements.finalCorrect.textContent = gameState.correctAnswers;
+            elements.gameOverModal.classList.add('active');
+        }
+
+        // 更新UI
+        function updateUI() {
+            elements.score.textContent = gameState.score;
+            elements.height.textContent = gameState.height;
+            elements.highScore.textContent = gameState.highScore;
+            updateDifficultyDisplay();
+        }
+
+        // 事件监听
+        elements.placeBtn.addEventListener('click', placeBlock);
+        elements.submitAnswer.addEventListener('click', submitAnswer);
+        elements.skipQuestion.addEventListener('click', skipQuestion);
+        elements.restartBtn.addEventListener('click', () => {
+            elements.gameOverModal.classList.remove('active');
+            startGame();
+        });
+
+        // 键盘事件
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && gameState.isPlaying && !gameState.isPaused) {
+                e.preventDefault();
+                placeBlock();
+            }
+            if (e.code === 'Enter' && elements.mathModal.classList.contains('active')) {
+                submitAnswer();
+            }
+        });
+
+        // 触摸事件
+        elements.placeBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            placeBlock();
+        });
+
+        // 初始化游戏
+        initGame();
+    </script>
 </body>
 </html>
