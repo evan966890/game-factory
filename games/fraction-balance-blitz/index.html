@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>分数平衡冲刺</title>
+  <style>
+    :root {
+      --bg: #f5f7ff;
+      --card: #ffffff;
+      --text: #1f2a44;
+      --accent: #4f46e5;
+      --ok: #0f9d58;
+      --bad: #d93025;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #eef2ff, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .app {
+      width: 100%;
+      max-width: 560px;
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: 0 12px 34px rgba(33, 41, 83, 0.15);
+      padding: 18px;
+    }
+    h1 { margin: 0 0 8px; font-size: 1.4rem; }
+    .hint { margin: 0 0 14px; color: #4b5563; font-size: 0.95rem; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .stat {
+      flex: 1;
+      min-width: 120px;
+      background: #f1f5ff;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      font-weight: 700;
+    }
+    .question {
+      margin: 16px 0 8px;
+      background: #f8faff;
+      border: 2px dashed #c7d2fe;
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      background: #e0e7ff;
+      color: #1e1b4b;
+      cursor: pointer;
+    }
+    button:active { transform: scale(0.98); }
+    .primary { background: var(--accent); color: #fff; width: 100%; margin-top: 12px; }
+    .msg {
+      min-height: 24px;
+      margin-top: 10px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .over {
+      margin-top: 12px;
+      background: #ecfeff;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      display: none;
+      font-weight: 700;
+    }
+    @media (max-width: 420px) {
+      .question { font-size: 1.6rem; }
+      button { font-size: 0.95rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>分数平衡冲刺</h1>
+    <p class="hint">判断左边分数和右边分数：选 &lt;、=、&gt;。60 秒内答得越多越好！</p>
+
+    <section class="row">
+      <div class="stat">⏱️ <span id="time">60</span>s</div>
+      <div class="stat">✅ 得分 <span id="score">0</span></div>
+      <div class="stat">🧩 题目 <span id="count">0</span></div>
+    </section>
+
+    <section class="question" id="question">1/2 ? 3/4</section>
+
+    <section class="buttons">
+      <button data-op="<">&lt;</button>
+      <button data-op="=">=</button>
+      <button data-op=">">&gt;</button>
+    </section>
+
+    <div class="msg" id="msg"></div>
+    <div class="over" id="over"></div>
+    <button class="primary" id="restart">开始 / 重新开始</button>
+  </main>
+
+  <script>
+    const timeEl = document.getElementById('time');
+    const scoreEl = document.getElementById('score');
+    const countEl = document.getElementById('count');
+    const qEl = document.getElementById('question');
+    const msgEl = document.getElementById('msg');
+    const overEl = document.getElementById('over');
+    const restartBtn = document.getElementById('restart');
+    const choiceBtns = [...document.querySelectorAll('[data-op]')];
+
+    let timer = null;
+    let left = null;
+    let right = null;
+    let score = 0;
+    let count = 0;
+    let timeLeft = 60;
+    let running = false;
+
+    function gcd(a, b) {
+      while (b !== 0) [a, b] = [b, a % b];
+      return a;
+    }
+
+    function simplify(n, d) {
+      const g = gcd(n, d);
+      return [n / g, d / g];
+    }
+
+    function randomFraction() {
+      const d = Math.floor(Math.random() * 8) + 2; // 2..9
+      const n = Math.floor(Math.random() * (d - 1)) + 1;
+      const [sn, sd] = simplify(n, d);
+      return { n: sn, d: sd, value: sn / sd };
+    }
+
+    function nextQuestion() {
+      left = randomFraction();
+      right = randomFraction();
+      qEl.textContent = `${left.n}/${left.d} ? ${right.n}/${right.d}`;
+      count += 1;
+      countEl.textContent = count;
+      msgEl.textContent = '';
+      msgEl.className = 'msg';
+    }
+
+    function judge() {
+      if (Math.abs(left.value - right.value) < 1e-9) return '=';
+      return left.value > right.value ? '>' : '<';
+    }
+
+    function onChoice(op) {
+      if (!running) return;
+      const ans = judge();
+      if (op === ans) {
+        score += 1;
+        msgEl.textContent = '答对啦！';
+        msgEl.className = 'msg ok';
+      } else {
+        msgEl.textContent = `答错了，正确答案是 ${ans}`;
+        msgEl.className = 'msg bad';
+      }
+      scoreEl.textContent = score;
+      nextQuestion();
+    }
+
+    function stopGame() {
+      running = false;
+      clearInterval(timer);
+      overEl.style.display = 'block';
+      overEl.textContent = `时间到！共完成 ${count} 题，得分 ${score} 分。`;
+      msgEl.textContent = '';
+    }
+
+    function startGame() {
+      score = 0;
+      count = 0;
+      timeLeft = 60;
+      running = true;
+      scoreEl.textContent = score;
+      countEl.textContent = count;
+      timeEl.textContent = timeLeft;
+      overEl.style.display = 'none';
+      nextQuestion();
+
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft -= 1;
+        timeEl.textContent = timeLeft;
+        if (timeLeft <= 0) stopGame();
+      }, 1000);
+    }
+
+    choiceBtns.forEach(btn => btn.addEventListener('click', () => onChoice(btn.dataset.op)));
+    restartBtn.addEventListener('click', startGame);
+  </script>
+</body>
+</html>
