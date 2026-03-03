@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>数学纸夹宇宙</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #22d3ee;
+      --ok: #22c55e;
+      --bad: #ef4444;
+      --text: #e5e7eb;
+      --path: #1e293b;
+      --ball: #3b82f6;
+      --shield: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #0b1024, #111827);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      overflow: hidden;
+    }
+    .app {
+      width: min(720px, 100%);
+      background: rgba(17, 24, 39, .95);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(24px, 5vw, 34px);
+      text-align: center;
+    }
+    .sub {
+      opacity: .85;
+      margin: 0 0 12px;
+      font-size: 14px;
+      text-align: center;
+    }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .box {
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+    .k { font-size: 12px; opacity: .7; }
+    .v { font-size: 22px; font-weight: 700; }
+    .game-container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .click-area {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.1s;
+      z-index: 5;
+    }
+    .click-area:active { transform: translate(-50%, -50%) scale(0.95); }
+    .click-area .formula {
+      font-size: clamp(20px, 5vw, 32px);
+      font-weight: 800;
+      color: white;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .click-area .hint {
+      font-size: 12px;
+      color: rgba(255,255,255,0.8);
+    }
+    .floating-text {
+      position: absolute;
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--ok);
+      pointer-events: none;
+      animation: floatUp 1s ease-out forwards;
+      z-index: 10;
+    }
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-50px); }
+    }
+    .question-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .question-modal.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .question-content {
+      background: var(--card);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      padding: 24px;
+      width: min(400px, 90%);
+      text-align: center;
+    }
+    .question-text {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .option {
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .option:hover { background: #374151; }
+    .option.correct { background: var(--ok); border-color: var(--ok); }
+    .option.wrong { background: var(--bad); border-color: var(--bad); }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .tab {
+      flex: 1;
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .tab.active { background: var(--accent); border-color: var(--accent); color: #000; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .upgrade-list, .research-list, .achievement-list {
+      display: grid;
+      gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .upgrade-item, .research-item, .achievement-item {
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .upgrade-item.owned { border-color: var(--ok); }
+    .upgrade-item .name { font-weight: bold; }
+    .upgrade-item .desc { font-size: 12px; opacity: .7; }
+    .upgrade-item .cost { color: var(--accent); }
+    .upgrade-item button {
+      background: var(--accent);
+      border: none;
+      border-radius: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+      color: #000;
+      font-weight: bold;
+    }
+    .upgrade-item button:disabled { opacity: .5; cursor: not-allowed; }
+    .achievement-item.unlocked { border-color: var(--ok); }
+    .achievement-item .name { font-weight: bold; }
+    .achievement-item .desc { font-size: 12px; opacity: .7; }
+    .achievement-item .status { font-size: 12px; }
+    .achievement-item.unlocked .status { color: var(--ok); }
+    .reset-btn {
+      background: var(--bad);
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      margin-top: 12px;
+      width: 100%;
+    }
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--card);
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 16px;
+      z-index: 200;
+      transform: translateX(120%);
+      transition: transform 0.3s;
+    }
+    .notification.show { transform: translateX(0); }
+    .notification.success { border-color: var(--ok); }
+    .notification.error { border-color: var(--bad); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>数学纸夹宇宙</h1>
+    <div class="sub">点击数学公式，答对题目获得点数，升级自动化生产，征服宇宙！</div>
+    
+    <div class="hud">
+      <div class="box">
+        <div class="k">数学点数</div>
+        <div class="v" id="points">0</div>
+      </div>
+      <div class="box">
+        <div class="k">每秒点数</div>
+        <div class="v" id="pps">0</div>
+      </div>
+      <div class="box">
+        <div class="k">点击次数</div>
+        <div class="v" id="clicks">0</div>
+      </div>
+    </div>
+    
+    <div class="game-container">
+      <div class="click-area" id="clickArea">
+        <div class="formula" id="formula">2+2=?</div>
+        <div class="hint">点击答题</div>
+      </div>
+    </div>
+    
+    <div class="tabs">
+      <div class="tab active" data-tab="upgrades">升级</div>
+      <div class="tab" data-tab="research">研究</div>
+      <div class="tab" data-tab="achievements">成就</div>
+    </div>
+    
+    <div class="tab-content active" id="upgrades">
+      <div class="upgrade-list" id="upgradeList"></div>
+    </div>
+    
+    <div class="tab-content" id="research">
+      <div class="research-list" id="researchList"></div>
+    </div>
+    
+    <div class="tab-content" id="achievements">
+      <div class="achievement-list" id="achievementList"></div>
+    </div>
+    
+    <button class="reset-btn" id="resetBtn">重置进度</button>
+  </div>
+  
+  <div class="question-modal" id="questionModal">
+    <div class="question-content">
+      <div class="question-text" id="questionText">2+2=?</div>
+      <div class="options" id="options"></div>
+    </div>
+  </div>
+  
+  <div class="notification" id="notification"></div>
+
+  <script>
+    // 游戏状态
+    const state = {
+      points: 0,
+      clicks: 0,
+      upgrades: {},
+      research: {},
+      achievements: {},
+      lastSave: Date.now()
+    };
+    
+    // 升级定义
+    const upgrades = [
+      { id: 'adder', name: '加法器', desc: '每秒自动获得 1 点数', cost: 10, pps: 1, owned: 0 },
+      { id: 'multiplier', name: '乘法器', desc: '每秒自动获得 5 点数', cost: 100, pps: 5, owned: 0 },
+      { id: 'calculator', name: '计算器', desc: '每秒自动获得 20 点数', cost: 500, pps: 20, owned: 0 },
+      { id: 'computer', name: '计算机', desc: '每秒自动获得 100 点数', cost: 2000, pps: 100, owned: 0 },
+      { id: 'server', name: '服务器', desc: '每秒自动获得 500 点数', cost: 10000, pps: 500, owned: 0 },
+      { id: 'cluster', name: '计算集群', desc: '每秒自动获得 2000 点数', cost: 50000, pps: 2000, owned: 0 },
+      { id: 'supercomputer', name: '超级计算机', desc: '每秒自动获得 10000 点数', cost: 200000, pps: 10000, owned: 0 },
+      { id: 'quantum', name: '量子计算机', desc: '每秒自动获得 50000 点数', cost: 1000000, pps: 50000, owned: 0 }
+    ];
+    
+    // 研究定义
+    const research = [
+      { id: 'algebra', name: '代数', desc: '解锁代数题目，点击奖励 +50%', cost: 1000, unlocked: false },
+      { id: 'geometry', name: '几何', desc: '解锁几何题目，点击奖励 +100%', cost: 5000, unlocked: false },
+      { id: 'calculus', name: '微积分', desc: '解锁微积分题目，点击奖励 +200%', cost: 20000, unlocked: false },
+      { id: 'paperclip_army', name: '纸夹军队', desc: '每秒点数 +50%', cost: 10000, unlocked: false },
+      { id: 'paperclip_empire', name: '纸夹帝国', desc: '每秒点数 +100%', cost: 50000, unlocked: false },
+      { id: 'paperclip_universe', name: '纸夹宇宙', desc: '每秒点数 +200%', cost: 200000, unlocked: false }
+    ];
+    
+    // 成就定义
+    const achievements = [
+      { id: 'clicks_10', name: '新手点击者', desc: '点击 10 次', condition: () => state.clicks >= 10, unlocked: false },
+      { id: 'clicks_100', name: '熟练点击者', desc: '点击 100 次', condition: () => state.clicks >= 100, unlocked: false },
+      { id: 'clicks_1000', name: '点击大师', desc: '点击 1000 次', condition: () => state.clicks >= 1000, unlocked: false },
+      { id: 'points_100', name: '点数收集者', desc: '获得 100 点数', condition: () => state.points >= 100, unlocked: false },
+      { id: 'points_1000', name: '点数富翁', desc: '获得 1000 点数', condition: () => state.points >= 1000, unlocked: false },
+      { id: 'points_10000', name: '点数大亨', desc: '获得 10000 点数', condition: () => state.points >= 10000, unlocked: false },
+      { id: 'upgrade_5', name: '升级爱好者', desc: '拥有 5 个升级', condition: () => Object.values(state.upgrades).reduce((a,b)=>a+b,0) >= 5, unlocked: false },
+      { id: 'upgrade_20', name: '升级狂人', desc: '拥有 20 个升级', condition: () => Object.values(state.upgrades).reduce((a,b)=>a+b,0) >= 20, unlocked: false },
+      { id: 'research_all', name: '研究大师', desc: '解锁所有研究', condition: () => Object.values(state.research).every(v=>v), unlocked: false }
+    ];
+    
+    // 数学题目生成
+    function generateQuestion() {
+      const difficulty = getDifficulty();
+      let a, b, op, answer;
+      
+      if (difficulty === 'addition') {
+        a = Math.floor(Math.random() * 10) + 1;
+        b = Math.floor(Math.random() * 10) + 1;
+        op = '+';
+        answer = a + b;
+      } else if (difficulty === 'subtraction') {
+        a = Math.floor(Math.random() * 10) + 1;
+        b = Math.floor(Math.random() * a) + 1;
+        op = '-';
+        answer = a - b;
+      } else if (difficulty === 'multiplication') {
+        a = Math.floor(Math.random() * 10) + 1;
+        b = Math.floor(Math.random() * 10) + 1;
+        op = '×';
+        answer = a * b;
+      } else if (difficulty === 'division') {
+        b = Math.floor(Math.random() * 10) + 1;
+        a = b * (Math.floor(Math.random() * 10) + 1);
+        op = '÷';
+        answer = a / b;
+      } else if (difficulty === 'algebra') {
+        a = Math.floor(Math.random() * 10) + 1;
+        b = Math.floor(Math.random() * 10) + 1;
+        const x = Math.floor(Math.random() * 10) + 1;
+        answer = x;
+        return { text: `${a}x + ${b} = ${a*x + b}`, answer };
+      } else if (difficulty === 'geometry') {
+        const side = Math.floor(Math.random() * 10) + 1;
+        answer = side * side;
+        return { text: `正方形面积（边长 ${side}）`, answer };
+      } else if (difficulty === 'calculus') {
+        const n = Math.floor(Math.random() * 5) + 1;
+        answer = n * n;
+        return { text: `x² 在 x=${n} 处的导数`, answer };
+      }
+      
+      return { text: `${a} ${op} ${b}`, answer };
+    }
+    
+    function getDifficulty() {
+      if (state.research.calculus) return 'calculus';
+      if (state.research.geometry) return 'geometry';
+      if (state.research.algebra) return 'algebra';
+      if (state.points >= 500) return 'division';
+      if (state.points >= 200) return 'multiplication';
+      if (state.points >= 50) return 'subtraction';
+      return 'addition';
+    }
+    
+    function getClickReward() {
+      let reward = 1;
+      if (state.research.algebra) reward *= 1.5;
+      if (state.research.geometry) reward *= 2;
+      if (state.research.calculus) reward *= 3;
+      return Math.floor(reward);
+    }
+    
+    function getPPS() {
+      let pps = 0;
+      upgrades.forEach(u => {
+        pps += u.pps * (state.upgrades[u.id] || 0);
+      });
+      if (state.research.paperclip_army) pps *= 1.5;
+      if (state.research.paperclip_empire) pps *= 2;
+      if (state.research.paperclip_universe) pps *= 3;
+      return Math.floor(pps);
+    }
+    
+    function showQuestion() {
+      const question = generateQuestion();
+      const modal = document.getElementById('questionModal');
+      const questionText = document.getElementById('questionText');
+      const options = document.getElementById('options');
+      
+      questionText.textContent = question.text + ' = ?';
+      options.innerHTML = '';
+      
+      const correctAnswer = question.answer;
+      const answers = [correctAnswer];
+      while (answers.length < 4) {
+        const wrong = correctAnswer + Math.floor(Math.random() * 10) - 5;
+        if (wrong !== correctAnswer && !answers.includes(wrong) && wrong >= 0) {
+          answers.push(wrong);
+        }
+      }
+      answers.sort(() => Math.random() - 0.5);
+      
+      answers.forEach(ans => {
+        const btn = document.createElement('div');
+        btn.className = 'option';
+        btn.textContent = ans;
+        btn.onclick = () => handleAnswer(ans, correctAnswer);
+        options.appendChild(btn);
+      });
+      
+      modal.classList.add('active');
+    }
+    
+    function handleAnswer(selected, correct) {
+      const modal = document.getElementById('questionModal');
+      const options = document.querySelectorAll('.option');
+      
+      options.forEach(opt => {
+        opt.onclick = null;
+        if (parseInt(opt.textContent) === correct) {
+          opt.classList.add('correct');
+        } else if (parseInt(opt.textContent) === selected) {
+          opt.classList.add('wrong');
+        }
+      });
+      
+      setTimeout(() => {
+        modal.classList.remove('active');
+        if (selected === correct) {
+          const reward = getClickReward();
+          state.points += reward;
+          state.clicks++;
+          showFloatingText(`+${reward}`, '#22c55e');
+          updateUI();
+          checkAchievements();
+          saveGame();
+        } else {
+          showFloatingText('答错了！', '#ef4444');
+        }
+      }, 500);
+    }
+    
+    function showFloatingText(text, color) {
+      const container = document.querySelector('.game-container');
+      const floating = document.createElement('div');
+      floating.className = 'floating-text';
+      floating.textContent = text;
+      floating.style.color = color;
+      floating.style.left = '50%';
+      floating.style.top = '50%';
+      floating.style.transform = 'translate(-50%, -50%)';
+      container.appendChild(floating);
+      setTimeout(() => floating.remove(), 1000);
+    }
+    
+    function showNotification(text, type = 'success') {
+      const notification = document.getElementById('notification');
+      notification.textContent = text;
+      notification.className = `notification ${type} show`;
+      setTimeout(() => notification.classList.remove('show'), 3000);
+    }
+    
+    function updateUI() {
+      document.getElementById('points').textContent = formatNumber(state.points);
+      document.getElementById('pps').textContent = formatNumber(getPPS());
+      document.getElementById('clicks').textContent = formatNumber(state.clicks);
+      document.getElementById('formula').textContent = generateQuestion().text + ' = ?';
+      renderUpgrades();
+      renderResearch();
+      renderAchievements();
+    }
+    
+    function formatNumber(num) {
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+      return Math.floor(num);
+    }
+    
+    function renderUpgrades() {
+      const list = document.getElementById('upgradeList');
+      list.innerHTML = '';
+      upgrades.forEach(u => {
+        const owned = state.upgrades[u.id] || 0;
+        const cost = Math.floor(u.cost * Math.pow(1.15, owned));
+        const item = document.createElement('div');
+        item.className = `upgrade-item ${owned > 0 ? 'owned' : ''}`;
+        item.innerHTML = `
+          <div>
+            <div class="name">${u.name} (${owned})</div>
+            <div class="desc">${u.desc}</div>
+          </div>
+          <div>
+            <div class="cost">${formatNumber(cost)}</div>
+            <button ${state.points < cost ? 'disabled' : ''} onclick="buyUpgrade('${u.id}')">购买</button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+    
+    function renderResearch() {
+      const list = document.getElementById('researchList');
+      list.innerHTML = '';
+      research.forEach(r => {
+        const unlocked = state.research[r.id];
+        const item = document.createElement('div');
+        item.className = `research-item ${unlocked ? 'unlocked' : ''}`;
+        item.innerHTML = `
+          <div>
+            <div class="name">${r.name}</div>
+            <div class="desc">${r.desc}</div>
+          </div>
+          <div>
+            <div class="cost">${unlocked ? '已解锁' : formatNumber(r.cost)}</div>
+            ${!unlocked ? `<button ${state.points < r.cost ? 'disabled' : ''} onclick="buyResearch('${r.id}')">研究</button>` : ''}
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+    
+    function renderAchievements() {
+      const list = document.getElementById('achievementList');
+      list.innerHTML = '';
+      achievements.forEach(a => {
+        const unlocked = state.achievements[a.id];
+        const item = document.createElement('div');
+        item.className = `achievement-item ${unlocked ? 'unlocked' : ''}`;
+        item.innerHTML = `
+          <div>
+            <div class="name">${a.name}</div>
+            <div class="desc">${a.desc}</div>
+          </div>
+          <div class="status">${unlocked ? '✅ 已解锁' : '🔒 未解锁'}</div>
+        `;
+        list.appendChild(item);
+      });
+    }
+    
+    function buyUpgrade(id) {
+      const u = upgrades.find(x => x.id === id);
+      const owned = state.upgrades[id] || 0;
+      const cost = Math.floor(u.cost * Math.pow(1.15, owned));
+      if (state.points >= cost) {
+        state.points -= cost;
+        state.upgrades[id] = owned + 1;
+        updateUI();
+        checkAchievements();
+        saveGame();
+        showNotification(`购买了 ${u.name}！`);
+      }
+    }
+    
+    function buyResearch(id) {
+      const r = research.find(x => x.id === id);
+      if (state.points >= r.cost && !state.research[id]) {
+        state.points -= r.cost;
+        state.research[id] = true;
+        updateUI();
+        checkAchievements();
+        saveGame();
+        showNotification(`解锁了 ${r.name}！`);
+      }
+    }
+    
+    function checkAchievements() {
+      achievements.forEach(a => {
+        if (!state.achievements[a.id] && a.condition()) {
+          state.achievements[a.id] = true;
+          showNotification(`成就解锁：${a.name}！`);
+        }
+      });
+    }
+    
+    function saveGame() {
+      state.lastSave = Date.now();
+      localStorage.setItem('math-paperclip-universe', JSON.stringify(state));
+    }
+    
+    function loadGame() {
+      const saved = localStorage.getItem('math-paperclip-universe');
+      if (saved) {
+        const data = JSON.parse(saved);
+        Object.assign(state, data);
+        // 计算离线进度
+        const offlineTime = (Date.now() - state.lastSave) / 1000;
+        const offlinePoints = Math.floor(offlineTime * getPPS());
+        if (offlinePoints > 0) {
+          state.points += offlinePoints;
+          showNotification(`离线期间获得了 ${formatNumber(offlinePoints)} 点数！`);
+        }
+      }
+    }
+    
+    function resetGame() {
+      if (confirm('确定要重置所有进度吗？')) {
+        localStorage.removeItem('math-paperclip-universe');
+        location.reload();
+      }
+    }
+    
+    // 事件监听
+    document.getElementById('clickArea').addEventListener('click', showQuestion);
+    document.getElementById('resetBtn').addEventListener('click', resetGame);
+    
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+    
+    // 自动生产
+    setInterval(() => {
+      const pps = getPPS();
+      if (pps > 0) {
+        state.points += pps;
+        updateUI();
+        checkAchievements();
+        saveGame();
+      }
+    }, 1000);
+    
+    // 初始化
+    loadGame();
+    updateUI();
+  </script>
+</body>
+</html>
