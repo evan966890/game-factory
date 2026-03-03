@@ -1,0 +1,770 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>汤姆猫跑酷</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --tom: #ff6b6b;
+      --tom-dark: #ee5a5a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .track {
+      height: 200px;
+      background: linear-gradient(180deg, #87ceeb 0%, #98fb98 100%);
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .ground {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: linear-gradient(180deg, #8b4513 0%, #654321 100%);
+    }
+
+    .tom {
+      position: absolute;
+      bottom: 40px;
+      left: 50px;
+      width: 40px;
+      height: 40px;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: bottom 0.1s;
+    }
+
+    .tom.jumping {
+      bottom: 100px;
+    }
+
+    .tom.sliding {
+      height: 20px;
+      bottom: 40px;
+    }
+
+    .obstacle {
+      position: absolute;
+      bottom: 40px;
+      width: 30px;
+      height: 30px;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .coin {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .characters {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .characters-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .characters-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .character {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .character:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .character.selected {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .character.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .character .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .character .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .achievements {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .achievements-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .achievement-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      font-size: 0.9rem;
+    }
+
+    .achievement-item.unlocked {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .achievement-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .achievement-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>汤姆猫跑酷</h1>
+    <p class="subtitle">控制汤姆猫奔跑、跳跃、滑行，躲避障碍，收集金币</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">分数</span>
+        <span class="value green" id="score">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="coins">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高分</span>
+        <span class="value blue" id="highScore">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="track" id="track">
+          <div class="tom" id="tom">🐱</div>
+          <div class="ground"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="characters">
+      <div class="characters-title">角色</div>
+      <div class="characters-grid" id="characters"></div>
+    </div>
+
+    <div class="achievements">
+      <div class="achievements-title">成就</div>
+      <div class="achievements-grid" id="achievements"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="startBtn">开始游戏</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      characters: [
+        { id: 'tom', name: '汤姆猫', emoji: '🐱', cost: 0 },
+        { id: 'angela', name: '安吉拉', emoji: '🐱', cost: 100 },
+        { id: 'ginger', name: '金杰猫', emoji: '🐱', cost: 200 },
+        { id: 'ben', name: '狗狗本', emoji: '🐶', cost: 300 }
+      ],
+      achievements: [
+        { id: 'score100', name: '100分', emoji: '🥉', requirement: 100 },
+        { id: 'score500', name: '500分', emoji: '🥈', requirement: 500 },
+        { id: 'score1000', name: '1000分', emoji: '🥇', requirement: 1000 },
+        { id: 'coins50', name: '50金币', emoji: '💰', requirement: 50 },
+        { id: 'coins100', name: '100金币', emoji: '💎', requirement: 100 },
+        { id: 'coins500', name: '500金币', emoji: '👑', requirement: 500 }
+      ],
+      obstacleTypes: ['🪨', '🌵', '🚧'],
+      coinEmoji: '💰'
+    };
+
+    // 游戏状态
+    let score = 0;
+    let coins = 0;
+    let highScore = parseInt(localStorage.getItem('tang-mu-mao-pao-ku-highscore')) || 0;
+    let selectedCharacter = 'tom';
+    let unlockedCharacters = new Set(['tom']);
+    let unlockedAchievements = new Set();
+    let gameRunning = false;
+    let gameLoop = null;
+    let obstacles = [];
+    let coinItems = [];
+    let speed = 5;
+    let isJumping = false;
+    let isSliding = false;
+
+    // DOM 元素
+    const scoreEl = document.getElementById('score');
+    const coinsEl = document.getElementById('coins');
+    const highScoreEl = document.getElementById('highScore');
+    const track = document.getElementById('track');
+    const tom = document.getElementById('tom');
+    const charactersEl = document.getElementById('characters');
+    const achievementsEl = document.getElementById('achievements');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      score = 0;
+      coins = 0;
+      obstacles = [];
+      coinItems = [];
+      speed = 5;
+      isJumping = false;
+      isSliding = false;
+      gameRunning = false;
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateCharacters();
+      updateAchievements();
+      updateTom();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('tang-mu-mao-pao-ku');
+      if (saved) {
+        const data = JSON.parse(saved);
+        coins = data.coins || 0;
+        unlockedCharacters = new Set(data.unlockedCharacters || ['tom']);
+        unlockedAchievements = new Set(data.unlockedAchievements || []);
+        selectedCharacter = data.selectedCharacter || 'tom';
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        coins,
+        unlockedCharacters: Array.from(unlockedCharacters),
+        unlockedAchievements: Array.from(unlockedAchievements),
+        selectedCharacter
+      };
+      localStorage.setItem('tang-mu-mao-pao-ku', JSON.stringify(data));
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      scoreEl.textContent = score;
+      coinsEl.textContent = coins;
+      highScoreEl.textContent = highScore;
+
+      // 更新最高分
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('tang-mu-mao-pao-ku-highscore', highScore);
+      }
+
+      // 检查成就
+      checkAchievements();
+    }
+
+    // 更新角色显示
+    function updateCharacters() {
+      charactersEl.innerHTML = '';
+      config.characters.forEach(character => {
+        const unlocked = unlockedCharacters.has(character.id);
+        const selected = selectedCharacter === character.id;
+
+        const characterEl = document.createElement('div');
+        characterEl.className = `character ${selected ? 'selected' : ''} ${!unlocked ? 'locked' : ''}`;
+        characterEl.innerHTML = `
+          <div class="emoji">${character.emoji}</div>
+          <div class="name">${character.name}</div>
+        `;
+        if (unlocked) {
+          characterEl.addEventListener('click', () => selectCharacter(character.id));
+        } else if (coins >= character.cost) {
+          characterEl.addEventListener('click', () => unlockCharacter(character));
+        }
+        charactersEl.appendChild(characterEl);
+      });
+    }
+
+    // 更新成就显示
+    function updateAchievements() {
+      achievementsEl.innerHTML = '';
+      config.achievements.forEach(achievement => {
+        const unlocked = unlockedAchievements.has(achievement.id);
+
+        const itemEl = document.createElement('div');
+        itemEl.className = `achievement-item ${unlocked ? 'unlocked' : ''}`;
+        itemEl.innerHTML = `
+          <div class="emoji">${unlocked ? achievement.emoji : '🔒'}</div>
+          <div class="name">${achievement.name}</div>
+        `;
+        achievementsEl.appendChild(itemEl);
+      });
+    }
+
+    // 更新汤姆猫显示
+    function updateTom() {
+      const character = config.characters.find(c => c.id === selectedCharacter);
+      tom.textContent = character.emoji;
+      tom.className = `tom ${isJumping ? 'jumping' : ''} ${isSliding ? 'sliding' : ''}`;
+    }
+
+    // 选择角色
+    function selectCharacter(characterId) {
+      selectedCharacter = characterId;
+      updateCharacters();
+      updateTom();
+      saveGame();
+    }
+
+    // 解锁角色
+    function unlockCharacter(character) {
+      if (coins >= character.cost) {
+        coins -= character.cost;
+        unlockedCharacters.add(character.id);
+        selectedCharacter = character.id;
+        updateStats();
+        updateCharacters();
+        updateTom();
+        saveGame();
+        alert(`解锁成功！获得 ${character.name}`);
+      }
+    }
+
+    // 检查成就
+    function checkAchievements() {
+      config.achievements.forEach(achievement => {
+        if (achievement.id.startsWith('score')) {
+          if (score >= achievement.requirement && !unlockedAchievements.has(achievement.id)) {
+            unlockedAchievements.add(achievement.id);
+            updateAchievements();
+            saveGame();
+          }
+        } else if (achievement.id.startsWith('coins')) {
+          if (coins >= achievement.requirement && !unlockedAchievements.has(achievement.id)) {
+            unlockedAchievements.add(achievement.id);
+            updateAchievements();
+            saveGame();
+          }
+        }
+      });
+    }
+
+    // 开始游戏
+    function startGame() {
+      if (gameRunning) return;
+
+      gameRunning = true;
+      startBtn.textContent = '游戏中...';
+      startBtn.disabled = true;
+
+      // 清除现有障碍和金币
+      obstacles.forEach(o => o.element.remove());
+      coinItems.forEach(c => c.element.remove());
+      obstacles = [];
+      coinItems = [];
+
+      // 开始游戏循环
+      gameLoop = setInterval(updateGame, 1000 / 60);
+
+      // 生成障碍和金币
+      setInterval(generateObstacle, 2000);
+      setInterval(generateCoin, 1500);
+    }
+
+    // 更新游戏
+    function updateGame() {
+      if (!gameRunning) return;
+
+      // 更新分数
+      score += 1;
+      updateStats();
+
+      // 更新障碍位置
+      obstacles.forEach((obstacle, index) => {
+        obstacle.x -= speed;
+        obstacle.element.style.left = `${obstacle.x}px`;
+
+        // 检查碰撞
+        if (checkCollision(obstacle)) {
+          gameOver();
+          return;
+        }
+
+        // 移除超出屏幕的障碍
+        if (obstacle.x < -30) {
+          obstacle.element.remove();
+          obstacles.splice(index, 1);
+        }
+      });
+
+      // 更新金币位置
+      coinItems.forEach((coin, index) => {
+        coin.x -= speed;
+        coin.element.style.left = `${coin.x}px`;
+
+        // 检查收集
+        if (checkCoinCollection(coin)) {
+          coins += 1;
+          coin.element.remove();
+          coinItems.splice(index, 1);
+          updateStats();
+        }
+
+        // 移除超出屏幕的金币
+        if (coin.x < -20) {
+          coin.element.remove();
+          coinItems.splice(index, 1);
+        }
+      });
+
+      // 增加速度
+      if (score % 500 === 0) {
+        speed += 0.5;
+      }
+    }
+
+    // 生成障碍
+    function generateObstacle() {
+      if (!gameRunning) return;
+
+      const obstacleType = config.obstacleTypes[Math.floor(Math.random() * config.obstacleTypes.length)];
+      const obstacle = document.createElement('div');
+      obstacle.className = 'obstacle';
+      obstacle.textContent = obstacleType;
+      obstacle.style.left = '100%';
+      track.appendChild(obstacle);
+
+      obstacles.push({
+        element: obstacle,
+        x: track.offsetWidth,
+        type: obstacleType
+      });
+    }
+
+    // 生成金币
+    function generateCoin() {
+      if (!gameRunning) return;
+
+      const coin = document.createElement('div');
+      coin.className = 'coin';
+      coin.textContent = config.coinEmoji;
+      coin.style.left = '100%';
+      coin.style.bottom = `${Math.random() * 100 + 50}px`;
+      track.appendChild(coin);
+
+      coinItems.push({
+        element: coin,
+        x: track.offsetWidth,
+        y: parseFloat(coin.style.bottom)
+      });
+    }
+
+    // 检查碰撞
+    function checkCollision(obstacle) {
+      const tomRect = tom.getBoundingClientRect();
+      const obstacleRect = obstacle.element.getBoundingClientRect();
+
+      return !(tomRect.right < obstacleRect.left ||
+               tomRect.left > obstacleRect.right ||
+               tomRect.bottom < obstacleRect.top ||
+               tomRect.top > obstacleRect.bottom);
+    }
+
+    // 检查金币收集
+    function checkCoinCollection(coin) {
+      const tomRect = tom.getBoundingClientRect();
+      const coinRect = coin.element.getBoundingClientRect();
+
+      return !(tomRect.right < coinRect.left ||
+               tomRect.left > coinRect.right ||
+               tomRect.bottom < coinRect.top ||
+               tomRect.top > coinRect.bottom);
+    }
+
+    // 游戏结束
+    function gameOver() {
+      gameRunning = false;
+      clearInterval(gameLoop);
+      startBtn.textContent = '开始游戏';
+      startBtn.disabled = false;
+
+      alert(`游戏结束！得分：${score}，金币：${coins}`);
+      saveGame();
+    }
+
+    // 跳跃
+    function jump() {
+      if (isJumping || isSliding) return;
+
+      isJumping = true;
+      updateTom();
+
+      setTimeout(() => {
+        isJumping = false;
+        updateTom();
+      }, 500);
+    }
+
+    // 滑行
+    function slide() {
+      if (isJumping || isSliding) return;
+
+      isSliding = true;
+      updateTom();
+
+      setTimeout(() => {
+        isSliding = false;
+        updateTom();
+      }, 500);
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('tang-mu-mao-pao-ku');
+        localStorage.removeItem('tang-mu-mao-pao-ku-highscore');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    startBtn.addEventListener('click', startGame);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 键盘控制
+    document.addEventListener('keydown', (e) => {
+      if (!gameRunning) return;
+
+      if (e.code === 'Space' || e.code === 'ArrowUp') {
+        jump();
+      } else if (e.code === 'ArrowDown') {
+        slide();
+      }
+    });
+
+    // 触摸控制
+    track.addEventListener('touchstart', (e) => {
+      if (!gameRunning) return;
+
+      const touch = e.touches[0];
+      const trackRect = track.getBoundingClientRect();
+      const touchY = touch.clientY - trackRect.top;
+
+      if (touchY < trackRect.height / 2) {
+        jump();
+      } else {
+        slide();
+      }
+    });
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>

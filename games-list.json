@@ -918,5 +918,11 @@
     "path": "games/yang-le-ge-yang/index.html",
     "category": "消除",
     "createdAt": "2026-03-03T22:37:13Z"
+  },
+  {
+    "name": "汤姆猫跑酷",
+    "path": "games/tang-mu-mao-pao-ku/index.html",
+    "category": "跑酷",
+    "createdAt": "2026-03-03T22:44:35Z"
   }
 ]
