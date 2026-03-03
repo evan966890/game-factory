@@ -870,5 +870,11 @@
     "path": "games/yang-le-ge-yang-xing-qiu/index.html",
     "category": "消除休闲",
     "createdAt": "2026-03-03T20:21:01Z"
+  },
+  {
+    "name": "新弹弹堂",
+    "path": "games/xin-dan-dan-tang/index.html",
+    "category": "弹射策略",
+    "createdAt": "2026-03-03T20:34:37Z"
   }
 ]

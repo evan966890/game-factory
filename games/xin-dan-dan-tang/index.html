@@ -1,0 +1,755 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>新弹弹堂</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .level-display {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .game-canvas {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f0f9ff;
+      margin-bottom: 16px;
+      position: relative;
+      height: 200px;
+      overflow: hidden;
+    }
+
+    .terrain {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: linear-gradient(180deg, #8b5a2b 0%, #654321 100%);
+      border-radius: 8px 8px 0 0;
+    }
+
+    .player {
+      position: absolute;
+      bottom: 40px;
+      left: 20px;
+      width: 30px;
+      height: 30px;
+      background: var(--blue);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .enemy {
+      position: absolute;
+      bottom: 40px;
+      width: 30px;
+      height: 30px;
+      background: var(--red);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .projectile {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--orange);
+      border-radius: 50%;
+    }
+
+    .controls {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .controls-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .control-group {
+      margin-bottom: 12px;
+    }
+
+    .control-label {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .control-slider {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: var(--border);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .control-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+    }
+
+    .control-value {
+      text-align: center;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .powerups {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .powerups-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .powerups-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .powerup-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .powerup-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .powerup-item.used {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .powerup-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .powerup-item .count {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .game-over {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .game-over h2 {
+      margin-bottom: 16px;
+    }
+
+    .final-score {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .high-score {
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>新弹弹堂</h1>
+    <p class="subtitle">计算角度和力度，发射炮弹攻击敌人</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">分数</span>
+        <span class="value" id="score">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span class="value" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高分</span>
+        <span class="value" id="highScore">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="level-display" id="levelDisplay">第 1 关</div>
+
+        <div class="game-canvas" id="gameCanvas">
+          <div class="terrain"></div>
+          <div class="player" id="player">🎯</div>
+        </div>
+
+        <div class="controls">
+          <div class="controls-title">控制</div>
+          <div class="control-group">
+            <label class="control-label">角度</label>
+            <input type="range" class="control-slider" id="angleSlider" min="0" max="90" value="45">
+            <div class="control-value" id="angleValue">45°</div>
+          </div>
+          <div class="control-group">
+            <label class="control-label">力度</label>
+            <input type="range" class="control-slider" id="powerSlider" min="10" max="100" value="50">
+            <div class="control-value" id="powerValue">50%</div>
+          </div>
+        </div>
+
+        <div class="powerups">
+          <div class="powerups-title">道具</div>
+          <div class="powerups-grid" id="powerups"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button class="btn" id="fireBtn">发射</button>
+      <button class="btn secondary" id="restartBtn">重新开始</button>
+    </div>
+
+    <div class="game-over hidden" id="gameOver">
+      <h2>游戏结束</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <div class="high-score" id="finalHighScore">最高分: 0</div>
+      <button class="btn" id="playAgainBtn">再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      gravity: 0.5,
+      initialLevel: 1,
+      enemiesPerLevel: 3,
+      powerups: [
+        { id: 'double', name: '双倍', emoji: '✖️2', count: 2 },
+        { id: 'explosive', name: '爆炸', emoji: '💥', count: 1 },
+        { id: 'freeze', name: '冰冻', emoji: '❄️', count: 1 }
+      ]
+    };
+
+    // 游戏状态
+    let score = 0;
+    let level = 1;
+    let highScore = parseInt(localStorage.getItem('xin-dan-dan-tang-highscore')) || 0;
+    let angle = 45;
+    let power = 50;
+    let enemies = [];
+    let projectile = null;
+    let powerups = [];
+    let gameRunning = false;
+    let gameOver = false;
+    let animationId = null;
+
+    // DOM 元素
+    const scoreEl = document.getElementById('score');
+    const levelEl = document.getElementById('level');
+    const highScoreEl = document.getElementById('highScore');
+    const levelDisplayEl = document.getElementById('levelDisplay');
+    const gameCanvas = document.getElementById('gameCanvas');
+    const player = document.getElementById('player');
+    const angleSlider = document.getElementById('angleSlider');
+    const angleValue = document.getElementById('angleValue');
+    const powerSlider = document.getElementById('powerSlider');
+    const powerValue = document.getElementById('powerValue');
+    const powerupsEl = document.getElementById('powerups');
+    const gameOverEl = document.getElementById('gameOver');
+    const finalScore = document.getElementById('finalScore');
+    const finalHighScore = document.getElementById('finalHighScore');
+    const fireBtn = document.getElementById('fireBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+
+    // 初始化游戏
+    function initGame() {
+      score = 0;
+      level = 1;
+      angle = 45;
+      power = 50;
+      enemies = [];
+      projectile = null;
+      gameOver = false;
+      gameRunning = false;
+
+      // 初始化道具
+      powerups = config.powerups.map(p => ({ ...p }));
+
+      // 生成敌人
+      spawnEnemies();
+
+      // 更新显示
+      updateStats();
+      updateControls();
+      updatePowerups();
+      renderEnemies();
+
+      // 隐藏游戏结束界面
+      gameOverEl.classList.add('hidden');
+    }
+
+    // 生成敌人
+    function spawnEnemies() {
+      enemies = [];
+      const canvasWidth = gameCanvas.offsetWidth;
+      const enemyCount = config.enemiesPerLevel + level - 1;
+
+      for (let i = 0; i < enemyCount; i++) {
+        const x = canvasWidth - 50 - (i * 40);
+        const health = 50 + level * 10;
+        enemies.push({
+          id: i,
+          x: x,
+          health: health,
+          maxHealth: health
+        });
+      }
+    }
+
+    // 渲染敌人
+    function renderEnemies() {
+      // 移除旧的敌人元素
+      const oldEnemies = gameCanvas.querySelectorAll('.enemy');
+      oldEnemies.forEach(el => el.remove());
+
+      // 添加新的敌人元素
+      enemies.forEach(enemy => {
+        if (enemy.health > 0) {
+          const enemyEl = document.createElement('div');
+          enemyEl.className = 'enemy';
+          enemyEl.style.left = `${enemy.x}px`;
+          enemyEl.textContent = '👾';
+          enemyEl.dataset.id = enemy.id;
+          gameCanvas.appendChild(enemyEl);
+        }
+      });
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      scoreEl.textContent = score;
+      levelEl.textContent = level;
+      highScoreEl.textContent = highScore;
+      levelDisplayEl.textContent = `第 ${level} 关`;
+    }
+
+    // 更新控制
+    function updateControls() {
+      angleSlider.value = angle;
+      angleValue.textContent = `${angle}°`;
+      powerSlider.value = power;
+      powerValue.textContent = `${power}%`;
+    }
+
+    // 更新道具显示
+    function updatePowerups() {
+      powerupsEl.innerHTML = '';
+      powerups.forEach(powerup => {
+        const item = document.createElement('div');
+        item.className = `powerup-item ${powerup.count > 0 ? '' : 'used'}`;
+        item.innerHTML = `
+          <div class="emoji">${powerup.emoji}</div>
+          <div class="count">${powerup.count}次</div>
+        `;
+        if (powerup.count > 0) {
+          item.addEventListener('click', () => usePowerup(powerup));
+        }
+        powerupsEl.appendChild(item);
+      });
+    }
+
+    // 使用道具
+    function usePowerup(powerup) {
+      if (!gameRunning || gameOver || powerup.count <= 0) return;
+
+      switch (powerup.id) {
+        case 'double':
+          // 双倍伤害
+          if (projectile) {
+            projectile.damage *= 2;
+          }
+          break;
+
+        case 'explosive':
+          // 爆炸伤害
+          if (projectile) {
+            projectile.explosive = true;
+          }
+          break;
+
+        case 'freeze':
+          // 冰冻敌人
+          enemies.forEach(enemy => {
+            enemy.frozen = true;
+          });
+          setTimeout(() => {
+            enemies.forEach(enemy => {
+              enemy.frozen = false;
+            });
+          }, 3000);
+          break;
+      }
+
+      // 减少道具数量
+      powerup.count--;
+      updatePowerups();
+    }
+
+    // 发射炮弹
+    function fireProjectile() {
+      if (gameRunning || gameOver) return;
+
+      gameRunning = true;
+
+      // 计算初始速度
+      const angleRad = (angle * Math.PI) / 180;
+      const velocity = power / 10;
+      const vx = Math.cos(angleRad) * velocity;
+      const vy = -Math.sin(angleRad) * velocity;
+
+      // 创建炮弹
+      projectile = {
+        x: 30,
+        y: gameCanvas.offsetHeight - 70,
+        vx: vx,
+        vy: vy,
+        damage: 50,
+        explosive: false
+      };
+
+      // 创建炮弹元素
+      const projectileEl = document.createElement('div');
+      projectileEl.className = 'projectile';
+      projectileEl.id = 'projectile';
+      gameCanvas.appendChild(projectileEl);
+
+      // 开始动画
+      animate();
+    }
+
+    // 动画循环
+    function animate() {
+      if (!gameRunning || gameOver) return;
+
+      // 更新炮弹位置
+      projectile.vy += config.gravity;
+      projectile.x += projectile.vx;
+      projectile.y += projectile.vy;
+
+      // 更新炮弹元素位置
+      const projectileEl = document.getElementById('projectile');
+      if (projectileEl) {
+        projectileEl.style.left = `${projectile.x}px`;
+        projectileEl.style.top = `${projectile.y}px`;
+      }
+
+      // 检查碰撞
+      checkCollisions();
+
+      // 检查是否出界
+      if (projectile.x > gameCanvas.offsetWidth || projectile.y > gameCanvas.offsetHeight) {
+        endTurn();
+        return;
+      }
+
+      // 继续动画
+      animationId = requestAnimationFrame(animate);
+    }
+
+    // 检查碰撞
+    function checkCollisions() {
+      // 检查与敌人的碰撞
+      enemies.forEach(enemy => {
+        if (enemy.health <= 0 || enemy.frozen) return;
+
+        const dx = projectile.x - enemy.x;
+        const dy = projectile.y - (gameCanvas.offsetHeight - 70);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < 20) {
+          // 击中敌人
+          enemy.health -= projectile.damage;
+          score += 10;
+
+          // 爆炸效果
+          if (projectile.explosive) {
+            enemies.forEach(e => {
+              if (e.health > 0) {
+                const edx = projectile.x - e.x;
+                const edy = projectile.y - (gameCanvas.offsetHeight - 70);
+                const edistance = Math.sqrt(edx * edx + edy * edy);
+                if (edistance < 50) {
+                  e.health -= projectile.damage / 2;
+                }
+              }
+            });
+          }
+
+          // 移除炮弹
+          const projectileEl = document.getElementById('projectile');
+          if (projectileEl) {
+            projectileEl.remove();
+          }
+
+          // 更新显示
+          updateStats();
+          renderEnemies();
+
+          // 检查是否完成关卡
+          checkLevelComplete();
+
+          // 结束回合
+          endTurn();
+        }
+      });
+
+      // 检查与地形的碰撞
+      if (projectile.y > gameCanvas.offsetHeight - 50) {
+        // 反弹
+        projectile.vy = -projectile.vy * 0.6;
+        projectile.y = gameCanvas.offsetHeight - 50;
+      }
+    }
+
+    // 检查是否完成关卡
+    function checkLevelComplete() {
+      const aliveEnemies = enemies.filter(e => e.health > 0);
+      if (aliveEnemies.length === 0) {
+        // 关卡完成
+        level++;
+        score += 100;
+        spawnEnemies();
+        updateStats();
+        renderEnemies();
+      }
+    }
+
+    // 结束回合
+    function endTurn() {
+      gameRunning = false;
+
+      // 停止动画
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+
+      // 检查是否游戏结束
+      const aliveEnemies = enemies.filter(e => e.health > 0);
+      if (aliveEnemies.length > 0 && level > 5) {
+        endGame();
+      }
+    }
+
+    // 结束游戏
+    function endGame() {
+      gameOver = true;
+      gameRunning = false;
+
+      // 更新最高分
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('xin-dan-dan-tang-highscore', highScore);
+      }
+
+      // 显示游戏结束界面
+      finalScore.textContent = score;
+      finalHighScore.textContent = `最高分: ${highScore}`;
+      gameOverEl.classList.remove('hidden');
+    }
+
+    // 事件监听
+    angleSlider.addEventListener('input', (e) => {
+      angle = parseInt(e.target.value);
+      angleValue.textContent = `${angle}°`;
+    });
+
+    powerSlider.addEventListener('input', (e) => {
+      power = parseInt(e.target.value);
+      powerValue.textContent = `${power}%`;
+    });
+
+    fireBtn.addEventListener('click', fireProjectile);
+    restartBtn.addEventListener('click', initGame);
+    playAgainBtn.addEventListener('click', initGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
