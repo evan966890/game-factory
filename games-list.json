@@ -816,5 +816,11 @@
     "path": "games/kan-tu-cai-cheng-yu/index.html",
     "category": "成语",
     "createdAt": "2026-03-03T19:13:55Z"
+  },
+  {
+    "name": "成语小秀才",
+    "path": "games/cheng-yu-xiao-xiu-cai/index.html",
+    "category": "成语",
+    "createdAt": "2026-03-03T19:20:34Z"
   }
 ]

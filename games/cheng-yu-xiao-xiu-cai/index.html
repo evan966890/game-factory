@@ -1,0 +1,768 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>成语小秀才</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .question-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .idiom-display {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 12px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: 0.5em;
+    }
+
+    .idiom-display .missing {
+      color: var(--primary);
+      font-weight: 700;
+      border-bottom: 2px solid var(--primary);
+      padding: 0 8px;
+      margin: 0 4px;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .option {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .option:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .option.correct {
+      background: #e8f8ef;
+      border-color: var(--ok);
+      color: var(--ok);
+    }
+
+    .option.wrong {
+      background: #fde8e8;
+      border-color: var(--bad);
+      color: var(--bad);
+    }
+
+    .feedback {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+      min-height: 100px;
+    }
+
+    .feedback-title {
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .feedback-meaning {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .feedback-origin {
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+      margin-top: 8px;
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .game-over {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .game-over h2 {
+      margin-bottom: 16px;
+    }
+
+    .final-stats {
+      margin-bottom: 20px;
+    }
+
+    .final-stats .stat {
+      margin-bottom: 8px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>成语小秀才</h1>
+    <p class="subtitle">填字游戏 + 升官养成</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="coins">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">官职</span>
+        <span class="value" id="rank">秀才</span>
+      </div>
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span class="value" id="level">1</span>
+      </div>
+    </div>
+
+    <div class="question-box">
+      <div class="idiom-display" id="idiomDisplay"></div>
+    </div>
+
+    <div class="options" id="options"></div>
+
+    <div class="feedback hidden" id="feedback">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div class="feedback-meaning" id="feedbackMeaning"></div>
+      <div class="feedback-origin" id="feedbackOrigin"></div>
+    </div>
+
+    <button class="btn" id="nextBtn" disabled>下一题</button>
+    <button class="btn secondary" id="hintBtn">💡 提示 (50金币)</button>
+
+    <div class="game-over hidden" id="gameOver">
+      <h2>恭喜通关！</h2>
+      <div class="final-stats">
+        <div class="stat">
+          <span class="label">最终金币</span>
+          <span class="value gold" id="finalCoins">0</span>
+        </div>
+        <div class="stat">
+          <span class="label">最终官职</span>
+          <span class="value" id="finalRank">秀才</span>
+        </div>
+        <div class="stat">
+          <span class="label">通过关卡</span>
+          <span class="value" id="finalLevel">1</span>
+        </div>
+      </div>
+      <button class="btn" id="restartBtn">再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    // 成语数据
+    const idioms = [
+      {
+        idiom: "一马当先",
+        missing: 1, // 缺失第几个字（0-based）
+        options: ["一", "二", "三", "四"],
+        answer: "一",
+        meaning: "作战时策马冲锋在前。形容领先。也比喻工作走在群众前面，积极带头。",
+        origin: "明·施耐庵《水浒传》"
+      },
+      {
+        idiom: "二话不说",
+        missing: 0,
+        options: ["一", "二", "三", "四"],
+        answer: "二",
+        meaning: "不说任何别的话。指立即行动。",
+        origin: "老舍《四世同堂》"
+      },
+      {
+        idiom: "三心二意",
+        missing: 2,
+        options: ["一", "二", "三", "四"],
+        answer: "三",
+        meaning: "又想这样又想那样，犹豫不定。常指不安心，不专一。",
+        origin: "元·关汉卿《救风尘》"
+      },
+      {
+        idiom: "四面八方",
+        missing: 3,
+        options: ["一", "二", "三", "四"],
+        answer: "四",
+        meaning: "指各个方面或各个地方。",
+        origin: "宋·释道原《景德传灯录》"
+      },
+      {
+        idiom: "五光十色",
+        missing: 0,
+        options: ["五", "六", "七", "八"],
+        answer: "五",
+        meaning: "形容色彩鲜艳，花样繁多。",
+        origin: "南朝梁·江淹《丽色赋》"
+      },
+      {
+        idiom: "六神无主",
+        missing: 1,
+        options: ["五", "六", "七", "八"],
+        answer: "六",
+        meaning: "形容惊慌着急，没了主意，不知如何才好。",
+        origin: "汉·张衡《髑髅赋》"
+      },
+      {
+        idiom: "七上八下",
+        missing: 2,
+        options: ["五", "六", "七", "八"],
+        answer: "七",
+        meaning: "形容心里慌乱不安。",
+        origin: "宋·宗杲说《大慧普觉禅师语录》"
+      },
+      {
+        idiom: "八面玲珑",
+        missing: 3,
+        options: ["五", "六", "七", "八"],
+        answer: "八",
+        meaning: "形容人处世圆滑，待人接物面面俱到。",
+        origin: "唐·卢纶《赋得彭祖楼送杨德宗归徐州幕》"
+      },
+      {
+        idiom: "九牛一毛",
+        missing: 0,
+        options: ["九", "十", "百", "千"],
+        answer: "九",
+        meaning: "九条牛身上的一根毛。比喻极大数量中极微小的数量，微不足道。",
+        origin: "汉·司马迁《报任少卿书》"
+      },
+      {
+        idiom: "十全十美",
+        missing: 1,
+        options: ["九", "十", "百", "千"],
+        answer: "十",
+        meaning: "十分完美，毫无欠缺。",
+        origin: "清·陈朗《雪月梅传》"
+      },
+      {
+        idiom: "百发百中",
+        missing: 2,
+        options: ["九", "十", "百", "千"],
+        answer: "百",
+        meaning: "形容射箭或打枪准确，每次都命中目标。也比喻做事有充分把握。",
+        origin: "《战国策·西周策》"
+      },
+      {
+        idiom: "千军万马",
+        missing: 3,
+        options: ["九", "十", "百", "千"],
+        answer: "千",
+        meaning: "形容兵马很多或声势浩大。",
+        origin: "《南史·陈庆之传》"
+      },
+      {
+        idiom: "一心一意",
+        missing: 0,
+        options: ["一", "二", "三", "四"],
+        answer: "一",
+        meaning: "只有一个心眼儿，没有别的考虑。",
+        origin: "《三国志·魏志·杜恕传》"
+      },
+      {
+        idiom: "两全其美",
+        missing: 1,
+        options: ["一", "二", "三", "四"],
+        answer: "二",
+        meaning: "做一件事顾全到双方，使两方面都得到好处。",
+        origin: "元·无名氏《连环计》"
+      },
+      {
+        idiom: "三思而行",
+        missing: 2,
+        options: ["一", "二", "三", "四"],
+        answer: "三",
+        meaning: "指经过反复考虑，然后再去做。",
+        origin: "《南齐书·公冶度》"
+      },
+      {
+        idiom: "四海为家",
+        missing: 3,
+        options: ["一", "二", "三", "四"],
+        answer: "四",
+        meaning: "原指帝王占有全国。后指什么地方都可以当作自己的家。指志在四方，不留恋家乡或个人小天地。",
+        origin: "《汉书·高帝记》"
+      },
+      {
+        idiom: "五湖四海",
+        missing: 0,
+        options: ["五", "六", "七", "八"],
+        answer: "五",
+        meaning: "指全国各地，有时也指世界各地。现有时也比喻广泛的团结。",
+        origin: "《周礼·夏官·职方氏》"
+      },
+      {
+        idiom: "六亲不认",
+        missing: 1,
+        options: ["五", "六", "七", "八"],
+        answer: "六",
+        meaning: "形容不重天伦，不通人情，对亲属都不顾。有时也指对谁都不讲情面。",
+        origin: "冯德英《苦菜花》"
+      },
+      {
+        idiom: "七嘴八舌",
+        missing: 2,
+        options: ["五", "六", "七", "八"],
+        answer: "七",
+        meaning: "形容人多口杂。",
+        origin: "明·名教中人《好逑传》"
+      },
+      {
+        idiom: "八仙过海",
+        missing: 3,
+        options: ["五", "六", "七", "八"],
+        answer: "八",
+        meaning: "相传八仙过海时不用舟船，各有一套法术。民间因有“八仙过海，各显神通”的谚语。后以比喻各自拿出本领或办法，互相竞赛。",
+        origin: "明·无名氏《八仙过海》第二折"
+      },
+      {
+        idiom: "九死一生",
+        missing: 0,
+        options: ["九", "十", "百", "千"],
+        answer: "九",
+        meaning: "形容经历很大危险而幸存。也形容处在生死关头，情况十分危急。",
+        origin: "战国楚·屈原《离骚》"
+      },
+      {
+        idiom: "十拿九稳",
+        missing: 1,
+        options: ["九", "十", "百", "千"],
+        answer: "十",
+        meaning: "比喻很有把握。",
+        origin: "明·阮大铖《燕子笺·购幸》"
+      },
+      {
+        idiom: "百年树人",
+        missing: 2,
+        options: ["九", "十", "百", "千"],
+        answer: "百",
+        meaning: "比喻培养人才是长期而艰巨的事。",
+        origin: "《管子·权修》"
+      },
+      {
+        idiom: "千载难逢",
+        missing: 3,
+        options: ["九", "十", "百", "千"],
+        answer: "千",
+        meaning: "一千年里也难碰到一次。形容机会极其难得。",
+        origin: "南朝齐·孔琇之《临终上表》"
+      },
+      {
+        idiom: "一鸣惊人",
+        missing: 0,
+        options: ["一", "二", "三", "四"],
+        answer: "一",
+        meaning: "一叫就使人震惊。比喻平时没有突出的表现，一下子做出惊人的成绩。",
+        origin: "《韩非子·喻老》"
+      },
+      {
+        idiom: "二龙戏珠",
+        missing: 1,
+        options: ["一", "二", "三", "四"],
+        answer: "二",
+        meaning: "两条龙相对，戏玩着一颗宝珠。",
+        origin: "清·曹雪芹《红楼梦》"
+      },
+      {
+        idiom: "三阳开泰",
+        missing: 2,
+        options: ["一", "二", "三", "四"],
+        answer: "三",
+        meaning: "称颂岁首或寓意吉祥。",
+        origin: "《易·泰》"
+      },
+      {
+        idiom: "四通八达",
+        missing: 3,
+        options: ["一", "二", "三", "四"],
+        answer: "四",
+        meaning: "四面八方都有路可通。形容交通极便利。也形容通向各方。",
+        origin: "《子华子·晏子问党》"
+      },
+      {
+        idiom: "五谷丰登",
+        missing: 0,
+        options: ["五", "六", "七", "八"],
+        answer: "五",
+        meaning: "指年成好，粮食丰收。",
+        origin: "《六韬·龙韬·立将》"
+      },
+      {
+        idiom: "六畜兴旺",
+        missing: 1,
+        options: ["五", "六", "七", "八"],
+        answer: "六",
+        meaning: "指各种牲畜、家禽繁衍兴旺。",
+        origin: "《管子·牧民》"
+      }
+    ];
+
+    // 官职系统
+    const ranks = [
+      { name: "秀才", minCoins: 0, maxLevel: 5 },
+      { name: "举人", minCoins: 500, maxLevel: 10 },
+      { name: "进士", minCoins: 1500, maxLevel: 15 },
+      { name: "状元", minCoins: 3000, maxLevel: 20 },
+      { name: "翰林", minCoins: 5000, maxLevel: 25 },
+      { name: "宰相", minCoins: 8000, maxLevel: 30 }
+    ];
+
+    // 游戏状态
+    let coins = 0;
+    let currentRank = 0;
+    let currentLevel = 1;
+    let currentQuestion = 0;
+    let answered = false;
+    let hintUsed = false;
+
+    // DOM 元素
+    const coinsEl = document.getElementById('coins');
+    const rankEl = document.getElementById('rank');
+    const levelEl = document.getElementById('level');
+    const idiomDisplay = document.getElementById('idiomDisplay');
+    const optionsEl = document.getElementById('options');
+    const feedback = document.getElementById('feedback');
+    const feedbackTitle = document.getElementById('feedbackTitle');
+    const feedbackMeaning = document.getElementById('feedbackMeaning');
+    const feedbackOrigin = document.getElementById('feedbackOrigin');
+    const nextBtn = document.getElementById('nextBtn');
+    const hintBtn = document.getElementById('hintBtn');
+    const gameOverEl = document.getElementById('gameOver');
+    const finalCoins = document.getElementById('finalCoins');
+    const finalRank = document.getElementById('finalRank');
+    const finalLevel = document.getElementById('finalLevel');
+    const restartBtn = document.getElementById('restartBtn');
+
+    // 加载游戏进度
+    function loadProgress() {
+      const saved = localStorage.getItem('cheng-yu-xiao-xiu-cai-progress');
+      if (saved) {
+        const progress = JSON.parse(saved);
+        coins = progress.coins || 0;
+        currentRank = progress.currentRank || 0;
+        currentLevel = progress.currentLevel || 1;
+      }
+      updateStats();
+    }
+
+    // 保存游戏进度
+    function saveProgress() {
+      const progress = {
+        coins,
+        currentRank,
+        currentLevel
+      };
+      localStorage.setItem('cheng-yu-xiao-xiu-cai-progress', JSON.stringify(progress));
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      coinsEl.textContent = coins;
+      rankEl.textContent = ranks[currentRank].name;
+      levelEl.textContent = currentLevel;
+    }
+
+    // 检查官职升级
+    function checkRankUp() {
+      for (let i = ranks.length - 1; i >= 0; i--) {
+        if (coins >= ranks[i].minCoins) {
+          if (i > currentRank) {
+            currentRank = i;
+            return true;
+          }
+          break;
+        }
+      }
+      return false;
+    }
+
+    // 显示题目
+    function showQuestion() {
+      if (currentLevel > ranks[currentRank].maxLevel) {
+        endGame();
+        return;
+      }
+
+      answered = false;
+      hintUsed = false;
+      feedback.classList.add('hidden');
+      nextBtn.disabled = true;
+      hintBtn.disabled = false;
+
+      // 根据关卡选择题目难度
+      const questionIndex = (currentLevel - 1) % idioms.length;
+      const idiom = idioms[questionIndex];
+
+      // 显示成语，缺失的字用下划线表示
+      const chars = idiom.idiom.split('');
+      let display = '';
+      chars.forEach((char, index) => {
+        if (index === idiom.missing) {
+          display += `<span class="missing">?</span>`;
+        } else {
+          display += char;
+        }
+      });
+      idiomDisplay.innerHTML = display;
+
+      // 打乱选项顺序
+      const shuffledOptions = [...idiom.options].sort(() => Math.random() - 0.5);
+
+      optionsEl.innerHTML = '';
+      shuffledOptions.forEach(option => {
+        const btn = document.createElement('div');
+        btn.className = 'option';
+        btn.textContent = option;
+        btn.addEventListener('click', () => selectAnswer(option, idiom));
+        optionsEl.appendChild(btn);
+      });
+
+      // 存储当前成语数据
+      idiomDisplay.dataset.idiom = JSON.stringify(idiom);
+    }
+
+    // 选择答案
+    function selectAnswer(selected, idiom) {
+      if (answered) return;
+      answered = true;
+
+      const options = optionsEl.querySelectorAll('.option');
+      options.forEach(opt => {
+        opt.style.pointerEvents = 'none';
+        if (opt.textContent === idiom.answer) {
+          opt.classList.add('correct');
+        } else if (opt.textContent === selected) {
+          opt.classList.add('wrong');
+        }
+      });
+
+      if (selected === idiom.answer) {
+        // 答对
+        const baseCoins = 50;
+        const levelBonus = currentLevel * 5;
+        const totalCoins = baseCoins + levelBonus;
+        coins += totalCoins;
+
+        feedbackTitle.textContent = `✅ 正确！+${totalCoins}金币`;
+        feedbackTitle.style.color = 'var(--ok)';
+
+        // 检查官职升级
+        if (checkRankUp()) {
+          feedbackTitle.textContent += ` 🎉 升官为${ranks[currentRank].name}！`;
+        }
+
+        currentLevel++;
+      } else {
+        // 答错
+        feedbackTitle.textContent = `❌ 错误！正确答案是：${idiom.answer}`;
+        feedbackTitle.style.color = 'var(--bad)';
+      }
+
+      feedbackMeaning.textContent = `释义：${idiom.meaning}`;
+      feedbackOrigin.textContent = `出处：${idiom.origin}`;
+      feedback.classList.remove('hidden');
+
+      updateStats();
+      saveProgress();
+      nextBtn.disabled = false;
+      hintBtn.disabled = true;
+    }
+
+    // 使用提示
+    hintBtn.addEventListener('click', () => {
+      if (answered || hintUsed || coins < 50) return;
+
+      coins -= 50;
+      hintUsed = true;
+      updateStats();
+      saveProgress();
+
+      const idiom = JSON.parse(idiomDisplay.dataset.idiom);
+      const options = optionsEl.querySelectorAll('.option');
+
+      // 排除两个错误选项
+      let wrongOptions = [];
+      options.forEach(opt => {
+        if (opt.textContent !== idiom.answer) {
+          wrongOptions.push(opt);
+        }
+      });
+
+      // 随机选择两个错误选项隐藏
+      const toHide = wrongOptions.sort(() => Math.random() - 0.5).slice(0, 2);
+      toHide.forEach(opt => {
+        opt.style.opacity = '0.3';
+        opt.style.pointerEvents = 'none';
+      });
+
+      hintBtn.disabled = true;
+    });
+
+    // 下一题
+    nextBtn.addEventListener('click', () => {
+      showQuestion();
+    });
+
+    // 结束游戏
+    function endGame() {
+      finalCoins.textContent = coins;
+      finalRank.textContent = ranks[currentRank].name;
+      finalLevel.textContent = currentLevel - 1;
+
+      gameOverEl.classList.remove('hidden');
+      nextBtn.classList.add('hidden');
+      hintBtn.classList.add('hidden');
+    }
+
+    // 重新开始
+    restartBtn.addEventListener('click', () => {
+      coins = 0;
+      currentRank = 0;
+      currentLevel = 1;
+      saveProgress();
+      updateStats();
+
+      gameOverEl.classList.add('hidden');
+      nextBtn.classList.remove('hidden');
+      hintBtn.classList.remove('hidden');
+
+      showQuestion();
+    });
+
+    // 开始游戏
+    loadProgress();
+    showQuestion();
+  </script>
+</body>
+</html>
