@@ -1,16 +1,11 @@
-Config warnings:\n- plugins.entries.zhipu-vision: plugin disabled (not in allowlist) but config is present
-│
-◇  Config warnings ────────────────────────────────────────────────────────╮
-│                                                                          │
-│  - plugins.entries.zhipu-vision: plugin disabled (not in allowlist) but  │
-│    config is present                                                     │
-│                                                                          │
-├──────────────────────────────────────────────────────────────────────────╯
-Config warnings:\n- plugins.entries.zhipu-vision: plugin disabled (not in allowlist) but config is present
+Config warnings:
+- plugins.entries.zhipu-vision: plugin disabled (not in allowlist) but config is present
+
 [plugins] feishu_doc: Registered feishu_doc, feishu_app_scopes
 [plugins] feishu_wiki: Registered feishu_wiki tool
 [plugins] feishu_drive: Registered feishu_drive tool
 [plugins] feishu_bitable: Registered bitable tools
-Config warnings:\n- plugins.entries.zhipu-vision: plugin disabled (not in allowlist) but config is present
+
 [info]: [ 'client ready' ]
-✅ Sent via Feishu. Message ID: om_x100b5545bd20b0a0c3db9afd4c19ce6 (chat ou_9d9a523c28e69a78bea45df93bdfa734)
+
+✅ Sent via Feishu. Message ID: om_x100b5546c82774a4c3a6dcf268a0994 (chat ou_9d9a523c28e69a78bea45df93bdfa734)
