@@ -786,11 +786,5 @@
     "path": "games/math-space-run/index.html",
     "category": "education",
     "createdAt": "2026-03-03T12:21:00+08:00"
-  },
-  {
-    "name": "数学斜坡跑",
-    "path": "games/math-slope-run/index.html",
-    "category": "education",
-    "createdAt": "2026-03-03T05:06:06Z"
   }
 ]
