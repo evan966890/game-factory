@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>弹射英雄</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    #gameCanvas {
+      display: block;
+      width: 100%;
+      height: 300px;
+      background: linear-gradient(180deg, #87CEEB 0%, #98FB98 100%);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .weapon-btn {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .weapon-btn:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .weapon-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .game-over {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .game-over h2 {
+      margin-bottom: 16px;
+    }
+
+    .final-score {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .high-score {
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .instructions {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>弹射英雄</h1>
+    <p class="subtitle">拖动角色调整角度和力度，松开发射炮弹</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">分数</span>
+        <span class="value" id="score">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span class="value" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高分</span>
+        <span class="value" id="highScore">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="instructions">
+      <strong>操作说明：</strong> 拖动角色调整发射角度和力度，松开发射。击中敌人获得分数，消灭所有敌人进入下一关。
+    </div>
+
+    <div class="controls">
+      <div class="weapon-btn active" data-weapon="normal">普通炮弹</div>
+      <div class="weapon-btn" data-weapon="explosive">爆炸炮弹</div>
+    </div>
+
+    <button class="btn" id="restartBtn">重新开始</button>
+
+    <div class="game-over hidden" id="gameOver">
+      <h2>游戏结束</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <div class="high-score" id="finalHighScore">最高分: 0</div>
+      <button class="btn" id="playAgainBtn">再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      gravity: 0.5,
+      maxPower: 20,
+      minPower: 5,
+      enemyTypes: [
+        { name: '小兵', health: 1, score: 10, color: '#FF6B6B', size: 20 },
+        { name: '精英', health: 2, score: 25, color: '#4ECDC4', size: 25 },
+        { name: 'BOSS', health: 5, score: 100, color: '#FFD93D', size: 35 }
+      ],
+      weapons: {
+        normal: { name: '普通炮弹', damage: 1, color: '#333', size: 8 },
+        explosive: { name: '爆炸炮弹', damage: 2, color: '#FF4500', size: 10, radius: 50 }
+      }
+    };
+
+    // 游戏状态
+    let canvas, ctx;
+    let score = 0;
+    let level = 1;
+    let highScore = parseInt(localStorage.getItem('tan-she-ying-xiong-highscore')) || 0;
+    let currentWeapon = 'normal';
+    let isDragging = false;
+    let dragStart = { x: 0, y: 0 };
+    let dragEnd = { x: 0, y: 0 };
+    let player = { x: 50, y: 250, size: 30 };
+    let projectiles = [];
+    let enemies = [];
+    let particles = [];
+    let gameOver = false;
+
+    // DOM 元素
+    const scoreEl = document.getElementById('score');
+    const levelEl = document.getElementById('level');
+    const highScoreEl = document.getElementById('highScore');
+    const gameOverEl = document.getElementById('gameOver');
+    const finalScore = document.getElementById('finalScore');
+    const finalHighScore = document.getElementById('finalHighScore');
+    const restartBtn = document.getElementById('restartBtn');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+    const weaponBtns = document.querySelectorAll('.weapon-btn');
+
+    // 初始化游戏
+    function initGame() {
+      canvas = document.getElementById('gameCanvas');
+      ctx = canvas.getContext('2d');
+
+      // 设置 Canvas 大小
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      // 初始化游戏状态
+      score = 0;
+      level = 1;
+      gameOver = false;
+      projectiles = [];
+      enemies = [];
+      particles = [];
+
+      // 生成敌人
+      generateEnemies();
+
+      // 更新显示
+      updateStats();
+
+      // 隐藏游戏结束界面
+      gameOverEl.classList.add('hidden');
+
+      // 开始游戏循环
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 调整 Canvas 大小
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      canvas.width = container.clientWidth;
+      canvas.height = 300;
+
+      // 更新玩家位置
+      player.y = canvas.height - 50;
+    }
+
+    // 生成敌人
+    function generateEnemies() {
+      enemies = [];
+      const enemyCount = 3 + level * 2;
+
+      for (let i = 0; i < enemyCount; i++) {
+        const type = config.enemyTypes[Math.floor(Math.random() * config.enemyTypes.length)];
+        enemies.push({
+          x: 200 + Math.random() * (canvas.width - 250),
+          y: 50 + Math.random() * (canvas.height - 150),
+          health: type.health,
+          maxHealth: type.health,
+          score: type.score,
+          color: type.color,
+          size: type.size,
+          name: type.name
+        });
+      }
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      scoreEl.textContent = score;
+      levelEl.textContent = level;
+      highScoreEl.textContent = highScore;
+    }
+
+    // 游戏循环
+    function gameLoop() {
+      if (gameOver) return;
+
+      // 清空画布
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 绘制背景
+      drawBackground();
+
+      // 更新和绘制粒子
+      updateParticles();
+      drawParticles();
+
+      // 更新和绘制抛射物
+      updateProjectiles();
+      drawProjectiles();
+
+      // 绘制敌人
+      drawEnemies();
+
+      // 绘制玩家
+      drawPlayer();
+
+      // 绘制弹射轨迹
+      if (isDragging) {
+        drawTrajectory();
+      }
+
+      // 检查游戏结束
+      checkGameOver();
+
+      // 继续游戏循环
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 绘制背景
+    function drawBackground() {
+      // 天空
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#87CEEB');
+      gradient.addColorStop(1, '#98FB98');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 地面
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+
+      // 草地
+      ctx.fillStyle = '#228B22';
+      ctx.fillRect(0, canvas.height - 35, canvas.width, 5);
+    }
+
+    // 绘制玩家
+    function drawPlayer() {
+      // 玩家身体
+      ctx.fillStyle = '#4169E1';
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.size / 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 玩家眼睛
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.arc(player.x - 5, player.y - 5, 5, 0, Math.PI * 2);
+      ctx.arc(player.x + 5, player.y - 5, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = 'black';
+      ctx.beginPath();
+      ctx.arc(player.x - 5, player.y - 5, 2, 0, Math.PI * 2);
+      ctx.arc(player.x + 5, player.y - 5, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 绘制敌人
+    function drawEnemies() {
+      enemies.forEach(enemy => {
+        // 敌人身体
+        ctx.fillStyle = enemy.color;
+        ctx.beginPath();
+        ctx.arc(enemy.x, enemy.y, enemy.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 敌人眼睛
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(enemy.x - 5, enemy.y - 5, 4, 0, Math.PI * 2);
+        ctx.arc(enemy.x + 5, enemy.y - 5, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = 'black';
+        ctx.beginPath();
+        ctx.arc(enemy.x - 5, enemy.y - 5, 2, 0, Math.PI * 2);
+        ctx.arc(enemy.x + 5, enemy.y - 5, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 血条
+        const healthBarWidth = enemy.size;
+        const healthBarHeight = 5;
+        const healthPercent = enemy.health / enemy.maxHealth;
+
+        ctx.fillStyle = '#333';
+        ctx.fillRect(enemy.x - healthBarWidth / 2, enemy.y - enemy.size / 2 - 10, healthBarWidth, healthBarHeight);
+
+        ctx.fillStyle = healthPercent > 0.5 ? '#00FF00' : healthPercent > 0.25 ? '#FFFF00' : '#FF0000';
+        ctx.fillRect(enemy.x - healthBarWidth / 2, enemy.y - enemy.size / 2 - 10, healthBarWidth * healthPercent, healthBarHeight);
+      });
+    }
+
+    // 绘制弹射轨迹
+    function drawTrajectory() {
+      const dx = dragStart.x - dragEnd.x;
+      const dy = dragStart.y - dragEnd.y;
+      const power = Math.min(Math.sqrt(dx * dx + dy * dy) / 10, config.maxPower);
+      const angle = Math.atan2(dy, dx);
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(player.x, player.y);
+
+      // 模拟轨迹
+      let x = player.x;
+      let y = player.y;
+      let vx = Math.cos(angle) * power;
+      let vy = Math.sin(angle) * power;
+
+      for (let i = 0; i < 50; i++) {
+        x += vx;
+        y += vy;
+        vy += config.gravity;
+
+        if (y > canvas.height - 30) break;
+
+        ctx.lineTo(x, y);
+      }
+
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 绘制力度指示器
+      ctx.fillStyle = 'white';
+      ctx.font = '14px Arial';
+      ctx.fillText(`力度: ${Math.round(power)}`, dragStart.x + 10, dragStart.y - 10);
+    }
+
+    // 更新抛射物
+    function updateProjectiles() {
+      for (let i = projectiles.length - 1; i >= 0; i--) {
+        const p = projectiles[i];
+
+        // 更新位置
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += config.gravity;
+
+        // 检查边界
+        if (p.x < 0 || p.x > canvas.width || p.y > canvas.height) {
+          projectiles.splice(i, 1);
+          continue;
+        }
+
+        // 检查敌人碰撞
+        for (let j = enemies.length - 1; j >= 0; j--) {
+          const enemy = enemies[j];
+          const dx = p.x - enemy.x;
+          const dy = p.y - enemy.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < enemy.size / 2 + p.size) {
+            // 命中敌人
+            enemy.health -= p.damage;
+
+            // 创建粒子效果
+            createParticles(enemy.x, enemy.y, enemy.color);
+
+            // 检查敌人是否死亡
+            if (enemy.health <= 0) {
+              score += enemy.score;
+              enemies.splice(j, 1);
+              createParticles(enemy.x, enemy.y, enemy.color, 20);
+
+              // 检查是否过关
+              if (enemies.length === 0) {
+                level++;
+                generateEnemies();
+              }
+            }
+
+            // 移除抛射物
+            projectiles.splice(i, 1);
+            updateStats();
+            break;
+          }
+        }
+      }
+    }
+
+    // 绘制抛射物
+    function drawProjectiles() {
+      projectiles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // 创建粒子效果
+    function createParticles(x, y, color, count = 10) {
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: x,
+          y: y,
+          vx: (Math.random() - 0.5) * 10,
+          vy: (Math.random() - 0.5) * 10,
+          color: color,
+          size: Math.random() * 5 + 2,
+          life: 30
+        });
+      }
+    }
+
+    // 更新粒子
+    function updateParticles() {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+    }
+
+    // 绘制粒子
+    function drawParticles() {
+      particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life / 30;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      });
+    }
+
+    // 检查游戏结束
+    function checkGameOver() {
+      // 如果所有敌人都被消灭，游戏继续
+      // 这里可以添加其他游戏结束条件
+    }
+
+    // 发射抛射物
+    function fireProjectile() {
+      const dx = dragStart.x - dragEnd.x;
+      const dy = dragStart.y - dragEnd.y;
+      const power = Math.min(Math.sqrt(dx * dx + dy * dy) / 10, config.maxPower);
+      const angle = Math.atan2(dy, dx);
+
+      const weapon = config.weapons[currentWeapon];
+
+      projectiles.push({
+        x: player.x,
+        y: player.y,
+        vx: Math.cos(angle) * power,
+        vy: Math.sin(angle) * power,
+        damage: weapon.damage,
+        color: weapon.color,
+        size: weapon.size,
+        radius: weapon.radius
+      });
+    }
+
+    // 事件监听
+    canvas.addEventListener('mousedown', (e) => {
+      if (gameOver) return;
+      const rect = canvas.getBoundingClientRect();
+      dragStart.x = e.clientX - rect.left;
+      dragStart.y = e.clientY - rect.top;
+      dragEnd.x = dragStart.x;
+      dragEnd.y = dragStart.y;
+      isDragging = true;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const rect = canvas.getBoundingClientRect();
+      dragEnd.x = e.clientX - rect.left;
+      dragEnd.y = e.clientY - rect.top;
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      fireProjectile();
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      fireProjectile();
+    });
+
+    // 触摸事件支持
+    canvas.addEventListener('touchstart', (e) => {
+      if (gameOver) return;
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      dragStart.x = touch.clientX - rect.left;
+      dragStart.y = touch.clientY - rect.top;
+      dragEnd.x = dragStart.x;
+      dragEnd.y = dragStart.y;
+      isDragging = true;
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      dragEnd.x = touch.clientX - rect.left;
+      dragEnd.y = touch.clientY - rect.top;
+    });
+
+    canvas.addEventListener('touchend', (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      isDragging = false;
+      fireProjectile();
+    });
+
+    // 武器选择
+    weaponBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        weaponBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentWeapon = btn.dataset.weapon;
+      });
+    });
+
+    // 重新开始
+    restartBtn.addEventListener('click', initGame);
+    playAgainBtn.addEventListener('click', initGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>

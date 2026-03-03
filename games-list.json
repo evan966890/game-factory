@@ -822,5 +822,11 @@
     "path": "games/cheng-yu-xiao-xiu-cai/index.html",
     "category": "成语",
     "createdAt": "2026-03-03T19:20:34Z"
+  },
+  {
+    "name": "弹射英雄",
+    "path": "games/tan-she-ying-xiong/index.html",
+    "category": "弹射",
+    "createdAt": "2026-03-03T19:27:23Z"
   }
 ]
