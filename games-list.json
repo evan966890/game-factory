@@ -846,5 +846,11 @@
     "path": "games/wo-de-hua-yuan-shi-jie/index.html",
     "category": "模拟经营",
     "createdAt": "2026-03-03T19:50:10Z"
+  },
+  {
+    "name": "细胞生存",
+    "path": "games/xi-bao-sheng-cun/index.html",
+    "category": "益智解谜",
+    "createdAt": "2026-03-03T19:56:19Z"
   }
 ]

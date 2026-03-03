@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>细胞生存</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    #gameCanvas {
+      display: block;
+      width: 100%;
+      height: 300px;
+      background: linear-gradient(180deg, #87CEEB 0%, #98FB98 100%);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .instructions {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .game-over {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .game-over h2 {
+      margin-bottom: 16px;
+    }
+
+    .final-score {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .high-score {
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>细胞生存</h1>
+    <p class="subtitle">控制你的细胞，吞噬成长，躲避危险</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">分数</span>
+        <span class="value" id="score">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span class="value" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高分</span>
+        <span class="value" id="highScore">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="instructions">
+      <strong>操作说明：</strong> 使用方向键或触摸滑动控制细胞移动，吞噬比自己小的细胞成长，躲避比自己大的细胞和障碍。
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="startBtn">开始游戏</button>
+      <button class="btn secondary" id="restartBtn">重新开始</button>
+    </div>
+
+    <div class="game-over hidden" id="gameOver">
+      <h2>游戏结束</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <div class="high-score" id="finalHighScore">最高分: 0</div>
+      <button class="btn" id="playAgainBtn">再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      playerStartSize: 20,
+      playerMaxSize: 100,
+      playerSpeed: 3,
+      enemyMinSize: 10,
+      enemyMaxSize: 80,
+      obstacleSize: 15,
+      foodSize: 8,
+      spawnRate: 1000,
+      levelUpScore: 100
+    };
+
+    // 游戏状态
+    let canvas, ctx;
+    let score = 0;
+    let level = 1;
+    let highScore = parseInt(localStorage.getItem('xi-bao-sheng-cun-highscore')) || 0;
+    let player = { x: 0, y: 0, size: config.playerStartSize, vx: 0, vy: 0 };
+    let enemies = [];
+    let obstacles = [];
+    let foods = [];
+    let gameRunning = false;
+    let gameOver = false;
+    let lastSpawnTime = 0;
+
+    // DOM 元素
+    const scoreEl = document.getElementById('score');
+    const levelEl = document.getElementById('level');
+    const highScoreEl = document.getElementById('highScore');
+    const gameOverEl = document.getElementById('gameOver');
+    const finalScore = document.getElementById('finalScore');
+    const finalHighScore = document.getElementById('finalHighScore');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+
+    // 初始化游戏
+    function initGame() {
+      canvas = document.getElementById('gameCanvas');
+      ctx = canvas.getContext('2d');
+
+      // 设置 Canvas 大小
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      // 初始化游戏状态
+      score = 0;
+      level = 1;
+      gameOver = false;
+      gameRunning = false;
+      enemies = [];
+      obstacles = [];
+      foods = [];
+
+      // 初始化玩家位置
+      player = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        size: config.playerStartSize,
+        vx: 0,
+        vy: 0
+      };
+
+      // 生成初始敌人、障碍和食物
+      spawnEntities();
+
+      // 更新显示
+      updateStats();
+
+      // 隐藏游戏结束界面
+      gameOverEl.classList.add('hidden');
+
+      // 绘制初始画面
+      draw();
+    }
+
+    // 调整 Canvas 大小
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      canvas.width = container.clientWidth;
+      canvas.height = 300;
+
+      // 更新玩家位置
+      if (player) {
+        player.x = canvas.width / 2;
+        player.y = canvas.height / 2;
+      }
+    }
+
+    // 生成实体
+    function spawnEntities() {
+      // 生成敌人
+      for (let i = 0; i < 5 + level * 2; i++) {
+        spawnEnemy();
+      }
+
+      // 生成障碍
+      for (let i = 0; i < 3 + level; i++) {
+        spawnObstacle();
+      }
+
+      // 生成食物
+      for (let i = 0; i < 10; i++) {
+        spawnFood();
+      }
+    }
+
+    // 生成敌人
+    function spawnEnemy() {
+      const size = config.enemyMinSize + Math.random() * (config.enemyMaxSize - config.enemyMinSize);
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const vx = (Math.random() - 0.5) * 2;
+      const vy = (Math.random() - 0.5) * 2;
+
+      enemies.push({ x, y, size, vx, vy });
+    }
+
+    // 生成障碍
+    function spawnObstacle() {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+
+      obstacles.push({ x, y, size: config.obstacleSize });
+    }
+
+    // 生成食物
+    function spawnFood() {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+
+      foods.push({ x, y, size: config.foodSize });
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      scoreEl.textContent = score;
+      levelEl.textContent = level;
+      highScoreEl.textContent = highScore;
+    }
+
+    // 开始游戏
+    function startGame() {
+      if (gameRunning) return;
+      gameRunning = true;
+      gameOver = false;
+      gameOverEl.classList.add('hidden');
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 游戏循环
+    function gameLoop(timestamp) {
+      if (!gameRunning || gameOver) return;
+
+      // 更新游戏状态
+      update(timestamp);
+
+      // 绘制游戏画面
+      draw();
+
+      // 继续游戏循环
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 更新游戏状态
+    function update(timestamp) {
+      // 更新玩家位置
+      player.x += player.vx;
+      player.y += player.vy;
+
+      // 边界检测
+      if (player.x < 0) player.x = 0;
+      if (player.x > canvas.width) player.x = canvas.width;
+      if (player.y < 0) player.y = 0;
+      if (player.y > canvas.height) player.y = canvas.height;
+
+      // 更新敌人位置
+      enemies.forEach(enemy => {
+        enemy.x += enemy.vx;
+        enemy.y += enemy.vy;
+
+        // 边界反弹
+        if (enemy.x < 0 || enemy.x > canvas.width) enemy.vx *= -1;
+        if (enemy.y < 0 || enemy.y > canvas.height) enemy.vy *= -1;
+      });
+
+      // 检测碰撞
+      checkCollisions();
+
+      // 生成新实体
+      if (timestamp - lastSpawnTime > config.spawnRate) {
+        spawnEnemy();
+        spawnFood();
+        lastSpawnTime = timestamp;
+      }
+
+      // 检查升级
+      checkLevelUp();
+    }
+
+    // 检测碰撞
+    function checkCollisions() {
+      // 检测食物碰撞
+      for (let i = foods.length - 1; i >= 0; i--) {
+        const food = foods[i];
+        const dx = player.x - food.x;
+        const dy = player.y - food.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < player.size / 2 + food.size / 2) {
+          // 吞噬食物
+          player.size += 1;
+          score += 10;
+          foods.splice(i, 1);
+          spawnFood();
+          updateStats();
+        }
+      }
+
+      // 检测敌人碰撞
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        const enemy = enemies[i];
+        const dx = player.x - enemy.x;
+        const dy = player.y - enemy.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < player.size / 2 + enemy.size / 2) {
+          if (player.size > enemy.size) {
+            // 吞噬敌人
+            player.size += enemy.size / 10;
+            score += Math.floor(enemy.size);
+            enemies.splice(i, 1);
+            spawnEnemy();
+            updateStats();
+          } else {
+            // 被敌人吞噬
+            endGame();
+            return;
+          }
+        }
+      }
+
+      // 检测障碍碰撞
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obstacle = obstacles[i];
+        const dx = player.x - obstacle.x;
+        const dy = player.y - obstacle.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < player.size / 2 + obstacle.size / 2) {
+          // 碰到障碍，游戏结束
+          endGame();
+          return;
+        }
+      }
+    }
+
+    // 检查升级
+    function checkLevelUp() {
+      if (score >= level * config.levelUpScore) {
+        level++;
+        updateStats();
+      }
+    }
+
+    // 绘制游戏画面
+    function draw() {
+      // 清空画布
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 绘制背景
+      drawBackground();
+
+      // 绘制食物
+      drawFoods();
+
+      // 绘制障碍
+      drawObstacles();
+
+      // 绘制敌人
+      drawEnemies();
+
+      // 绘制玩家
+      drawPlayer();
+    }
+
+    // 绘制背景
+    function drawBackground() {
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#87CEEB');
+      gradient.addColorStop(1, '#98FB98');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // 绘制食物
+    function drawFoods() {
+      foods.forEach(food => {
+        ctx.fillStyle = '#22c55e';
+        ctx.beginPath();
+        ctx.arc(food.x, food.y, food.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // 绘制障碍
+    function drawObstacles() {
+      obstacles.forEach(obstacle => {
+        ctx.fillStyle = '#6b7280';
+        ctx.beginPath();
+        ctx.arc(obstacle.x, obstacle.y, obstacle.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // 绘制敌人
+    function drawEnemies() {
+      enemies.forEach(enemy => {
+        // 根据大小决定颜色
+        const color = enemy.size > player.size ? '#ef4444' : '#3b82f6';
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(enemy.x, enemy.y, enemy.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 绘制眼睛
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(enemy.x - enemy.size / 6, enemy.y - enemy.size / 6, enemy.size / 8, 0, Math.PI * 2);
+        ctx.arc(enemy.x + enemy.size / 6, enemy.y - enemy.size / 6, enemy.size / 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = 'black';
+        ctx.beginPath();
+        ctx.arc(enemy.x - enemy.size / 6, enemy.y - enemy.size / 6, enemy.size / 16, 0, Math.PI * 2);
+        ctx.arc(enemy.x + enemy.size / 6, enemy.y - enemy.size / 6, enemy.size / 16, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // 绘制玩家
+    function drawPlayer() {
+      // 绘制玩家身体
+      ctx.fillStyle = '#0a7d8c';
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.size / 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 绘制眼睛
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.arc(player.x - player.size / 6, player.y - player.size / 6, player.size / 8, 0, Math.PI * 2);
+      ctx.arc(player.x + player.size / 6, player.y - player.size / 6, player.size / 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = 'black';
+      ctx.beginPath();
+      ctx.arc(player.x - player.size / 6, player.y - player.size / 6, player.size / 16, 0, Math.PI * 2);
+      ctx.arc(player.x + player.size / 6, player.y - player.size / 6, player.size / 16, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 结束游戏
+    function endGame() {
+      gameOver = true;
+      gameRunning = false;
+
+      // 更新最高分
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('xi-bao-sheng-cun-highscore', highScore);
+      }
+
+      // 显示游戏结束界面
+      finalScore.textContent = score;
+      finalHighScore.textContent = `最高分: ${highScore}`;
+      gameOverEl.classList.remove('hidden');
+    }
+
+    // 事件监听
+    // 键盘控制
+    document.addEventListener('keydown', (e) => {
+      if (!gameRunning) return;
+
+      switch (e.key) {
+        case 'ArrowUp':
+          player.vy = -config.playerSpeed;
+          break;
+        case 'ArrowDown':
+          player.vy = config.playerSpeed;
+          break;
+        case 'ArrowLeft':
+          player.vx = -config.playerSpeed;
+          break;
+        case 'ArrowRight':
+          player.vx = config.playerSpeed;
+          break;
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      switch (e.key) {
+        case 'ArrowUp':
+        case 'ArrowDown':
+          player.vy = 0;
+          break;
+        case 'ArrowLeft':
+        case 'ArrowRight':
+          player.vx = 0;
+          break;
+      }
+    });
+
+    // 触摸控制
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    canvas.addEventListener('touchstart', (e) => {
+      if (!gameRunning) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (!gameRunning) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const dx = touch.clientX - touchStartX;
+      const dy = touch.clientY - touchStartY;
+
+      // 根据滑动方向设置速度
+      if (Math.abs(dx) > Math.abs(dy)) {
+        player.vx = dx > 0 ? config.playerSpeed : -config.playerSpeed;
+        player.vy = 0;
+      } else {
+        player.vx = 0;
+        player.vy = dy > 0 ? config.playerSpeed : -config.playerSpeed;
+      }
+
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+    });
+
+    canvas.addEventListener('touchend', () => {
+      player.vx = 0;
+      player.vy = 0;
+    });
+
+    // 按钮事件
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', initGame);
+    playAgainBtn.addEventListener('click', initGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>

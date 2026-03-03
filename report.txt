@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《QQ经典农场》
-灵感来源：微信小游戏《QQ经典农场》
-经营农场种植作物，收获出售赚取金币，升级设施完成任务，离线收益系统
-▶️ 试玩：https://evan966890.github.io/game-factory/games/qq-jing-dian-nong-chang/
+《我的花园世界》
+灵感来源：微信小游戏《我的花园世界》
+经营花园种植花卉，装饰花园吸引游客，赚取金币解锁新花卉，离线收益系统
+▶️ 试玩：https://evan966890.github.io/game-factory/games/wo-de-hua-yuan-shi-jie/
 
-📊 游戏工厂累计：140 个游戏
+📊 游戏工厂累计：141 个游戏
