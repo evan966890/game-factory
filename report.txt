@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《新弹弹堂》
-灵感来源：微信小游戏《新弹弹堂》
-计算角度力度发射炮弹，地形反弹，敌人系统，关卡挑战，道具系统
-▶️ 试玩：https://evan966890.github.io/game-factory/games/xin-dan-dan-tang/
+《猛鬼宿舍》
+灵感来源：微信小游戏《猛鬼宿舍》
+收集金币电力，建造防御设施，抵御猛鬼入侵，升级系统，时间挑战
+▶️ 试玩：https://evan966890.github.io/game-factory/games/meng-gui-su-she/
 
-📊 游戏工厂累计：146 个游戏
+📊 游戏工厂累计：147 个游戏

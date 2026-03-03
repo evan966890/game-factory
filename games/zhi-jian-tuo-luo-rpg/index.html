@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>指尖陀螺RPG</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .speed-display {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--primary);
+    }
+
+    .spinner-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .spinner {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      cursor: pointer;
+      transition: transform 0.1s;
+      box-shadow: 0 4px 15px rgba(10, 125, 140, 0.3);
+    }
+
+    .spinner:hover {
+      transform: scale(1.05);
+    }
+
+    .spinner:active {
+      transform: scale(0.95);
+    }
+
+    .spinner.spinning {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .upgrades {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .upgrades-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .upgrades-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .upgrade-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .upgrade-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .upgrade-item.maxed {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .upgrade-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .upgrade-item .level {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .crafting {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .crafting-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .crafting-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .craft-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .craft-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .craft-item.crafted {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .craft-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .craft-item .cost {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .achievements {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .achievements-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .achievement-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      font-size: 0.9rem;
+    }
+
+    .achievement-item.unlocked {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .achievement-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .achievement-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>指尖陀螺RPG</h1>
+    <p class="subtitle">点击旋转，升级能力，制作物品</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">速度</span>
+        <span class="value" id="speed">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="gold">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高分</span>
+        <span class="value" id="highScore">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="speed-display" id="speedDisplay">0 RPM</div>
+
+        <div class="spinner-container">
+          <div class="spinner" id="spinner">🌀</div>
+        </div>
+
+        <div class="upgrades">
+          <div class="upgrades-title">升级</div>
+          <div class="upgrades-grid" id="upgrades"></div>
+        </div>
+
+        <div class="crafting">
+          <div class="crafting-title">制作</div>
+          <div class="crafting-grid" id="crafting"></div>
+        </div>
+
+        <div class="achievements">
+          <div class="achievements-title">成就</div>
+          <div class="achievements-grid" id="achievements"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="autoBtn">自动旋转</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      clickPower: 1,
+      autoSpeed: 0.1,
+      upgrades: [
+        { id: 'click', name: '点击力量', emoji: '👆', cost: 10, effect: 1, maxLevel: 10 },
+        { id: 'auto', name: '自动旋转', emoji: '🔄', cost: 50, effect: 0.5, maxLevel: 5 },
+        { id: 'multiplier', name: '倍率', emoji: '✖️', cost: 100, effect: 0.2, maxLevel: 5 },
+        { id: 'critical', name: '暴击', emoji: '💥', cost: 200, effect: 0.1, maxLevel: 3 }
+      ],
+      crafting: [
+        { id: 'bearing', name: '轴承', emoji: '⚙️', cost: 50, effect: 0.5 },
+        { id: 'weight', name: '配重', emoji: '⚖️', cost: 100, effect: 1 },
+        { id: 'lubricant', name: '润滑剂', emoji: '💧', cost: 150, effect: 1.5 },
+        { id: 'material', name: '材料', emoji: '🔩', cost: 200, effect: 2 }
+      ],
+      achievements: [
+        { id: 'speed100', name: '100转', emoji: '🥉', requirement: 100 },
+        { id: 'speed500', name: '500转', emoji: '🥈', requirement: 500 },
+        { id: 'speed1000', name: '1000转', emoji: '🥇', requirement: 1000 },
+        { id: 'speed5000', name: '5000转', emoji: '🏆', requirement: 5000 },
+        { id: 'speed10000', name: '10000转', emoji: '👑', requirement: 10000 },
+        { id: 'speed50000', name: '50000转', emoji: '💎', requirement: 50000 }
+      ]
+    };
+
+    // 游戏状态
+    let speed = 0;
+    let gold = 0;
+    let highScore = parseInt(localStorage.getItem('zhi-jian-tuo-luo-rpg-highscore')) || 0;
+    let clickPower = config.clickPower;
+    let autoSpeed = 0;
+    let multiplier = 1;
+    let criticalChance = 0;
+    let upgrades = {};
+    let crafted = new Set();
+    let unlockedAchievements = new Set();
+    let autoEnabled = false;
+    let autoInterval = null;
+
+    // DOM 元素
+    const speedEl = document.getElementById('speed');
+    const goldEl = document.getElementById('gold');
+    const highScoreEl = document.getElementById('highScore');
+    const speedDisplayEl = document.getElementById('speedDisplay');
+    const spinner = document.getElementById('spinner');
+    const upgradesEl = document.getElementById('upgrades');
+    const craftingEl = document.getElementById('crafting');
+    const achievementsEl = document.getElementById('achievements');
+    const autoBtn = document.getElementById('autoBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      speed = 0;
+      gold = 0;
+      clickPower = config.clickPower;
+      autoSpeed = 0;
+      multiplier = 1;
+      criticalChance = 0;
+      upgrades = {};
+      crafted = new Set();
+      unlockedAchievements = new Set();
+      autoEnabled = false;
+
+      // 初始化升级
+      config.upgrades.forEach(upgrade => {
+        upgrades[upgrade.id] = 0;
+      });
+
+      // 更新显示
+      updateStats();
+      updateUpgrades();
+      updateCrafting();
+      updateAchievements();
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      speedEl.textContent = Math.floor(speed);
+      goldEl.textContent = Math.floor(gold);
+      highScoreEl.textContent = highScore;
+      speedDisplayEl.textContent = `${Math.floor(speed)} RPM`;
+
+      // 更新最高分
+      if (speed > highScore) {
+        highScore = Math.floor(speed);
+        localStorage.setItem('zhi-jian-tuo-luo-rpg-highscore', highScore);
+      }
+
+      // 检查成就
+      checkAchievements();
+    }
+
+    // 更新升级显示
+    function updateUpgrades() {
+      upgradesEl.innerHTML = '';
+      config.upgrades.forEach(upgrade => {
+        const level = upgrades[upgrade.id];
+        const maxed = level >= upgrade.maxLevel;
+        const cost = Math.floor(upgrade.cost * Math.pow(1.5, level));
+
+        const item = document.createElement('div');
+        item.className = `upgrade-item ${maxed ? 'maxed' : ''}`;
+        item.innerHTML = `
+          <div class="emoji">${upgrade.emoji}</div>
+          <div class="level">Lv.${level}/${upgrade.maxLevel}</div>
+          <div class="cost">${maxed ? '已满级' : `${cost}金币`}</div>
+        `;
+        if (!maxed) {
+          item.addEventListener('click', () => buyUpgrade(upgrade));
+        }
+        upgradesEl.appendChild(item);
+      });
+    }
+
+    // 购买升级
+    function buyUpgrade(upgrade) {
+      const level = upgrades[upgrade.id];
+      const cost = Math.floor(upgrade.cost * Math.pow(1.5, level));
+
+      if (gold >= cost && level < upgrade.maxLevel) {
+        gold -= cost;
+        upgrades[upgrade.id]++;
+
+        // 应用升级效果
+        switch (upgrade.id) {
+          case 'click':
+            clickPower += upgrade.effect;
+            break;
+          case 'auto':
+            autoSpeed += upgrade.effect;
+            break;
+          case 'multiplier':
+            multiplier += upgrade.effect;
+            break;
+          case 'critical':
+            criticalChance += upgrade.effect;
+            break;
+        }
+
+        updateStats();
+        updateUpgrades();
+      }
+    }
+
+    // 更新制作显示
+    function updateCrafting() {
+      craftingEl.innerHTML = '';
+      config.crafting.forEach(item => {
+        const craftedItem = crafted.has(item.id);
+
+        const itemEl = document.createElement('div');
+        itemEl.className = `craft-item ${craftedItem ? 'crafted' : ''}`;
+        itemEl.innerHTML = `
+          <div class="emoji">${item.emoji}</div>
+          <div class="cost">${craftedItem ? '已制作' : `${item.cost}金币`}</div>
+        `;
+        if (!craftedItem) {
+          itemEl.addEventListener('click', () => craftItem(item));
+        }
+        craftingEl.appendChild(itemEl);
+      });
+    }
+
+    // 制作物品
+    function craftItem(item) {
+      if (gold >= item.cost && !crafted.has(item.id)) {
+        gold -= item.cost;
+        crafted.add(item.id);
+
+        // 应用物品效果
+        autoSpeed += item.effect;
+
+        updateStats();
+        updateCrafting();
+      }
+    }
+
+    // 更新成就显示
+    function updateAchievements() {
+      achievementsEl.innerHTML = '';
+      config.achievements.forEach(achievement => {
+        const unlocked = unlockedAchievements.has(achievement.id);
+
+        const item = document.createElement('div');
+        item.className = `achievement-item ${unlocked ? 'unlocked' : ''}`;
+        item.innerHTML = `
+          <div class="emoji">${unlocked ? achievement.emoji : '🔒'}</div>
+          <div class="name">${achievement.name}</div>
+        `;
+        achievementsEl.appendChild(item);
+      });
+    }
+
+    // 检查成就
+    function checkAchievements() {
+      config.achievements.forEach(achievement => {
+        if (speed >= achievement.requirement && !unlockedAchievements.has(achievement.id)) {
+          unlockedAchievements.add(achievement.id);
+          gold += achievement.requirement / 10;
+          updateAchievements();
+        }
+      });
+    }
+
+    // 点击陀螺
+    function clickSpinner() {
+      // 计算点击力量
+      let power = clickPower * multiplier;
+
+      // 暴击
+      if (Math.random() < criticalChance) {
+        power *= 2;
+      }
+
+      // 增加速度
+      speed += power;
+
+      // 增加金币
+      gold += power / 10;
+
+      // 更新显示
+      updateStats();
+
+      // 添加动画
+      spinner.style.transform = 'scale(0.9)';
+      setTimeout(() => {
+        spinner.style.transform = 'scale(1)';
+      }, 100);
+    }
+
+    // 自动旋转
+    function autoSpin() {
+      if (!autoEnabled) return;
+
+      // 增加速度
+      speed += autoSpeed * multiplier;
+
+      // 增加金币
+      gold += autoSpeed / 20;
+
+      // 更新显示
+      updateStats();
+    }
+
+    // 切换自动旋转
+    function toggleAuto() {
+      autoEnabled = !autoEnabled;
+
+      if (autoEnabled) {
+        autoBtn.textContent = '停止旋转';
+        autoBtn.style.background = 'var(--red)';
+        spinner.classList.add('spinning');
+
+        // 开始自动旋转
+        autoInterval = setInterval(autoSpin, 100);
+      } else {
+        autoBtn.textContent = '自动旋转';
+        autoBtn.style.background = 'var(--primary)';
+        spinner.classList.remove('spinning');
+
+        // 停止自动旋转
+        if (autoInterval) {
+          clearInterval(autoInterval);
+          autoInterval = null;
+        }
+      }
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        initGame();
+      }
+    }
+
+    // 事件监听
+    spinner.addEventListener('click', clickSpinner);
+    autoBtn.addEventListener('click', toggleAuto);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>

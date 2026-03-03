@@ -882,5 +882,11 @@
     "path": "games/meng-gui-su-she/index.html",
     "category": "塔防策略",
     "createdAt": "2026-03-03T20:49:48Z"
+  },
+  {
+    "name": "指尖陀螺RPG",
+    "path": "games/zhi-jian-tuo-luo-rpg/index.html",
+    "category": "点击增量",
+    "createdAt": "2026-03-03T21:12:13Z"
   }
 ]
