@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《数学弹射英雄》
-灵感来源：Angry Birds + 弹弓物理
-单指拉弹弓发射角色，利用物理反弹摧毁目标，每关开始前回答数学题获得奖励，三星评价系统
-▶️ 试玩：https://evan966890.github.io/game-factory/games/math-slingshot-hero/
+《数学曲折跑》
+灵感来源：Zigzag Runner + 数学教育
+点击控制球在曲折路径上滚动，每前进100米回答数学题，答对获得加速和护盾，答错减速
+▶️ 试玩：https://evan966890.github.io/game-factory/games/math-zigzag-runner/
 
-📊 游戏工厂累计：133 个游戏
+📊 游戏工厂累计：126 个游戏
