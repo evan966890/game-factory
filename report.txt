@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《猛鬼宿舍》
-灵感来源：微信小游戏《猛鬼宿舍》
-收集金币电力，建造防御设施，抵御猛鬼入侵，升级系统，时间挑战
-▶️ 试玩：https://evan966890.github.io/game-factory/games/meng-gui-su-she/
+《指尖陀螺RPG》
+灵感来源：Steam 游戏《Fidget Spinner RPG》
+点击旋转陀螺，升级能力，制作物品，成就系统，自动旋转，增量成长
+▶️ 试玩：https://evan966890.github.io/game-factory/games/zhi-jian-tuo-luo-rpg/
 
-📊 游戏工厂累计：147 个游戏
+📊 游戏工厂累计：148 个游戏

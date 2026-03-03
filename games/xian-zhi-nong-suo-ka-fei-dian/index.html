@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>闲置浓缩咖啡店</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --coffee: #6f4e37;
+      --cream: #f5f5dc;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .coffee-machine {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .coffee-machine .machine {
+      font-size: 4rem;
+      margin-bottom: 8px;
+    }
+
+    .coffee-machine .status {
+      font-size: 1rem;
+      color: var(--muted);
+    }
+
+    .coffee-machine .progress {
+      width: 100%;
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .coffee-machine .progress-bar {
+      height: 100%;
+      background: var(--coffee);
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .customers {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .customers-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .customers-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .customer-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .customer-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .customer-item .emoji {
+      font-size: 1.5rem;
+      margin-right: 8px;
+    }
+
+    .customer-item .order {
+      flex: 1;
+      font-size: 0.9rem;
+    }
+
+    .customer-item .timer {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .customer-item .timer.urgent {
+      color: var(--red);
+    }
+
+    .upgrades {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .upgrades-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .upgrades-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .upgrade-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .upgrade-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .upgrade-item.maxed {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .upgrade-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .upgrade-item .level {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>闲置浓缩咖啡店</h1>
+    <p class="subtitle">制作咖啡，服务顾客，升级设备</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">营业额</span>
+        <span class="value gold" id="revenue">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">目标</span>
+        <span class="value green" id="target">100</span>
+      </div>
+      <div class="stat">
+        <span class="label">咖啡</span>
+        <span class="value" id="coffee">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="coffee-machine">
+          <div class="machine">☕</div>
+          <div class="status" id="machineStatus">准备就绪</div>
+          <div class="progress">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+        </div>
+
+        <div class="customers">
+          <div class="customers-title">顾客</div>
+          <div class="customers-list" id="customersList"></div>
+        </div>
+
+        <div class="upgrades">
+          <div class="upgrades-title">升级</div>
+          <div class="upgrades-grid" id="upgrades"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="makeBtn">制作咖啡</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      coffeeTypes: [
+        { id: 'espresso', name: '浓缩咖啡', emoji: '☕', price: 10, time: 1000 },
+        { id: 'latte', name: '拿铁', emoji: '🥛', price: 15, time: 1500 },
+        { id: 'cappuccino', name: '卡布奇诺', emoji: '🫖', price: 20, time: 2000 },
+        { id: 'mocha', name: '摩卡', emoji: '🍫', price: 25, time: 2500 }
+      ],
+      upgrades: [
+        { id: 'machine', name: '咖啡机', emoji: '⚙️', cost: 50, effect: 0.2, maxLevel: 5 },
+        { id: 'speed', name: '制作速度', emoji: '⚡', cost: 100, effect: 0.3, maxLevel: 5 },
+        { id: 'price', name: '价格', emoji: '💰', cost: 150, effect: 0.2, maxLevel: 5 },
+        { id: 'capacity', name: '容量', emoji: '📦', cost: 200, effect: 1, maxLevel: 3 }
+      ],
+      customerInterval: 3000,
+      customerTimeout: 10000
+    };
+
+    // 游戏状态
+    let revenue = 0;
+    let target = 100;
+    let coffee = 0;
+    let upgrades = {};
+    let customers = [];
+    let makingCoffee = false;
+    let coffeeProgress = 0;
+    let lastSave = Date.now();
+    let offlineEarnings = 0;
+
+    // DOM 元素
+    const revenueEl = document.getElementById('revenue');
+    const targetEl = document.getElementById('target');
+    const coffeeEl = document.getElementById('coffee');
+    const machineStatus = document.getElementById('machineStatus');
+    const progressBar = document.getElementById('progressBar');
+    const customersList = document.getElementById('customersList');
+    const upgradesEl = document.getElementById('upgrades');
+    const makeBtn = document.getElementById('makeBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      revenue = 0;
+      target = 100;
+      coffee = 0;
+      upgrades = {};
+      customers = [];
+      makingCoffee = false;
+      coffeeProgress = 0;
+
+      // 初始化升级
+      config.upgrades.forEach(upgrade => {
+        upgrades[upgrade.id] = 0;
+      });
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateUpgrades();
+      updateCustomers();
+
+      // 开始游戏循环
+      startGameLoop();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('xian-zhi-nong-suo-ka-fei-dian');
+      if (saved) {
+        const data = JSON.parse(saved);
+        revenue = data.revenue || 0;
+        target = data.target || 100;
+        coffee = data.coffee || 0;
+        upgrades = data.upgrades || {};
+        lastSave = data.lastSave || Date.now();
+
+        // 计算离线收益
+        const now = Date.now();
+        const offlineTime = now - lastSave;
+        if (offlineTime > 0) {
+          const offlineRate = getOfflineRate();
+          offlineEarnings = Math.floor(offlineTime / 1000 * offlineRate);
+          revenue += offlineEarnings;
+          if (offlineEarnings > 0) {
+            alert(`离线收益：+${offlineEarnings} 金币`);
+          }
+        }
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        revenue,
+        target,
+        coffee,
+        upgrades,
+        lastSave: Date.now()
+      };
+      localStorage.setItem('xian-zhi-nong-suo-ka-fei-dian', JSON.stringify(data));
+    }
+
+    // 获取离线收益速率
+    function getOfflineRate() {
+      let rate = 0.1; // 基础速率
+      rate += upgrades.machine * 0.05;
+      rate += upgrades.speed * 0.03;
+      return rate;
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      revenueEl.textContent = Math.floor(revenue);
+      targetEl.textContent = target;
+      coffeeEl.textContent = coffee;
+
+      // 检查是否完成目标
+      if (revenue >= target) {
+        target = Math.floor(target * 1.5);
+        alert(`恭喜！营业额达到 ${target / 1.5}，新目标：${target}`);
+      }
+    }
+
+    // 更新升级显示
+    function updateUpgrades() {
+      upgradesEl.innerHTML = '';
+      config.upgrades.forEach(upgrade => {
+        const level = upgrades[upgrade.id];
+        const maxed = level >= upgrade.maxLevel;
+        const cost = Math.floor(upgrade.cost * Math.pow(1.5, level));
+
+        const item = document.createElement('div');
+        item.className = `upgrade-item ${maxed ? 'maxed' : ''}`;
+        item.innerHTML = `
+          <div class="emoji">${upgrade.emoji}</div>
+          <div class="level">Lv.${level}/${upgrade.maxLevel}</div>
+          <div class="cost">${maxed ? '已满级' : `${cost}金币`}</div>
+        `;
+        if (!maxed) {
+          item.addEventListener('click', () => buyUpgrade(upgrade));
+        }
+        upgradesEl.appendChild(item);
+      });
+    }
+
+    // 购买升级
+    function buyUpgrade(upgrade) {
+      const level = upgrades[upgrade.id];
+      const cost = Math.floor(upgrade.cost * Math.pow(1.5, level));
+
+      if (revenue >= cost && level < upgrade.maxLevel) {
+        revenue -= cost;
+        upgrades[upgrade.id]++;
+
+        updateStats();
+        updateUpgrades();
+        saveGame();
+      }
+    }
+
+    // 更新顾客显示
+    function updateCustomers() {
+      customersList.innerHTML = '';
+      customers.forEach((customer, index) => {
+        const timeLeft = Math.max(0, customer.timeout - (Date.now() - customer.startTime));
+        const urgent = timeLeft < 3000;
+
+        const item = document.createElement('div');
+        item.className = 'customer-item';
+        item.innerHTML = `
+          <span class="emoji">${customer.emoji}</span>
+          <span class="order">${customer.order.name}</span>
+          <span class="timer ${urgent ? 'urgent' : ''}">${Math.ceil(timeLeft / 1000)}s</span>
+        `;
+        item.addEventListener('click', () => serveCustomer(index));
+        customersList.appendChild(item);
+      });
+    }
+
+    // 生成顾客
+    function generateCustomer() {
+      if (customers.length >= 3 + upgrades.capacity) return;
+
+      const coffeeType = config.coffeeTypes[Math.floor(Math.random() * config.coffeeTypes.length)];
+      const customer = {
+        emoji: ['👨', '👩', '👴', '👵', '👦', '👧'][Math.floor(Math.random() * 6)],
+        order: coffeeType,
+        startTime: Date.now(),
+        timeout: config.customerTimeout
+      };
+      customers.push(customer);
+      updateCustomers();
+    }
+
+    // 服务顾客
+    function serveCustomer(index) {
+      const customer = customers[index];
+      if (coffee >= 1) {
+        coffee--;
+        const price = Math.floor(customer.order.price * (1 + upgrades.price * 0.2));
+        revenue += price;
+        customers.splice(index, 1);
+        updateStats();
+        updateCustomers();
+        saveGame();
+      } else {
+        alert('没有咖啡了！请先制作咖啡。');
+      }
+    }
+
+    // 制作咖啡
+    function makeCoffee() {
+      if (makingCoffee) return;
+
+      makingCoffee = true;
+      coffeeProgress = 0;
+      machineStatus.textContent = '制作中...';
+      makeBtn.disabled = true;
+
+      const coffeeType = config.coffeeTypes[Math.floor(Math.random() * config.coffeeTypes.length)];
+      const baseTime = coffeeType.time;
+      const speedMultiplier = 1 - upgrades.speed * 0.1;
+      const totalTime = baseTime * speedMultiplier;
+
+      const interval = setInterval(() => {
+        coffeeProgress += 100 / (totalTime / 100);
+        progressBar.style.width = `${coffeeProgress}%`;
+
+        if (coffeeProgress >= 100) {
+          clearInterval(interval);
+          coffee++;
+          makingCoffee = false;
+          coffeeProgress = 0;
+          progressBar.style.width = '0%';
+          machineStatus.textContent = '准备就绪';
+          makeBtn.disabled = false;
+          updateStats();
+          saveGame();
+        }
+      }, 100);
+    }
+
+    // 游戏循环
+    function startGameLoop() {
+      // 生成顾客
+      setInterval(generateCustomer, config.customerInterval);
+
+      // 更新顾客计时器
+      setInterval(() => {
+        // 移除超时顾客
+        customers = customers.filter(customer => {
+          const timeLeft = customer.timeout - (Date.now() - customer.startTime);
+          return timeLeft > 0;
+        });
+        updateCustomers();
+      }, 1000);
+
+      // 自动保存
+      setInterval(saveGame, 5000);
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('xian-zhi-nong-suo-ka-fei-dian');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    makeBtn.addEventListener('click', makeCoffee);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
