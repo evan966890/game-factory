@@ -960,5 +960,11 @@
     "path": "games/san-guo-bing-he-shi-dai/index.html",
     "category": "策略",
     "createdAt": "2026-03-03T23:12:15Z"
+  },
+  {
+    "name": "动物餐厅",
+    "path": "games/dong-wu-can-ting/index.html",
+    "category": "模拟经营",
+    "createdAt": "2026-03-03T23:19:10Z"
   }
 ]
