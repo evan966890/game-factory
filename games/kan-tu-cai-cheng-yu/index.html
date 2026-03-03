@@ -1,65 +1,627 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>看图猜成语</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>看图猜成语</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .question-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .image-hint {
+      font-size: 3rem;
+      text-align: center;
+      margin-bottom: 12px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .option {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .option:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .option.correct {
+      background: #e8f8ef;
+      border-color: var(--ok);
+      color: var(--ok);
+    }
+
+    .option.wrong {
+      background: #fde8e8;
+      border-color: var(--bad);
+      color: var(--bad);
+    }
+
+    .feedback {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+      min-height: 100px;
+    }
+
+    .feedback-title {
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .feedback-meaning {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .feedback-origin {
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    .timer-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .timer-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 3px;
+      transition: width 0.1s linear;
+    }
+
+    .timer-fill.warning {
+      background: #f59e0b;
+    }
+
+    .timer-fill.danger {
+      background: var(--bad);
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .game-over {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .game-over h2 {
+      margin-bottom: 16px;
+    }
+
+    .final-score {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .high-score {
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
 <body>
-    <div class="game-container">
-        <header class="game-header">
-            <h1>看图猜成语</h1>
-            <div class="score-board">
-                <div class="score-item">
-                    <span class="label">分数</span>
-                    <span class="value" id="score">0</span>
-                </div>
-                <div class="score-item">
-                    <span class="label">连击</span>
-                    <span class="value" id="combo">0</span>
-                </div>
-                <div class="score-item">
-                    <span class="label">最高分</span>
-                    <span class="value" id="high-score">0</span>
-                </div>
-            </div>
-        </header>
+  <div class="app">
+    <h1>看图猜成语</h1>
+    <p class="subtitle">根据图片提示猜出正确的成语</p>
 
-        <main class="game-main">
-            <div class="hint-section">
-                <div class="hint-label">图片提示</div>
-                <div class="hint-image" id="hint-image">🤔</div>
-            </div>
-
-            <div class="options-section">
-                <div class="options-grid" id="options-grid">
-                    <!-- 选项将通过JS动态生成 -->
-                </div>
-            </div>
-
-            <div class="info-section">
-                <div class="timer-container">
-                    <div class="timer-label">剩余时间</div>
-                    <div class="timer-bar">
-                        <div class="timer-fill" id="timer-fill"></div>
-                    </div>
-                    <div class="timer-text" id="timer-text">30秒</div>
-                </div>
-                <div class="result-container" id="result-container">
-                    <div class="result-text" id="result-text"></div>
-                    <div class="result-meaning" id="result-meaning"></div>
-                    <div class="result-source" id="result-source"></div>
-                </div>
-            </div>
-        </main>
-
-        <footer class="game-footer">
-            <button class="btn btn-primary" id="start-btn">开始游戏</button>
-            <button class="btn btn-secondary" id="next-btn" style="display: none;">下一题</button>
-        </footer>
+    <div class="stats">
+      <div class="stat">
+        <span class="label">分数</span>
+        <span class="value" id="score">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">连击</span>
+        <span class="value" id="combo">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高分</span>
+        <span class="value" id="highScore">0</span>
+      </div>
     </div>
 
-    <script src="script.js"></script>
+    <div class="timer-bar">
+      <div class="timer-fill" id="timerFill"></div>
+    </div>
+
+    <div class="question-box">
+      <div class="image-hint" id="imageHint"></div>
+    </div>
+
+    <div class="options" id="options"></div>
+
+    <div class="feedback hidden" id="feedback">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div class="feedback-meaning" id="feedbackMeaning"></div>
+      <div class="feedback-origin" id="feedbackOrigin"></div>
+    </div>
+
+    <button class="btn" id="nextBtn" disabled>下一题</button>
+
+    <div class="game-over hidden" id="gameOver">
+      <h2>游戏结束</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <div class="high-score" id="finalHighScore">最高分: 0</div>
+      <button class="btn" id="restartBtn">再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    // 成语数据
+    const idioms = [
+      {
+        hint: "🐱🐟",
+        options: ["猫捉老鼠", "猫吃鱼", "如鱼得水", "鱼目混珠"],
+        answer: "猫吃鱼",
+        meaning: "猫喜欢吃鱼，形容天性使然。",
+        origin: "民间俗语"
+      },
+      {
+        hint: "🐔🥚",
+        options: ["鸡飞蛋打", "鸡犬不宁", "鸡鸣狗盗", "鸡毛蒜皮"],
+        answer: "鸡飞蛋打",
+        meaning: "鸡飞走了，蛋也打破了。比喻两头落空，一无所得。",
+        origin: "《庄子·外物》"
+      },
+      {
+        hint: "🐍🪜",
+        options: ["画蛇添足", "蛇鼠一窝", "蛇蝎心肠", "蛇行鼠步"],
+        answer: "画蛇添足",
+        meaning: "画蛇时给蛇添上脚。比喻做了多余的事，反而不恰当。",
+        origin: "《战国策·齐策二》"
+      },
+      {
+        hint: "🐴🏃",
+        options: ["马到成功", "马不停蹄", "马马虎虎", "马首是瞻"],
+        answer: "马到成功",
+        meaning: "战马一到就取得成功。形容事情顺利，一开始就取得胜利。",
+        origin: "元·郑廷玉《楚昭公》"
+      },
+      {
+        hint: "🐑🐺",
+        options: ["羊入虎口", "羊肠小道", "羊质虎皮", "羊落虎口"],
+        answer: "羊入虎口",
+        meaning: "羊进入老虎嘴里。比喻陷入险境，有死无生。",
+        origin: "《庄子·秋水》"
+      },
+      {
+        hint: "🐒🌙",
+        options: ["猴子捞月", "猴年马月", "猴头猴脑", "猴急跳墙"],
+        answer: "猴子捞月",
+        meaning: "猴子捞水中的月亮。比喻做根本做不到的事，白费力气。",
+        origin: "《法苑珠林》"
+      },
+      {
+        hint: "🐸🐸",
+        options: ["井底之蛙", "蛙鸣蝉噪", "蛙跳虫飞", "蛙声一片"],
+        answer: "井底之蛙",
+        meaning: "井底的青蛙只能看到井口那么大的一块天。比喻见识狭窄的人。",
+        origin: "《庄子·秋水》"
+      },
+      {
+        hint: "🐝🍯",
+        options: ["蜜蜂采蜜", "蜂拥而至", "蜂目豺声", "蜂屯蚁聚"],
+        answer: "蜜蜂采蜜",
+        meaning: "蜜蜂采集花蜜。比喻辛勤劳动。",
+        origin: "民间俗语"
+      },
+      {
+        hint: "🦋🌸",
+        options: ["蝴蝶采花", "蝶恋花", "蝶粉蜂黄", "蝶乱蜂狂"],
+        answer: "蝶恋花",
+        meaning: "蝴蝶依恋花朵。比喻男女之间的爱慕之情。",
+        origin: "宋词词牌名"
+      },
+      {
+        hint: "🐢🐇",
+        options: ["龟兔赛跑", "龟毛兔角", "龟龙片甲", "龟鹤延年"],
+        answer: "龟兔赛跑",
+        meaning: "乌龟和兔子赛跑。比喻坚持不懈才能成功。",
+        origin: "《伊索寓言》"
+      },
+      {
+        hint: "🐘🐭",
+        options: ["大象踩老鼠", "象牙之塔", "象齿焚身", "象箸玉杯"],
+        answer: "大象踩老鼠",
+        meaning: "大象踩死老鼠。比喻以大欺小，力量悬殊。",
+        origin: "民间俗语"
+      },
+      {
+        hint: "🦁👑",
+        options: ["狮子王", "狮威胜虎", "狮虎当道", "狮象搏兔"],
+        answer: "狮子王",
+        meaning: "狮子中的王者。比喻威严的领导者。",
+        origin: "《狮子王》电影"
+      },
+      {
+        hint: "🐯⛰️",
+        options: ["虎踞龙盘", "虎头蛇尾", "虎口拔牙", "虎背熊腰"],
+        answer: "虎踞龙盘",
+        meaning: "像虎蹲着，像龙盘着。形容地势险要雄伟。",
+        origin: "《太平御览》"
+      },
+      {
+        hint: "🐉☁️",
+        options: ["龙腾虎跃", "龙飞凤舞", "龙马精神", "龙争虎斗"],
+        answer: "龙腾虎跃",
+        meaning: "像龙在飞腾，虎在跳跃。形容威武雄壮，非常活跃。",
+        origin: "《易经》"
+      },
+      {
+        hint: "🐦🏠",
+        options: ["鸟语花香", "鸟尽弓藏", "鸟枪换炮", "鸟巢"],
+        answer: "鸟语花香",
+        meaning: "鸟叫得好听，花开得喷香。形容春天的美好景象。",
+        origin: "宋·吕本中《紫薇·庵居》"
+      },
+      {
+        hint: "🐟🌊",
+        options: ["鱼跃龙门", "鱼目混珠", "鱼水情深", "鱼死网破"],
+        answer: "鱼跃龙门",
+        meaning: "鱼跳过龙门。比喻举业成功或地位高升。",
+        origin: "《辛氏三秦记》"
+      },
+      {
+        hint: "🐜🏔️",
+        options: ["蚂蚁搬家", "蚂蚁啃骨头", "蚂蚁缘槐", "蚂蚁搬泰山"],
+        answer: "蚂蚁搬泰山",
+        meaning: "蚂蚁搬动泰山。比喻人多力量大，积少成多。",
+        origin: "民间俗语"
+      },
+      {
+        hint: "🕷️🕸️",
+        options: ["蜘蛛结网", "蛛丝马迹", "蛛网尘封", "蛛游蜩化"],
+        answer: "蜘蛛结网",
+        meaning: "蜘蛛编织网。比喻精心策划，布置圈套。",
+        origin: "民间俗语"
+      },
+      {
+        hint: "🐌🏠",
+        options: ["蜗牛爬行", "蜗角虚名", "蜗行牛步", "蜗舍荆扉"],
+        answer: "蜗牛爬行",
+        meaning: "蜗牛慢慢爬行。比喻行动迟缓。",
+        origin: "民间俗语"
+      },
+      {
+        hint: "🐛🦋",
+        options: ["毛毛虫变蝴蝶", "虫臂鼠肝", "虫沙猿鹤", "虫鸣螽跃"],
+        answer: "毛毛虫变蝴蝶",
+        meaning: "毛毛虫变成蝴蝶。比喻经历磨难后获得新生。",
+        origin: "民间俗语"
+      }
+    ];
+
+    // 游戏状态
+    let currentQuestion = 0;
+    let score = 0;
+    let combo = 0;
+    let highScore = parseInt(localStorage.getItem('kan-tu-cai-cheng-yu-highscore')) || 0;
+    let timeLeft = 30;
+    let timerInterval = null;
+    let answered = false;
+
+    // DOM 元素
+    const scoreEl = document.getElementById('score');
+    const comboEl = document.getElementById('combo');
+    const highScoreEl = document.getElementById('highScore');
+    const timerFill = document.getElementById('timerFill');
+    const imageHint = document.getElementById('imageHint');
+    const optionsEl = document.getElementById('options');
+    const feedback = document.getElementById('feedback');
+    const feedbackTitle = document.getElementById('feedbackTitle');
+    const feedbackMeaning = document.getElementById('feedbackMeaning');
+    const feedbackOrigin = document.getElementById('feedbackOrigin');
+    const nextBtn = document.getElementById('nextBtn');
+    const gameOverEl = document.getElementById('gameOver');
+    const finalScore = document.getElementById('finalScore');
+    const finalHighScore = document.getElementById('finalHighScore');
+    const restartBtn = document.getElementById('restartBtn');
+
+    // 初始化游戏
+    function initGame() {
+      currentQuestion = 0;
+      score = 0;
+      combo = 0;
+      updateStats();
+      gameOverEl.classList.add('hidden');
+      nextBtn.classList.remove('hidden');
+      showQuestion();
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      scoreEl.textContent = score;
+      comboEl.textContent = combo;
+      highScoreEl.textContent = highScore;
+    }
+
+    // 显示题目
+    function showQuestion() {
+      if (currentQuestion >= idioms.length) {
+        endGame();
+        return;
+      }
+
+      answered = false;
+      feedback.classList.add('hidden');
+      nextBtn.disabled = true;
+
+      const idiom = idioms[currentQuestion];
+      imageHint.textContent = idiom.hint;
+
+      // 打乱选项顺序
+      const shuffledOptions = [...idiom.options].sort(() => Math.random() - 0.5);
+
+      optionsEl.innerHTML = '';
+      shuffledOptions.forEach(option => {
+        const btn = document.createElement('div');
+        btn.className = 'option';
+        btn.textContent = option;
+        btn.addEventListener('click', () => selectAnswer(option, idiom));
+        optionsEl.appendChild(btn);
+      });
+
+      // 重置计时器
+      resetTimer();
+    }
+
+    // 选择答案
+    function selectAnswer(selected, idiom) {
+      if (answered) return;
+      answered = true;
+
+      clearInterval(timerInterval);
+
+      const options = optionsEl.querySelectorAll('.option');
+      options.forEach(opt => {
+        opt.style.pointerEvents = 'none';
+        if (opt.textContent === idiom.answer) {
+          opt.classList.add('correct');
+        } else if (opt.textContent === selected) {
+          opt.classList.add('wrong');
+        }
+      });
+
+      if (selected === idiom.answer) {
+        // 答对
+        combo++;
+        const baseScore = 100;
+        const comboBonus = combo * 10;
+        const timeBonus = Math.floor(timeLeft * 2);
+        const totalScore = baseScore + comboBonus + timeBonus;
+        score += totalScore;
+
+        feedbackTitle.textContent = `✅ 正确！+${totalScore}分`;
+        feedbackTitle.style.color = 'var(--ok)';
+      } else {
+        // 答错
+        combo = 0;
+        feedbackTitle.textContent = `❌ 错误！正确答案是：${idiom.answer}`;
+        feedbackTitle.style.color = 'var(--bad)';
+      }
+
+      feedbackMeaning.textContent = `释义：${idiom.meaning}`;
+      feedbackOrigin.textContent = `出处：${idiom.origin}`;
+      feedback.classList.remove('hidden');
+
+      updateStats();
+      nextBtn.disabled = false;
+    }
+
+    // 重置计时器
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timeLeft = 30;
+      updateTimerDisplay();
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          timeUp();
+        }
+      }, 1000);
+    }
+
+    // 更新计时器显示
+    function updateTimerDisplay() {
+      const percentage = (timeLeft / 30) * 100;
+      timerFill.style.width = `${percentage}%`;
+
+      timerFill.classList.remove('warning', 'danger');
+      if (timeLeft <= 10) {
+        timerFill.classList.add('danger');
+      } else if (timeLeft <= 20) {
+        timerFill.classList.add('warning');
+      }
+    }
+
+    // 时间到
+    function timeUp() {
+      if (answered) return;
+      answered = true;
+
+      const idiom = idioms[currentQuestion];
+      const options = optionsEl.querySelectorAll('.option');
+      options.forEach(opt => {
+        opt.style.pointerEvents = 'none';
+        if (opt.textContent === idiom.answer) {
+          opt.classList.add('correct');
+        }
+      });
+
+      combo = 0;
+      feedbackTitle.textContent = `⏰ 时间到！正确答案是：${idiom.answer}`;
+      feedbackTitle.style.color = 'var(--bad)';
+      feedbackMeaning.textContent = `释义：${idiom.meaning}`;
+      feedbackOrigin.textContent = `出处：${idiom.origin}`;
+      feedback.classList.remove('hidden');
+
+      updateStats();
+      nextBtn.disabled = false;
+    }
+
+    // 下一题
+    nextBtn.addEventListener('click', () => {
+      currentQuestion++;
+      showQuestion();
+    });
+
+    // 结束游戏
+    function endGame() {
+      clearInterval(timerInterval);
+
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('kan-tu-cai-cheng-yu-highscore', highScore);
+      }
+
+      finalScore.textContent = score;
+      finalHighScore.textContent = `最高分: ${highScore}`;
+
+      gameOverEl.classList.remove('hidden');
+      nextBtn.classList.add('hidden');
+    }
+
+    // 重新开始
+    restartBtn.addEventListener('click', initGame);
+
+    // 开始游戏
+    initGame();
+  </script>
 </body>
 </html>
