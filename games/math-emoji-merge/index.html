@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>数学表情合成</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #22d3ee;
+      --ok: #22c55e;
+      --bad: #ef4444;
+      --text: #e5e7eb;
+      --container: #1e293b;
+      --symbol-1: #3b82f6;
+      --symbol-2: #22c55e;
+      --symbol-3: #f59e0b;
+      --symbol-4: #ef4444;
+      --symbol-5: #8b5cf6;
+      --symbol-6: #ec4899;
+      --symbol-7: #06b6d4;
+      --symbol-8: #84cc16;
+      --symbol-9: #f97316;
+      --symbol-plus: #eab308;
+      --symbol-minus: #a855f7;
+      --symbol-multiply: #14b8a6;
+      --symbol-divide: #f43f5e;
+      --symbol-equals: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #0b1024, #111827);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      overflow: hidden;
+    }
+    .app {
+      width: min(480px, 100%);
+      background: rgba(17, 24, 39, .95);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(24px, 5vw, 34px);
+      text-align: center;
+    }
+    .sub {
+      opacity: .85;
+      margin: 0 0 12px;
+      font-size: 14px;
+      text-align: center;
+    }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .box {
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+    .k { font-size: 12px; opacity: .7; }
+    .v { font-size: 22px; font-weight: 700; }
+    .game-container {
+      position: relative;
+      width: 100%;
+      height: 500px;
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .next-symbol {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 5;
+    }
+    .game-over-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+    .game-over-overlay.active { display: flex; }
+    .game-over-title {
+      font-size: clamp(28px, 8vw, 48px);
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: var(--bad);
+    }
+    .game-over-score {
+      font-size: clamp(20px, 6vw, 32px);
+      margin-bottom: 24px;
+    }
+    .btn {
+      background: var(--accent);
+      color: #0b1024;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .1s, opacity .2s;
+    }
+    .btn:hover { opacity: .9; transform: scale(1.02); }
+    .btn:active { transform: scale(.98); }
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .btn-secondary {
+      background: #1f2937;
+      color: var(--text);
+    }
+    .instructions {
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .instructions h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: var(--accent);
+    }
+    .instructions ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .achievements {
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+    .achievements h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: var(--accent);
+    }
+    .achievement-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+    }
+    .achievement {
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      font-size: 12px;
+    }
+    .achievement.unlocked {
+      border-color: var(--ok);
+      background: rgba(34, 197, 94, 0.1);
+    }
+    .achievement .icon {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>🧮 数学表情合成</h1>
+    <p class="sub">合成数学符号，学习数学概念！</p>
+    
+    <div class="hud">
+      <div class="box">
+        <div class="k">得分</div>
+        <div class="v" id="score">0</div>
+      </div>
+      <div class="box">
+        <div class="k">最高分</div>
+        <div class="v" id="best">0</div>
+      </div>
+      <div class="box">
+        <div class="k">最大符号</div>
+        <div class="v" id="maxSymbol">1</div>
+      </div>
+    </div>
+    
+    <div class="game-container" id="gameContainer">
+      <canvas id="gameCanvas"></canvas>
+      <div class="next-symbol" id="nextSymbol">下一个: 1</div>
+      <div class="game-over-overlay" id="gameOverOverlay">
+        <div class="game-over-title">游戏结束</div>
+        <div class="game-over-score">得分: <span id="finalScore">0</span></div>
+        <button class="btn" id="restartBtn">再来一局</button>
+      </div>
+    </div>
+    
+    <div class="controls">
+      <button class="btn" id="dropBtn">放置符号</button>
+      <button class="btn btn-secondary" id="newGameBtn">新游戏</button>
+    </div>
+    
+    <div class="instructions">
+      <h3>🎮 游戏玩法</h3>
+      <ul>
+        <li>点击"放置符号"或点击画布放置数学符号</li>
+        <li>相同符号碰撞会合并成更高级的符号</li>
+        <li>数字合并：1+1=2，2+2=4，4+4=8...</li>
+        <li>运算符合并：+ + = ×，× × = ÷</li>
+        <li>等号合并：创建数学公式（1+1=2）</li>
+        <li>避免符号堆叠到顶部</li>
+        <li>目标：合成尽可能高级的符号！</li>
+      </ul>
+    </div>
+    
+    <div class="achievements">
+      <h3>🏆 成就系统</h3>
+      <div class="achievement-list" id="achievementList">
+        <div class="achievement" data-id="merge10">
+          <div class="icon">🔢</div>
+          <div>合并10次</div>
+        </div>
+        <div class="achievement" data-id="merge50">
+          <div class="icon">🔢</div>
+          <div>合并50次</div>
+        </div>
+        <div class="achievement" data-id="score100">
+          <div class="icon">💯</div>
+          <div>得分100</div>
+        </div>
+        <div class="achievement" data-id="score500">
+          <div class="icon">💯</div>
+          <div>得分500</div>
+        </div>
+        <div class="achievement" data-id="symbol8">
+          <div class="icon">8️⃣</div>
+          <div>合成数字8</div>
+        </div>
+        <div class="achievement" data-id="formula">
+          <div class="icon">📝</div>
+          <div>创建公式</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 游戏状态
+    const state = {
+      score: 0,
+      bestScore: parseInt(localStorage.getItem('mathEmojiMergeBest') || '0'),
+      maxSymbol: 1,
+      gameOver: false,
+      paused: false,
+      symbols: [],
+      nextValue: 1,
+      nextType: 'number',
+      containerWidth: 0,
+      containerHeight: 0,
+      symbolSize: 40,
+      gravity: 0.5,
+      friction: 0.98,
+      bounce: 0.6,
+      lastTime: 0,
+      deltaTime: 0,
+      mergeCount: 0,
+      achievements: JSON.parse(localStorage.getItem('mathEmojiMergeAchievements') || '{}')
+    };
+
+    // DOM 元素
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const bestEl = document.getElementById('best');
+    const maxSymbolEl = document.getElementById('maxSymbol');
+    const nextSymbolEl = document.getElementById('nextSymbol');
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const finalScoreEl = document.getElementById('finalScore');
+    const restartBtn = document.getElementById('restartBtn');
+    const dropBtn = document.getElementById('dropBtn');
+    const newGameBtn = document.getElementById('newGameBtn');
+    const gameContainer = document.getElementById('gameContainer');
+    const achievementList = document.getElementById('achievementList');
+
+    // 符号定义
+    const symbols = {
+      numbers: [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
+      operators: ['+', '-', '×', '÷'],
+      equals: '='
+    };
+
+    // 颜色映射
+    const colors = {
+      1: '#3b82f6',
+      2: '#22c55e',
+      4: '#f59e0b',
+      8: '#ef4444',
+      16: '#8b5cf6',
+      32: '#ec4899',
+      64: '#06b6d4',
+      128: '#84cc16',
+      256: '#f97316',
+      512: '#eab308',
+      1024: '#a855f7',
+      2048: '#ffffff',
+      '+': '#eab308',
+      '-': '#a855f7',
+      '×': '#14b8a6',
+      '÷': '#f43f5e',
+      '=': '#ffffff'
+    };
+
+    // 初始化
+    function init() {
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      
+      // 事件监听
+      canvas.addEventListener('click', handleClick);
+      canvas.addEventListener('touchstart', handleTouch, { passive: false });
+      dropBtn.addEventListener('click', dropSymbol);
+      restartBtn.addEventListener('click', restartGame);
+      newGameBtn.addEventListener('click', restartGame);
+      
+      // 更新显示
+      bestEl.textContent = state.bestScore;
+      generateNextSymbol();
+      updateAchievements();
+      
+      // 开始游戏循环
+      requestAnimationFrame(gameLoop);
+    }
+
+    function resizeCanvas() {
+      const rect = gameContainer.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      state.containerWidth = rect.width;
+      state.containerHeight = rect.height;
+    }
+
+    function generateNextSymbol() {
+      // 生成下一个符号
+      const rand = Math.random();
+      if (rand < 0.7) {
+        // 70% 概率生成数字
+        state.nextType = 'number';
+        const powers = [1, 1, 1, 2, 1, 2, 4];
+        state.nextValue = powers[Math.floor(Math.random() * powers.length)];
+        nextSymbolEl.textContent = `下一个: ${state.nextValue}`;
+      } else if (rand < 0.9) {
+        // 20% 概率生成运算符
+        state.nextType = 'operator';
+        state.nextValue = symbols.operators[Math.floor(Math.random() * symbols.operators.length)];
+        nextSymbolEl.textContent = `下一个: ${state.nextValue}`;
+      } else {
+        // 10% 概率生成等号
+        state.nextType = 'equals';
+        state.nextValue = '=';
+        nextSymbolEl.textContent = `下一个: =`;
+      }
+    }
+
+    function dropSymbol(x = null) {
+      if (state.gameOver || state.paused) return;
+      
+      // 如果没有指定 x，使用随机位置
+      if (x === null) {
+        x = Math.random() * (state.containerWidth - state.symbolSize) + state.symbolSize / 2;
+      }
+      
+      // 创建新符号
+      const symbol = {
+        x: x,
+        y: state.symbolSize,
+        vx: 0,
+        vy: 0,
+        value: state.nextValue,
+        type: state.nextType,
+        size: state.symbolSize,
+        color: colors[state.nextValue] || '#ffffff',
+        merged: false
+      };
+      
+      state.symbols.push(symbol);
+      generateNextSymbol();
+    }
+
+    function handleClick(e) {
+      if (state.gameOver || state.paused) return;
+      
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      dropSymbol(x);
+    }
+
+    function handleTouch(e) {
+      e.preventDefault();
+      if (state.gameOver || state.paused) return;
+      
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      const x = touch.clientX - rect.left;
+      dropSymbol(x);
+    }
+
+    function gameLoop(timestamp) {
+      if (!state.lastTime) state.lastTime = timestamp;
+      state.deltaTime = timestamp - state.lastTime;
+      state.lastTime = timestamp;
+      
+      if (!state.gameOver && !state.paused) {
+        update();
+      }
+      
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function update() {
+      // 更新所有符号
+      for (let i = 0; i < state.symbols.length; i++) {
+        const symbol = state.symbols[i];
+        
+        // 应用重力
+        symbol.vy += state.gravity;
+        
+        // 应用摩擦
+        symbol.vx *= state.friction;
+        symbol.vy *= state.friction;
+        
+        // 更新位置
+        symbol.x += symbol.vx;
+        symbol.y += symbol.vy;
+        
+        // 边界碰撞
+        if (symbol.x - symbol.size / 2 < 0) {
+          symbol.x = symbol.size / 2;
+          symbol.vx = -symbol.vx * state.bounce;
+        }
+        if (symbol.x + symbol.size / 2 > state.containerWidth) {
+          symbol.x = state.containerWidth - symbol.size / 2;
+          symbol.vx = -symbol.vx * state.bounce;
+        }
+        if (symbol.y + symbol.size / 2 > state.containerHeight) {
+          symbol.y = state.containerHeight - symbol.size / 2;
+          symbol.vy = -symbol.vy * state.bounce;
+        }
+        
+        // 检查游戏结束
+        if (symbol.y - symbol.size / 2 < 0) {
+          state.gameOver = true;
+          gameOverOverlay.classList.add('active');
+          finalScoreEl.textContent = state.score;
+          return;
+        }
+      }
+      
+      // 检查碰撞和合并
+      checkCollisions();
+    }
+
+    function checkCollisions() {
+      for (let i = 0; i < state.symbols.length; i++) {
+        for (let j = i + 1; j < state.symbols.length; j++) {
+          const a = state.symbols[i];
+          const b = state.symbols[j];
+          
+          if (a.merged || b.merged) continue;
+          
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const minDistance = (a.size + b.size) / 2;
+          
+          if (distance < minDistance) {
+            // 检查是否可以合并
+            if (canMerge(a, b)) {
+              mergeSymbols(a, b, i, j);
+              return;
+            } else {
+              // 碰撞反弹
+              const angle = Math.atan2(dy, dx);
+              const targetX = a.x + Math.cos(angle) * minDistance;
+              const targetY = a.y + Math.sin(angle) * minDistance;
+              
+              const ax = (targetX - b.x) * 0.05;
+              const ay = (targetY - b.y) * 0.05;
+              
+              a.vx -= ax;
+              a.vy -= ay;
+              b.vx += ax;
+              b.vy += ay;
+            }
+          }
+        }
+      }
+    }
+
+    function canMerge(a, b) {
+      // 相同类型和值才能合并
+      if (a.type !== b.type) return false;
+      if (a.value !== b.value) return false;
+      
+      // 数字合并：1+1=2, 2+2=4, 4+4=8...
+      if (a.type === 'number') {
+        const index = symbols.numbers.indexOf(a.value);
+        return index !== -1 && index < symbols.numbers.length - 1;
+      }
+      
+      // 运算符合并：+ + = ×, × × = ÷
+      if (a.type === 'operator') {
+        const index = symbols.operators.indexOf(a.value);
+        return index !== -1 && index < symbols.operators.length - 1;
+      }
+      
+      // 等号合并：创建公式
+      if (a.type === 'equals') {
+        return true;
+      }
+      
+      return false;
+    }
+
+    function mergeSymbols(a, b, indexA, indexB) {
+      // 标记为已合并
+      a.merged = true;
+      b.merged = true;
+      
+      // 计算新符号
+      let newValue, newType;
+      
+      if (a.type === 'number') {
+        const index = symbols.numbers.indexOf(a.value);
+        newValue = symbols.numbers[index + 1];
+        newType = 'number';
+        state.score += newValue;
+        state.maxSymbol = Math.max(state.maxSymbol, newValue);
+      } else if (a.type === 'operator') {
+        const index = symbols.operators.indexOf(a.value);
+        newValue = symbols.operators[index + 1];
+        newType = 'operator';
+        state.score += 10;
+      } else if (a.type === 'equals') {
+        // 创建公式：1+1=2
+        newValue = '1+1=2';
+        newType = 'formula';
+        state.score += 50;
+      }
+      
+      // 创建新符号
+      const newSymbol = {
+        x: (a.x + b.x) / 2,
+        y: (a.y + b.y) / 2,
+        vx: (a.vx + b.vx) / 2,
+        vy: (a.vy + b.vy) / 2,
+        value: newValue,
+        type: newType,
+        size: state.symbolSize,
+        color: colors[newValue] || '#ffffff',
+        merged: false
+      };
+      
+      // 移除旧符号，添加新符号
+      state.symbols = state.symbols.filter(s => !s.merged);
+      state.symbols.push(newSymbol);
+      
+      // 更新合并计数
+      state.mergeCount++;
+      
+      // 更新分数显示
+      scoreEl.textContent = state.score;
+      maxSymbolEl.textContent = state.maxSymbol;
+      
+      // 更新最高分
+      if (state.score > state.bestScore) {
+        state.bestScore = state.score;
+        bestEl.textContent = state.bestScore;
+        localStorage.setItem('mathEmojiMergeBest', state.bestScore);
+      }
+      
+      // 检查成就
+      checkAchievements();
+    }
+
+    function checkAchievements() {
+      // 合并10次
+      if (state.mergeCount >= 10 && !state.achievements.merge10) {
+        state.achievements.merge10 = true;
+        unlockAchievement('merge10');
+      }
+      
+      // 合并50次
+      if (state.mergeCount >= 50 && !state.achievements.merge50) {
+        state.achievements.merge50 = true;
+        unlockAchievement('merge50');
+      }
+      
+      // 得分100
+      if (state.score >= 100 && !state.achievements.score100) {
+        state.achievements.score100 = true;
+        unlockAchievement('score100');
+      }
+      
+      // 得分500
+      if (state.score >= 500 && !state.achievements.score500) {
+        state.achievements.score500 = true;
+        unlockAchievement('score500');
+      }
+      
+      // 合成数字8
+      if (state.maxSymbol >= 8 && !state.achievements.symbol8) {
+        state.achievements.symbol8 = true;
+        unlockAchievement('symbol8');
+      }
+      
+      // 创建公式
+      if (state.symbols.some(s => s.type === 'formula') && !state.achievements.formula) {
+        state.achievements.formula = true;
+        unlockAchievement('formula');
+      }
+      
+      // 保存成就
+      localStorage.setItem('mathEmojiMergeAchievements', JSON.stringify(state.achievements));
+    }
+
+    function unlockAchievement(id) {
+      const achievement = document.querySelector(`.achievement[data-id="${id}"]`);
+      if (achievement) {
+        achievement.classList.add('unlocked');
+      }
+    }
+
+    function updateAchievements() {
+      for (const id in state.achievements) {
+        if (state.achievements[id]) {
+          unlockAchievement(id);
+        }
+      }
+    }
+
+    function render() {
+      // 清空画布
+      ctx.fillStyle = '#0b1220';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // 绘制所有符号
+      for (const symbol of state.symbols) {
+        // 绘制符号背景
+        ctx.fillStyle = symbol.color;
+        ctx.beginPath();
+        ctx.arc(symbol.x, symbol.y, symbol.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 绘制符号边框
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // 绘制符号文本
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${symbol.size * 0.5}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(symbol.value, symbol.x, symbol.y);
+      }
+    }
+
+    function restartGame() {
+      state.score = 0;
+      state.maxSymbol = 1;
+      state.gameOver = false;
+      state.paused = false;
+      state.symbols = [];
+      state.mergeCount = 0;
+      
+      scoreEl.textContent = state.score;
+      maxSymbolEl.textContent = state.maxSymbol;
+      gameOverOverlay.classList.remove('active');
+      
+      generateNextSymbol();
+    }
+
+    // 启动游戏
+    init();
+  </script>
+</body>
+</html>

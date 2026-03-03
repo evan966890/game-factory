@@ -786,5 +786,11 @@
     "path": "games/math-rhythm-sprint/index.html",
     "category": "education",
     "createdAt": "2026-03-03T15:09:26Z"
+  },
+  {
+    "name": "数学表情合成",
+    "path": "games/math-emoji-merge/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T15:31:05Z"
   }
 ]
