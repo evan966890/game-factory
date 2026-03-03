@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《羊了个羊：星球》
-灵感来源：微信小游戏《羊了个羊：星球》
-消除相同图案方块，关卡挑战，道具系统，限时高分，连击奖励
-▶️ 试玩：https://evan966890.github.io/game-factory/games/yang-le-ge-yang-xing-qiu/
+《新弹弹堂》
+灵感来源：微信小游戏《新弹弹堂》
+计算角度力度发射炮弹，地形反弹，敌人系统，关卡挑战，道具系统
+▶️ 试玩：https://evan966890.github.io/game-factory/games/xin-dan-dan-tang/
 
-📊 游戏工厂累计：145 个游戏
+📊 游戏工厂累计：146 个游戏

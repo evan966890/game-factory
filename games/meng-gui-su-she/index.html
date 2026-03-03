@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>猛鬼宿舍</title>
+  <style>
+    :root {
+      --bg: #1a1a2e;
+      --card: #16213e;
+      --text: #eaeaea;
+      --muted: #8b8b8b;
+      --primary: #e94560;
+      --primary-dark: #c73e54;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #2a2a4a;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #0f0f23 0%, var(--bg) 45%, #1a1a2e 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+      color: var(--primary);
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #1a1a2e;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #0f0f23;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .level-display {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--primary);
+    }
+
+    .time-display {
+      text-align: center;
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      padding: 8px;
+      background: #1a1a2e;
+      border-radius: 8px;
+      color: var(--red);
+    }
+
+    .dormitory {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #1a1a2e;
+      margin-bottom: 16px;
+      position: relative;
+      height: 150px;
+    }
+
+    .dormitory-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--primary);
+    }
+
+    .dormitory-door {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 80px;
+      background: #8b4513;
+      border: 3px solid #5d3a1a;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+    }
+
+    .dormitory-door.damaged {
+      background: #5d3a1a;
+      border-color: #3d2a1a;
+    }
+
+    .dormitory-door.destroyed {
+      background: #3d2a1a;
+      border-color: #2d1a1a;
+    }
+
+    .ghost {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background: var(--red);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      animation: float 2s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .defenses {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #1a1a2e;
+      margin-bottom: 16px;
+    }
+
+    .defenses-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--primary);
+    }
+
+    .defenses-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .defense-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #0f0f23;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .defense-item:hover {
+      background: #2a2a4a;
+      border-color: var(--primary);
+    }
+
+    .defense-item.owned {
+      background: #1a3a1a;
+      border-color: var(--green);
+    }
+
+    .defense-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .defense-item .cost {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .game-over {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .game-over h2 {
+      margin-bottom: 16px;
+      color: var(--primary);
+    }
+
+    .final-score {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .high-score {
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>猛鬼宿舍</h1>
+    <p class="subtitle">收集资源，升级设施，抵御猛鬼入侵</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="gold">100</span>
+      </div>
+      <div class="stat">
+        <span class="label">电力</span>
+        <span class="value blue" id="power">50</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高分</span>
+        <span class="value" id="highScore">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="level-display" id="levelDisplay">第 1 夜</div>
+        <div class="time-display" id="timeDisplay">⏱️ 60秒</div>
+
+        <div class="dormitory" id="dormitory">
+          <div class="dormitory-title">宿舍</div>
+          <div class="dormitory-door" id="door">🚪</div>
+        </div>
+
+        <div class="defenses">
+          <div class="defenses-title">防御设施</div>
+          <div class="defenses-grid" id="defenses"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="startBtn">开始游戏</button>
+      <button class="btn secondary" id="restartBtn">重新开始</button>
+    </div>
+
+    <div class="game-over hidden" id="gameOver">
+      <h2>游戏结束</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <div class="high-score" id="finalHighScore">最高分: 0</div>
+      <button class="btn" id="playAgainBtn">再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      initialGold: 100,
+      initialPower: 50,
+      initialTime: 60,
+      timePerLevel: 10,
+      goldPerSecond: 5,
+      powerPerSecond: 2,
+      defenses: [
+        { id: 'turret', name: '炮台', emoji: '🔫', cost: 50, damage: 10, range: 100 },
+        { id: 'laser', name: '激光', emoji: '⚡', cost: 80, damage: 20, range: 150 },
+        { id: 'freeze', name: '冰冻', emoji: '❄️', cost: 60, damage: 5, range: 80, slow: true },
+        { id: 'bomb', name: '炸弹', emoji: '💣', cost: 100, damage: 50, range: 120, explosive: true },
+        { id: 'shield', name: '护盾', emoji: '🛡️', cost: 70, defense: 20 },
+        { id: 'heal', name: '治疗', emoji: '💚', cost: 40, heal: 10 }
+      ]
+    };
+
+    // 游戏状态
+    let gold = config.initialGold;
+    let power = config.initialPower;
+    let highScore = parseInt(localStorage.getItem('meng-gui-su-she-highscore')) || 0;
+    let level = 1;
+    let timeLeft = config.initialTime;
+    let doorHealth = 100;
+    let defenses = new Set();
+    let ghosts = [];
+    let gameRunning = false;
+    let gameOver = false;
+    let timerInterval = null;
+    let resourceInterval = null;
+    let ghostInterval = null;
+
+    // DOM 元素
+    const goldEl = document.getElementById('gold');
+    const powerEl = document.getElementById('power');
+    const highScoreEl = document.getElementById('highScore');
+    const levelDisplayEl = document.getElementById('levelDisplay');
+    const timeDisplayEl = document.getElementById('timeDisplay');
+    const dormitory = document.getElementById('dormitory');
+    const door = document.getElementById('door');
+    const defensesEl = document.getElementById('defenses');
+    const gameOverEl = document.getElementById('gameOver');
+    const finalScore = document.getElementById('finalScore');
+    const finalHighScore = document.getElementById('finalHighScore');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+
+    // 初始化游戏
+    function initGame() {
+      gold = config.initialGold;
+      power = config.initialPower;
+      level = 1;
+      timeLeft = config.initialTime;
+      doorHealth = 100;
+      defenses = new Set();
+      ghosts = [];
+      gameOver = false;
+      gameRunning = false;
+
+      // 更新显示
+      updateStats();
+      updateDefenses();
+      updateDoor();
+      updateTime();
+
+      // 隐藏游戏结束界面
+      gameOverEl.classList.add('hidden');
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      goldEl.textContent = gold;
+      powerEl.textContent = power;
+      highScoreEl.textContent = highScore;
+      levelDisplayEl.textContent = `第 ${level} 夜`;
+    }
+
+    // 更新时间显示
+    function updateTime() {
+      timeDisplayEl.textContent = `⏱️ ${timeLeft}秒`;
+    }
+
+    // 更新门状态
+    function updateDoor() {
+      door.className = 'dormitory-door';
+      if (doorHealth <= 50) {
+        door.classList.add('damaged');
+      }
+      if (doorHealth <= 0) {
+        door.classList.add('destroyed');
+      }
+    }
+
+    // 更新防御设施显示
+    function updateDefenses() {
+      defensesEl.innerHTML = '';
+      config.defenses.forEach(defense => {
+        const owned = defenses.has(defense.id);
+        const item = document.createElement('div');
+        item.className = `defense-item ${owned ? 'owned' : ''}`;
+        item.innerHTML = `
+          <div class="emoji">${defense.emoji}</div>
+          <div class="cost">${owned ? '已建造' : `${defense.cost}金币`}</div>
+        `;
+        if (!owned) {
+          item.addEventListener('click', () => buildDefense(defense));
+        }
+        defensesEl.appendChild(item);
+      });
+    }
+
+    // 建造防御设施
+    function buildDefense(defense) {
+      if (gold >= defense.cost) {
+        gold -= defense.cost;
+        defenses.add(defense.id);
+
+        // 应用防御设施效果
+        if (defense.defense) {
+          doorHealth = Math.min(100, doorHealth + defense.defense);
+        }
+        if (defense.heal) {
+          doorHealth = Math.min(100, doorHealth + defense.heal);
+        }
+
+        updateStats();
+        updateDefenses();
+        updateDoor();
+      }
+    }
+
+    // 生成猛鬼
+    function spawnGhost() {
+      if (!gameRunning || gameOver) return;
+
+      const ghost = {
+        id: Date.now(),
+        x: Math.random() * (dormitory.offsetWidth - 40),
+        y: 20,
+        health: 50 + level * 10,
+        speed: 0.5 + level * 0.1
+      };
+
+      ghosts.push(ghost);
+      renderGhost(ghost);
+    }
+
+    // 渲染猛鬼
+    function renderGhost(ghost) {
+      const ghostEl = document.createElement('div');
+      ghostEl.className = 'ghost';
+      ghostEl.id = `ghost-${ghost.id}`;
+      ghostEl.style.left = `${ghost.x}px`;
+      ghostEl.style.top = `${ghost.y}px`;
+      ghostEl.textContent = '👻';
+      dormitory.appendChild(ghostEl);
+    }
+
+    // 更新猛鬼位置
+    function updateGhosts() {
+      if (!gameRunning || gameOver) return;
+
+      ghosts.forEach(ghost => {
+        // 移动猛鬼
+        ghost.y += ghost.speed;
+
+        // 更新猛鬼元素位置
+        const ghostEl = document.getElementById(`ghost-${ghost.id}`);
+        if (ghostEl) {
+          ghostEl.style.top = `${ghost.y}px`;
+        }
+
+        // 检查是否到达门
+        if (ghost.y > dormitory.offsetHeight - 60) {
+          // 攻击门
+          doorHealth -= 10;
+          updateDoor();
+
+          // 移除猛鬼
+          const ghostEl = document.getElementById(`ghost-${ghost.id}`);
+          if (ghostEl) {
+            ghostEl.remove();
+          }
+          ghosts = ghosts.filter(g => g.id !== ghost.id);
+
+          // 检查门是否被摧毁
+          if (doorHealth <= 0) {
+            endGame();
+          }
+        }
+      });
+    }
+
+    // 攻击猛鬼
+    function attackGhosts() {
+      if (!gameRunning || gameOver) return;
+
+      defenses.forEach(defenseId => {
+        const defense = config.defenses.find(d => d.id === defenseId);
+        if (!defense) return;
+
+        ghosts.forEach(ghost => {
+          // 计算距离
+          const dx = ghost.x - dormitory.offsetWidth / 2;
+          const dy = ghost.y - dormitory.offsetHeight / 2;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          // 检查是否在攻击范围内
+          if (distance <= defense.range) {
+            // 攻击猛鬼
+            ghost.health -= defense.damage;
+
+            // 检查猛鬼是否被消灭
+            if (ghost.health <= 0) {
+              // 移除猛鬼
+              const ghostEl = document.getElementById(`ghost-${ghost.id}`);
+              if (ghostEl) {
+                ghostEl.remove();
+              }
+              ghosts = ghosts.filter(g => g.id !== ghost.id);
+
+              // 增加分数
+              gold += 10;
+              power += 5;
+              updateStats();
+            }
+          }
+        });
+      });
+    }
+
+    // 开始游戏
+    function startGame() {
+      if (gameRunning) return;
+      gameRunning = true;
+      gameOver = false;
+      gameOverEl.classList.add('hidden');
+
+      // 开始计时
+      timerInterval = setInterval(() => {
+        if (!gameRunning || gameOver) return;
+
+        timeLeft--;
+        updateTime();
+
+        if (timeLeft <= 0) {
+          // 进入下一夜
+          level++;
+          timeLeft = config.initialTime + config.timePerLevel * (level - 1);
+          updateStats();
+          updateTime();
+        }
+      }, 1000);
+
+      // 开始资源收集
+      resourceInterval = setInterval(() => {
+        if (!gameRunning || gameOver) return;
+
+        gold += config.goldPerSecond;
+        power += config.powerPerSecond;
+        updateStats();
+      }, 1000);
+
+      // 开始生成猛鬼
+      ghostInterval = setInterval(() => {
+        spawnGhost();
+      }, 3000);
+
+      // 开始更新猛鬼位置
+      setInterval(() => {
+        updateGhosts();
+        attackGhosts();
+      }, 100);
+    }
+
+    // 结束游戏
+    function endGame() {
+      gameOver = true;
+      gameRunning = false;
+
+      // 停止计时
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+
+      // 停止资源收集
+      if (resourceInterval) {
+        clearInterval(resourceInterval);
+        resourceInterval = null;
+      }
+
+      // 停止生成猛鬼
+      if (ghostInterval) {
+        clearInterval(ghostInterval);
+        ghostInterval = null;
+      }
+
+      // 计算分数
+      const score = gold + power + level * 100;
+
+      // 更新最高分
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('meng-gui-su-she-highscore', highScore);
+      }
+
+      // 显示游戏结束界面
+      finalScore.textContent = score;
+      finalHighScore.textContent = `最高分: ${highScore}`;
+      gameOverEl.classList.remove('hidden');
+    }
+
+    // 事件监听
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', initGame);
+    playAgainBtn.addEventListener('click', initGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>

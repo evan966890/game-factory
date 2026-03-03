@@ -876,5 +876,11 @@
     "path": "games/xin-dan-dan-tang/index.html",
     "category": "弹射策略",
     "createdAt": "2026-03-03T20:34:37Z"
+  },
+  {
+    "name": "猛鬼宿舍",
+    "path": "games/meng-gui-su-she/index.html",
+    "category": "塔防策略",
+    "createdAt": "2026-03-03T20:49:48Z"
   }
 ]
