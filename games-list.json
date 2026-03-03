@@ -792,5 +792,11 @@
     "path": "games/math-slope-run/index.html",
     "category": "education",
     "createdAt": "2026-03-03T05:06:06Z"
+  },
+  {
+    "name": "数学弹射英雄",
+    "path": "games/math-slingshot-hero/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T14:25:00+08:00"
   }
 ]

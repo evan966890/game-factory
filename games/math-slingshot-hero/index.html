@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>数学弹射英雄</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #22d3ee;
+      --ok: #22c55e;
+      --bad: #ef4444;
+      --text: #e5e7eb;
+      --slingshot: #8b5cf6;
+      --projectile: #f59e0b;
+      --target: #ef4444;
+      --block: #3b82f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #0b1024, #111827);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      overflow: hidden;
+    }
+    .app {
+      width: min(720px, 100%);
+      background: rgba(17, 24, 39, .95);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(24px, 5vw, 34px);
+      text-align: center;
+    }
+    .sub {
+      opacity: .85;
+      margin: 0 0 12px;
+      font-size: 14px;
+      text-align: center;
+    }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .box {
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+    .k { font-size: 12px; opacity: .7; }
+    .v { font-size: 22px; font-weight: 700; }
+    .game-container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .question-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .question-overlay.active { display: flex; }
+    .question-text {
+      font-size: clamp(26px, 7vw, 44px);
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--accent);
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      width: 80%;
+      max-width: 400px;
+    }
+    .option-btn {
+      appearance: none;
+      border: 1px solid #334155;
+      background: #111827;
+      color: #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      min-height: 56px;
+      touch-action: manipulation;
+      cursor: pointer;
+    }
+    .option-btn:active { transform: scale(.98); }
+    .option-btn.correct {
+      background: rgba(34, 197, 94, .18);
+      border-color: var(--ok);
+    }
+    .option-btn.wrong {
+      background: rgba(239, 68, 68, .18);
+      border-color: var(--bad);
+    }
+    .level-complete-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+    .level-complete-overlay.active { display: flex; }
+    .stars {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+    .star { color: #4b5563; }
+    .star.filled { color: #fbbf24; }
+    .level-complete-text {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .ctl {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+    .primary {
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .secondary {
+      background: #111827;
+      border: 1px solid #334155;
+      color: #e5e7eb;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .msg {
+      min-height: 24px;
+      text-align: center;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>数学弹射英雄</h1>
+    <p class="sub">拉弹弓发射角色，利用物理反弹摧毁目标，每关开始前回答数学题获得奖励。</p>
+    <section class="hud">
+      <div class="box"><div class="k">关卡</div><div id="level" class="v">1</div></div>
+      <div class="box"><div class="k">弹药</div><div id="ammo" class="v">3</div></div>
+      <div class="box"><div class="k">得分</div><div id="score" class="v">0</div></div>
+      <div class="box"><div class="k">最高分</div><div id="highscore" class="v">0</div></div>
+    </section>
+    <div class="game-container">
+      <canvas id="gameCanvas"></canvas>
+      <div id="questionOverlay" class="question-overlay">
+        <div id="questionText" class="question-text">5 + 3 = ?</div>
+        <div id="options" class="options"></div>
+      </div>
+      <div id="levelCompleteOverlay" class="level-complete-overlay">
+        <div id="stars" class="stars">
+          <span class="star">★</span>
+          <span class="star">★</span>
+          <span class="star">★</span>
+        </div>
+        <div id="levelCompleteText" class="level-complete-text">关卡完成！</div>
+        <div class="ctl">
+          <button id="nextLevelBtn" class="primary">下一关</button>
+          <button id="retryLevelBtn" class="secondary">重试</button>
+        </div>
+      </div>
+    </div>
+    <div id="msg" class="msg"></div>
+    <div class="ctl">
+      <button id="startBtn" class="primary">开始游戏</button>
+      <button id="resetBtn" class="secondary">重置</button>
+    </div>
+  </main>
+  <script>
+    // 游戏状态
+    const state = {
+      level: 1,
+      ammo: 3,
+      score: 0,
+      highScore: parseInt(localStorage.getItem('mathSlingshotHighScore')) || 0,
+      isPlaying: false,
+      isDragging: false,
+      isFlying: false,
+      questionAnswered: false,
+      currentQuestion: null,
+      correctAnswer: null,
+      projectiles: [],
+      targets: [],
+      blocks: [],
+      stars: 0,
+      levelTargetsDestroyed: 0,
+      totalTargets: 0
+    };
+
+    // Canvas 设置
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let canvasWidth, canvasHeight;
+
+    // 弹弓位置
+    const slingshot = {
+      x: 100,
+      y: 300,
+      width: 20,
+      height: 100,
+      bandLeft: { x: 80, y: 280 },
+      bandRight: { x: 120, y: 280 },
+      pullPoint: { x: 100, y: 280 }
+    };
+
+    // 当前发射物
+    let currentProjectile = null;
+    let dragStart = null;
+    let dragEnd = null;
+
+    // DOM 元素
+    const levelEl = document.getElementById('level');
+    const ammoEl = document.getElementById('ammo');
+    const scoreEl = document.getElementById('score');
+    const highscoreEl = document.getElementById('highscore');
+    const questionOverlay = document.getElementById('questionOverlay');
+    const questionText = document.getElementById('questionText');
+    const optionsEl = document.getElementById('options');
+    const levelCompleteOverlay = document.getElementById('levelCompleteOverlay');
+    const starsEl = document.getElementById('stars');
+    const levelCompleteText = document.getElementById('levelCompleteText');
+    const msgEl = document.getElementById('msg');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const nextLevelBtn = document.getElementById('nextLevelBtn');
+    const retryLevelBtn = document.getElementById('retryLevelBtn');
+
+    // 初始化
+    function init() {
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      setupEventListeners();
+      updateHUD();
+      draw();
+    }
+
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      canvasWidth = container.clientWidth;
+      canvasHeight = container.clientHeight;
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      slingshot.y = canvasHeight - 100;
+      slingshot.bandLeft.y = slingshot.y - 20;
+      slingshot.bandRight.y = slingshot.y - 20;
+      slingshot.pullPoint.y = slingshot.y - 20;
+    }
+
+    function setupEventListeners() {
+      canvas.addEventListener('mousedown', handleDragStart);
+      canvas.addEventListener('mousemove', handleDragMove);
+      canvas.addEventListener('mouseup', handleDragEnd);
+      canvas.addEventListener('touchstart', handleDragStart);
+      canvas.addEventListener('touchmove', handleDragMove);
+      canvas.addEventListener('touchend', handleDragEnd);
+      startBtn.addEventListener('click', startGame);
+      resetBtn.addEventListener('click', resetGame);
+      nextLevelBtn.addEventListener('click', nextLevel);
+      retryLevelBtn.addEventListener('click', retryLevel);
+    }
+
+    function handleDragStart(e) {
+      if (!state.isPlaying || state.isFlying || state.ammo <= 0) return;
+      e.preventDefault();
+      const pos = getEventPos(e);
+      const dist = Math.hypot(pos.x - slingshot.pullPoint.x, pos.y - slingshot.pullPoint.y);
+      if (dist < 50) {
+        state.isDragging = true;
+        dragStart = { x: slingshot.pullPoint.x, y: slingshot.pullPoint.y };
+        dragEnd = pos;
+      }
+    }
+
+    function handleDragMove(e) {
+      if (!state.isDragging) return;
+      e.preventDefault();
+      dragEnd = getEventPos(e);
+      draw();
+    }
+
+    function handleDragEnd(e) {
+      if (!state.isDragging) return;
+      e.preventDefault();
+      state.isDragging = false;
+      if (dragStart && dragEnd) {
+        const dx = dragStart.x - dragEnd.x;
+        const dy = dragStart.y - dragEnd.y;
+        const power = Math.min(Math.hypot(dx, dy), 150);
+        if (power > 10) {
+          launchProjectile(dx * 0.1, dy * 0.1);
+        }
+      }
+      dragStart = null;
+      dragEnd = null;
+      draw();
+    }
+
+    function getEventPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: (clientX - rect.left) * (canvas.width / rect.width),
+        y: (clientY - rect.top) * (canvas.height / rect.height)
+      };
+    }
+
+    function launchProjectile(vx, vy) {
+      state.isFlying = true;
+      state.ammo--;
+      updateHUD();
+      currentProjectile = {
+        x: slingshot.pullPoint.x,
+        y: slingshot.pullPoint.y,
+        vx: vx,
+        vy: vy,
+        radius: 15,
+        color: '#f59e0b',
+        trail: []
+      };
+      state.projectiles.push(currentProjectile);
+    }
+
+    function startGame() {
+      state.isPlaying = true;
+      state.level = 1;
+      state.score = 0;
+      state.ammo = 3;
+      state.questionAnswered = false;
+      loadLevel(state.level);
+      showQuestion();
+      updateHUD();
+      startBtn.textContent = '游戏中...';
+      startBtn.disabled = true;
+    }
+
+    function resetGame() {
+      state.isPlaying = false;
+      state.level = 1;
+      state.score = 0;
+      state.ammo = 3;
+      state.questionAnswered = false;
+      state.projectiles = [];
+      state.targets = [];
+      state.blocks = [];
+      state.isFlying = false;
+      state.isDragging = false;
+      currentProjectile = null;
+      questionOverlay.classList.remove('active');
+      levelCompleteOverlay.classList.remove('active');
+      updateHUD();
+      startBtn.textContent = '开始游戏';
+      startBtn.disabled = false;
+      draw();
+    }
+
+    function loadLevel(level) {
+      state.targets = [];
+      state.blocks = [];
+      state.levelTargetsDestroyed = 0;
+      
+      // 根据关卡生成目标和障碍物
+      const targetCount = Math.min(2 + Math.floor(level / 2), 5);
+      state.totalTargets = targetCount;
+      
+      for (let i = 0; i < targetCount; i++) {
+        const x = 400 + Math.random() * (canvasWidth - 500);
+        const y = 100 + Math.random() * (canvasHeight - 300);
+        state.targets.push({
+          x: x,
+          y: y,
+          width: 40,
+          height: 40,
+          color: '#ef4444',
+          destroyed: false
+        });
+      }
+      
+      // 添加障碍物
+      const blockCount = Math.min(level, 4);
+      for (let i = 0; i < blockCount; i++) {
+        const x = 300 + Math.random() * (canvasWidth - 400);
+        const y = 150 + Math.random() * (canvasHeight - 350);
+        state.blocks.push({
+          x: x,
+          y: y,
+          width: 60 + Math.random() * 40,
+          height: 20 + Math.random() * 30,
+          color: '#3b82f6'
+        });
+      }
+    }
+
+    function showQuestion() {
+      const difficulty = Math.min(Math.floor((state.level - 1) / 3), 3);
+      const question = generateQuestion(difficulty);
+      state.currentQuestion = question.text;
+      state.correctAnswer = question.answer;
+      
+      questionText.textContent = question.text;
+      optionsEl.innerHTML = '';
+      
+      const options = generateOptions(question.answer);
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = opt;
+        btn.addEventListener('click', () => checkAnswer(opt));
+        optionsEl.appendChild(btn);
+      });
+      
+      questionOverlay.classList.add('active');
+    }
+
+    function generateQuestion(difficulty) {
+      const ops = ['+', '-', '×', '÷'];
+      const op = ops[difficulty];
+      let a, b, answer;
+      
+      switch (op) {
+        case '+':
+          a = Math.floor(Math.random() * 50) + 1;
+          b = Math.floor(Math.random() * 50) + 1;
+          answer = a + b;
+          break;
+        case '-':
+          a = Math.floor(Math.random() * 50) + 20;
+          b = Math.floor(Math.random() * 20) + 1;
+          answer = a - b;
+          break;
+        case '×':
+          a = Math.floor(Math.random() * 12) + 1;
+          b = Math.floor(Math.random() * 12) + 1;
+          answer = a * b;
+          break;
+        case '÷':
+          b = Math.floor(Math.random() * 10) + 1;
+          answer = Math.floor(Math.random() * 10) + 1;
+          a = b * answer;
+          break;
+      }
+      
+      return { text: `${a} ${op} ${b} = ?`, answer };
+    }
+
+    function generateOptions(correct) {
+      const options = [correct];
+      while (options.length < 4) {
+        const offset = Math.floor(Math.random() * 10) - 5;
+        const wrong = correct + offset;
+        if (wrong > 0 && !options.includes(wrong)) {
+          options.push(wrong);
+        }
+      }
+      return options.sort(() => Math.random() - 0.5);
+    }
+
+    function checkAnswer(selected) {
+      const buttons = optionsEl.querySelectorAll('.option-btn');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        if (parseInt(btn.textContent) === state.correctAnswer) {
+          btn.classList.add('correct');
+        } else if (parseInt(btn.textContent) === selected) {
+          btn.classList.add('wrong');
+        }
+      });
+      
+      if (selected === state.correctAnswer) {
+        state.questionAnswered = true;
+        state.ammo += 2; // 奖励弹药
+        msgEl.textContent = '回答正确！获得额外弹药！';
+        setTimeout(() => {
+          questionOverlay.classList.remove('active');
+          msgEl.textContent = '';
+        }, 1500);
+      } else {
+        state.questionAnswered = false;
+        msgEl.textContent = '回答错误，正常开始关卡。';
+        setTimeout(() => {
+          questionOverlay.classList.remove('active');
+          msgEl.textContent = '';
+        }, 1500);
+      }
+      updateHUD();
+    }
+
+    function nextLevel() {
+      state.level++;
+      state.ammo = 3;
+      state.questionAnswered = false;
+      state.projectiles = [];
+      state.isFlying = false;
+      currentProjectile = null;
+      levelCompleteOverlay.classList.remove('active');
+      loadLevel(state.level);
+      showQuestion();
+      updateHUD();
+      draw();
+    }
+
+    function retryLevel() {
+      state.ammo = 3;
+      state.questionAnswered = false;
+      state.projectiles = [];
+      state.isFlying = false;
+      currentProjectile = null;
+      levelCompleteOverlay.classList.remove('active');
+      loadLevel(state.level);
+      showQuestion();
+      updateHUD();
+      draw();
+    }
+
+    function updateHUD() {
+      levelEl.textContent = state.level;
+      ammoEl.textContent = state.ammo;
+      scoreEl.textContent = state.score;
+      highscoreEl.textContent = state.highScore;
+    }
+
+    function update() {
+      if (!state.isPlaying) return;
+      
+      // 更新发射物物理
+      for (let i = state.projectiles.length - 1; i >= 0; i--) {
+        const p = state.projectiles[i];
+        
+        // 重力
+        p.vy += 0.3;
+        
+        // 位置更新
+        p.x += p.vx;
+        p.y += p.vy;
+        
+        // 轨迹
+        p.trail.push({ x: p.x, y: p.y });
+        if (p.trail.length > 20) p.trail.shift();
+        
+        // 边界碰撞
+        if (p.x < p.radius) {
+          p.x = p.radius;
+          p.vx *= -0.7;
+        }
+        if (p.x > canvasWidth - p.radius) {
+          p.x = canvasWidth - p.radius;
+          p.vx *= -0.7;
+        }
+        if (p.y > canvasHeight - p.radius) {
+          p.y = canvasHeight - p.radius;
+          p.vy *= -0.7;
+          p.vx *= 0.9;
+        }
+        if (p.y < p.radius) {
+          p.y = p.radius;
+          p.vy *= -0.7;
+        }
+        
+        // 障碍物碰撞
+        for (const block of state.blocks) {
+          if (checkCollision(p, block)) {
+            resolveCollision(p, block);
+          }
+        }
+        
+        // 目标碰撞
+        for (const target of state.targets) {
+          if (!target.destroyed && checkCollision(p, target)) {
+            target.destroyed = true;
+            state.levelTargetsDestroyed++;
+            state.score += 100;
+            if (state.score > state.highScore) {
+              state.highScore = state.score;
+              localStorage.setItem('mathSlingshotHighScore', state.highScore);
+            }
+            updateHUD();
+          }
+        }
+        
+        // 停止条件
+        if (Math.abs(p.vx) < 0.1 && Math.abs(p.vy) < 0.1 && p.y > canvasHeight - p.radius - 10) {
+          state.projectiles.splice(i, 1);
+          if (state.projectiles.length === 0) {
+            state.isFlying = false;
+            currentProjectile = null;
+            
+            // 检查关卡完成
+            if (state.levelTargetsDestroyed >= state.totalTargets) {
+              calculateStars();
+              showLevelComplete();
+            } else if (state.ammo <= 0) {
+              msgEl.textContent = '弹药用尽！点击重试或下一关。';
+            }
+          }
+        }
+      }
+    }
+
+    function checkCollision(circle, rect) {
+      const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+      const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
+      const distX = circle.x - closestX;
+      const distY = circle.y - closestY;
+      return (distX * distX + distY * distY) < (circle.radius * circle.radius);
+    }
+
+    function resolveCollision(circle, rect) {
+      const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+      const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
+      const distX = circle.x - closestX;
+      const distY = circle.y - closestY;
+      const dist = Math.hypot(distX, distY);
+      
+      if (dist < circle.radius) {
+        const overlap = circle.radius - dist;
+        const nx = distX / dist;
+        const ny = distY / dist;
+        
+        circle.x += nx * overlap;
+        circle.y += ny * overlap;
+        
+        const dot = circle.vx * nx + circle.vy * ny;
+        circle.vx -= 2 * dot * nx;
+        circle.vy -= 2 * dot * ny;
+        
+        circle.vx *= 0.8;
+        circle.vy *= 0.8;
+      }
+    }
+
+    function calculateStars() {
+      const ammoUsed = 3 - state.ammo;
+      if (ammoUsed <= 1) state.stars = 3;
+      else if (ammoUsed <= 2) state.stars = 2;
+      else state.stars = 1;
+    }
+
+    function showLevelComplete() {
+      const starElements = starsEl.querySelectorAll('.star');
+      starElements.forEach((star, i) => {
+        star.classList.toggle('filled', i < state.stars);
+      });
+      levelCompleteText.textContent = `关卡 ${state.level} 完成！获得 ${state.stars} 星！`;
+      levelCompleteOverlay.classList.add('active');
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+      
+      // 背景
+      ctx.fillStyle = '#0b1220';
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      
+      // 地面
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(0, canvasHeight - 20, canvasWidth, 20);
+      
+      // 弹弓
+      drawSlingshot();
+      
+      // 障碍物
+      for (const block of state.blocks) {
+        ctx.fillStyle = block.color;
+        ctx.fillRect(block.x, block.y, block.width, block.height);
+        ctx.strokeStyle = '#1e40af';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(block.x, block.y, block.width, block.height);
+      }
+      
+      // 目标
+      for (const target of state.targets) {
+        if (!target.destroyed) {
+          ctx.fillStyle = target.color;
+          ctx.beginPath();
+          ctx.arc(target.x + target.width/2, target.y + target.height/2, target.width/2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#dc2626';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+      
+      // 发射物轨迹
+      for (const p of state.projectiles) {
+        if (p.trail.length > 1) {
+          ctx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(p.trail[0].x, p.trail[0].y);
+          for (let i = 1; i < p.trail.length; i++) {
+            ctx.lineTo(p.trail[i].x, p.trail[i].y);
+          }
+          ctx.stroke();
+        }
+      }
+      
+      // 发射物
+      for (const p of state.projectiles) {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      
+      // 拖拽指示
+      if (state.isDragging && dragStart && dragEnd) {
+        ctx.strokeStyle = 'rgba(139, 92, 246, 0.5)';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(dragStart.x, dragStart.y);
+        ctx.lineTo(dragEnd.x, dragEnd.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // 预测轨迹
+        const dx = dragStart.x - dragEnd.x;
+        const dy = dragStart.y - dragEnd.y;
+        drawTrajectory(dragStart.x, dragStart.y, dx * 0.1, dy * 0.1);
+      }
+    }
+
+    function drawSlingshot() {
+      // 弹弓支架
+      ctx.fillStyle = '#8b5cf6';
+      ctx.fillRect(slingshot.x - slingshot.width/2, slingshot.y - slingshot.height, slingshot.width, slingshot.height);
+      
+      // 弹弓带
+      ctx.strokeStyle = '#a78bfa';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(slingshot.bandLeft.x, slingshot.bandLeft.y);
+      if (state.isDragging && dragEnd) {
+        ctx.lineTo(dragEnd.x, dragEnd.y);
+      } else {
+        ctx.lineTo(slingshot.pullPoint.x, slingshot.pullPoint.y);
+      }
+      ctx.lineTo(slingshot.bandRight.x, slingshot.bandRight.y);
+      ctx.stroke();
+      
+      // 弹弓握点
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.arc(slingshot.pullPoint.x, slingshot.pullPoint.y, 10, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawTrajectory(startX, startY, vx, vy) {
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      
+      let x = startX;
+      let y = startY;
+      let velX = vx;
+      let velY = vy;
+      
+      for (let i = 0; i < 50; i++) {
+        velY += 0.3;
+        x += velX;
+        y += velY;
+        
+        if (y > canvasHeight - 20) break;
+        ctx.lineTo(x, y);
+      }
+      
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 启动
+    init();
+    gameLoop();
+  </script>
+</body>
+</html>

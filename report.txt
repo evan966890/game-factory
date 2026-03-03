@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《数学斜坡跑》
-灵感来源：Slope + Coolmath Games
-左右倾斜设备控制球体在斜坡上滚动，避开障碍物，每100米回答一道数学题，答对获得加速和护盾
-▶️ 试玩：https://evan966890.github.io/game-factory/games/math-slope-run/
+《数学堆叠塔》
+灵感来源：Stack + 数学教育
+点击屏幕堆叠方块，每堆叠5层弹出一道数学题，答对获得奖励，答错受到惩罚，难度随层数递进
+▶️ 试玩：https://evan966890.github.io/game-factory/games/math-stack-tower/
 
 📊 游戏工厂累计：132 个游戏
