@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>数学合成塔</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #22d3ee;
+      --ok: #22c55e;
+      --bad: #ef4444;
+      --text: #e5e7eb;
+      --container: #1e293b;
+      --element-2: #3b82f6;
+      --element-4: #22c55e;
+      --element-8: #f59e0b;
+      --element-16: #ef4444;
+      --element-32: #8b5cf6;
+      --element-64: #ec4899;
+      --element-128: #06b6d4;
+      --element-256: #84cc16;
+      --element-512: #f97316;
+      --element-1024: #eab308;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #0b1024, #111827);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      overflow: hidden;
+    }
+    .app {
+      width: min(480px, 100%);
+      background: rgba(17, 24, 39, .95);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(24px, 5vw, 34px);
+      text-align: center;
+    }
+    .sub {
+      opacity: .85;
+      margin: 0 0 12px;
+      font-size: 14px;
+      text-align: center;
+    }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .box {
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+    .k { font-size: 12px; opacity: .7; }
+    .v { font-size: 22px; font-weight: 700; }
+    .game-container {
+      position: relative;
+      width: 100%;
+      height: 500px;
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .next-element {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 5;
+    }
+    .game-over-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+    .game-over-overlay.active { display: flex; }
+    .game-over-title {
+      font-size: clamp(28px, 8vw, 48px);
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: var(--bad);
+    }
+    .game-over-score {
+      font-size: clamp(20px, 6vw, 32px);
+      margin-bottom: 24px;
+    }
+    .btn {
+      background: var(--accent);
+      color: #0b1024;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .1s, opacity .2s;
+    }
+    .btn:hover { opacity: .9; transform: scale(1.02); }
+    .btn:active { transform: scale(.98); }
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .btn-secondary {
+      background: #1f2937;
+      color: var(--text);
+    }
+    .instructions {
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .instructions h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: var(--accent);
+    }
+    .instructions ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>🧮 数学合成塔</h1>
+    <p class="sub">合成数字，学习数学！</p>
+    
+    <div class="hud">
+      <div class="box">
+        <div class="k">得分</div>
+        <div class="v" id="score">0</div>
+      </div>
+      <div class="box">
+        <div class="k">最高分</div>
+        <div class="v" id="best">0</div>
+      </div>
+      <div class="box">
+        <div class="k">最大数字</div>
+        <div class="v" id="maxNum">2</div>
+      </div>
+    </div>
+    
+    <div class="game-container" id="gameContainer">
+      <canvas id="gameCanvas"></canvas>
+      <div class="next-element" id="nextElement">下一个: 2</div>
+      <div class="game-over-overlay" id="gameOverOverlay">
+        <div class="game-over-title">游戏结束</div>
+        <div class="game-over-score">得分: <span id="finalScore">0</span></div>
+        <button class="btn" id="restartBtn">再来一局</button>
+      </div>
+    </div>
+    
+    <div class="controls">
+      <button class="btn" id="dropBtn">放置元素</button>
+      <button class="btn btn-secondary" id="newGameBtn">新游戏</button>
+    </div>
+    
+    <div class="instructions">
+      <h3>🎮 游戏玩法</h3>
+      <ul>
+        <li>点击"放置元素"或点击画布放置数字</li>
+        <li>相同数字碰撞会合并成更大的数字</li>
+        <li>合并时显示数学运算过程</li>
+        <li>避免数字堆叠到顶部</li>
+        <li>目标：合成尽可能大的数字！</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // 游戏状态
+    const state = {
+      score: 0,
+      bestScore: parseInt(localStorage.getItem('mathMergeTowerBest') || '0'),
+      maxNumber: 2,
+      gameOver: false,
+      paused: false,
+      elements: [],
+      nextValue: 2,
+      containerWidth: 0,
+      containerHeight: 0,
+      elementSize: 40,
+      gravity: 0.5,
+      friction: 0.98,
+      bounce: 0.6,
+      lastTime: 0,
+      deltaTime: 0
+    };
+
+    // DOM 元素
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const bestEl = document.getElementById('best');
+    const maxNumEl = document.getElementById('maxNum');
+    const nextElementEl = document.getElementById('nextElement');
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const finalScoreEl = document.getElementById('finalScore');
+    const restartBtn = document.getElementById('restartBtn');
+    const dropBtn = document.getElementById('dropBtn');
+    const newGameBtn = document.getElementById('newGameBtn');
+    const gameContainer = document.getElementById('gameContainer');
+
+    // 颜色映射
+    const colors = {
+      2: '#3b82f6',
+      4: '#22c55e',
+      8: '#f59e0b',
+      16: '#ef4444',
+      32: '#8b5cf6',
+      64: '#ec4899',
+      128: '#06b6d4',
+      256: '#84cc16',
+      512: '#f97316',
+      1024: '#eab308',
+      2048: '#ffffff'
+    };
+
+    // 初始化
+    function init() {
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      
+      // 事件监听
+      canvas.addEventListener('click', handleClick);
+      canvas.addEventListener('touchstart', handleTouch, { passive: false });
+      dropBtn.addEventListener('click', dropElement);
+      restartBtn.addEventListener('click', restartGame);
+      newGameBtn.addEventListener('click', restartGame);
+      
+      // 更新显示
+      bestEl.textContent = state.bestScore;
+      generateNextElement();
+      
+      // 开始游戏循环
+      requestAnimationFrame(gameLoop);
+    }
+
+    function resizeCanvas() {
+      const rect = gameContainer.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      state.containerWidth = rect.width;
+      state.containerHeight = rect.height;
+    }
+
+    function generateNextElement() {
+      // 生成 2, 4, 8 等 2 的幂次
+      const powers = [2, 2, 2, 4, 2, 4, 8];
+      state.nextValue = powers[Math.floor(Math.random() * powers.length)];
+      nextElementEl.textContent = `下一个: ${state.nextValue}`;
+    }
+
+    function dropElement(x = null) {
+      if (state.gameOver || state.paused) return;
+      
+      // 如果没有指定 x，使用随机位置
+      if (x === null) {
+        x = Math.random() * (state.containerWidth - state.elementSize) + state.elementSize / 2;
+      }
+      
+      // 创建新元素
+      const element = {
+        x: x,
+        y: state.elementSize,
+        vx: 0,
+        vy: 0,
+        value: state.nextValue,
+        radius: state.elementSize / 2,
+        color: colors[state.nextValue] || '#3b82f6',
+        merging: false,
+        mergeTime: 0
+      };
+      
+      state.elements.push(element);
+      generateNextElement();
+      
+      // 检查游戏是否结束
+      checkGameOver();
+    }
+
+    function handleClick(e) {
+      if (state.gameOver) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      dropElement(x);
+    }
+
+    function handleTouch(e) {
+      e.preventDefault();
+      if (state.gameOver) return;
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      const x = touch.clientX - rect.left;
+      dropElement(x);
+    }
+
+    function checkGameOver() {
+      // 检查是否有元素触及顶部
+      for (const element of state.elements) {
+        if (element.y - element.radius < 10) {
+          endGame();
+          return;
+        }
+      }
+    }
+
+    function endGame() {
+      state.gameOver = true;
+      finalScoreEl.textContent = state.score;
+      gameOverOverlay.classList.add('active');
+      
+      // 更新最高分
+      if (state.score > state.bestScore) {
+        state.bestScore = state.score;
+        localStorage.setItem('mathMergeTowerBest', state.bestScore.toString());
+        bestEl.textContent = state.bestScore;
+      }
+    }
+
+    function restartGame() {
+      state.score = 0;
+      state.maxNumber = 2;
+      state.gameOver = false;
+      state.paused = false;
+      state.elements = [];
+      
+      scoreEl.textContent = '0';
+      maxNumEl.textContent = '2';
+      gameOverOverlay.classList.remove('active');
+      
+      generateNextElement();
+    }
+
+    function updatePhysics() {
+      if (state.gameOver || state.paused) return;
+      
+      // 更新每个元素
+      for (let i = 0; i < state.elements.length; i++) {
+        const element = state.elements[i];
+        
+        // 应用重力
+        element.vy += state.gravity;
+        
+        // 应用摩擦力
+        element.vx *= state.friction;
+        element.vy *= state.friction;
+        
+        // 更新位置
+        element.x += element.vx;
+        element.y += element.vy;
+        
+        // 边界碰撞
+        // 左右边界
+        if (element.x - element.radius < 0) {
+          element.x = element.radius;
+          element.vx *= -state.bounce;
+        }
+        if (element.x + element.radius > state.containerWidth) {
+          element.x = state.containerWidth - element.radius;
+          element.vx *= -state.bounce;
+        }
+        
+        // 底部边界
+        if (element.y + element.radius > state.containerHeight) {
+          element.y = state.containerHeight - element.radius;
+          element.vy *= -state.bounce;
+          if (Math.abs(element.vy) < 1) element.vy = 0;
+        }
+        
+        // 顶部边界
+        if (element.y - element.radius < 0) {
+          element.y = element.radius;
+          element.vy *= -state.bounce;
+        }
+        
+        // 合并动画
+        if (element.merging) {
+          element.mergeTime -= state.deltaTime;
+          if (element.mergeTime <= 0) {
+            element.merging = false;
+          }
+        }
+      }
+      
+      // 检测碰撞和合并
+      checkCollisions();
+    }
+
+    function checkCollisions() {
+      for (let i = 0; i < state.elements.length; i++) {
+        for (let j = i + 1; j < state.elements.length; j++) {
+          const a = state.elements[i];
+          const b = state.elements[j];
+          
+          if (a.merging || b.merging) continue;
+          
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const minDist = a.radius + b.radius;
+          
+          if (distance < minDist) {
+            // 碰撞发生
+            if (a.value === b.value) {
+              // 相同值，合并
+              mergeElements(i, j);
+              return; // 每次只合并一对
+            } else {
+              // 不同值，反弹
+              const angle = Math.atan2(dy, dx);
+              const targetX = a.x + Math.cos(angle) * minDist;
+              const targetY = a.y + Math.sin(angle) * minDist;
+              const ax = (targetX - b.x) * 0.5;
+              const ay = (targetY - b.y) * 0.5;
+              
+              a.x -= ax;
+              a.y -= ay;
+              b.x += ax;
+              b.y += ay;
+              
+              // 交换速度
+              const va = { x: a.vx, y: a.vy };
+              const vb = { x: b.vx, y: b.vy };
+              
+              a.vx = vb.x * state.bounce;
+              a.vy = vb.y * state.bounce;
+              b.vx = va.x * state.bounce;
+              b.vy = va.y * state.bounce;
+            }
+          }
+        }
+      }
+    }
+
+    function mergeElements(i, j) {
+      const a = state.elements[i];
+      const b = state.elements[j];
+      
+      // 计算新值
+      const newValue = a.value * 2;
+      
+      // 更新分数
+      state.score += newValue;
+      scoreEl.textContent = state.score;
+      
+      // 更新最大数字
+      if (newValue > state.maxNumber) {
+        state.maxNumber = newValue;
+        maxNumEl.textContent = state.maxNumber;
+      }
+      
+      // 创建合并后的元素
+      const merged = {
+        x: (a.x + b.x) / 2,
+        y: (a.y + b.y) / 2,
+        vx: (a.vx + b.vx) / 2,
+        vy: (a.vy + b.vy) / 2,
+        value: newValue,
+        radius: state.elementSize / 2 + Math.log2(newValue) * 2,
+        color: colors[newValue] || '#3b82f6',
+        merging: true,
+        mergeTime: 300
+      };
+      
+      // 移除旧元素，添加新元素
+      state.elements.splice(j, 1);
+      state.elements.splice(i, 1);
+      state.elements.push(merged);
+      
+      // 显示合并提示
+      showMergeHint(a.value, b.value, newValue, merged.x, merged.y);
+    }
+
+    function showMergeHint(a, b, result, x, y) {
+      // 创建临时提示元素
+      const hint = document.createElement('div');
+      hint.style.cssText = `
+        position: absolute;
+        left: ${x}px;
+        top: ${y}px;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: #22c55e;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 10;
+        pointer-events: none;
+        animation: fadeOut 1s forwards;
+      `;
+      hint.textContent = `${a}+${b}=${result}`;
+      gameContainer.appendChild(hint);
+      
+      // 添加动画样式
+      if (!document.getElementById('mergeHintStyle')) {
+        const style = document.createElement('style');
+        style.id = 'mergeHintStyle';
+        style.textContent = `
+          @keyframes fadeOut {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -100%) scale(1.2); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      // 1秒后移除
+      setTimeout(() => hint.remove(), 1000);
+    }
+
+    function render() {
+      // 清空画布
+      ctx.fillStyle = '#0b1220';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // 绘制容器边界
+      ctx.strokeStyle = '#1f2937';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(0, 0, canvas.width, canvas.height);
+      
+      // 绘制所有元素
+      for (const element of state.elements) {
+        // 合并动画效果
+        let scale = 1;
+        if (element.merging) {
+          scale = 1 + 0.2 * Math.sin(element.mergeTime / 300 * Math.PI);
+        }
+        
+        const radius = element.radius * scale;
+        
+        // 绘制圆形
+        ctx.beginPath();
+        ctx.arc(element.x, element.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = element.color;
+        ctx.fill();
+        
+        // 绘制边框
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // 绘制数字
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${Math.max(12, radius * 0.8)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(element.value.toString(), element.x, element.y);
+      }
+      
+      // 绘制下一个元素预览
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fillRect(canvas.width / 2 - 30, 10, 60, 30);
+      ctx.fillStyle = colors[state.nextValue] || '#3b82f6';
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, 25, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(state.nextValue.toString(), canvas.width / 2, 25);
+    }
+
+    function gameLoop(timestamp) {
+      // 计算 deltaTime
+      state.deltaTime = timestamp - state.lastTime;
+      state.lastTime = timestamp;
+      
+      // 更新物理
+      updatePhysics();
+      
+      // 渲染
+      render();
+      
+      // 继续循环
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 启动游戏
+    init();
+  </script>
+</body>
+</html>
