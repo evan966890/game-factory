@@ -912,5 +912,11 @@
     "path": "games/lv-xing-qing-wa-zhong-guo-zhi-lv/index.html",
     "category": "放置养成",
     "createdAt": "2026-03-03T22:18:51Z"
+  },
+  {
+    "name": "羊了个羊",
+    "path": "games/yang-le-ge-yang/index.html",
+    "category": "消除",
+    "createdAt": "2026-03-03T22:37:13Z"
   }
 ]

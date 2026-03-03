@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>羊了个羊</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --sheep: #fef3c7;
+      --sheep-dark: #fcd34d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 16px;
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+      position: relative;
+    }
+
+    .cell:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .cell.selected {
+      background: #d4edda;
+      border-color: var(--green);
+      transform: scale(1.1);
+    }
+
+    .cell.empty {
+      background: #f0f0f0;
+      border-color: #ddd;
+      cursor: default;
+    }
+
+    .cell.covered {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .cell.covered::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+
+    .slot-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .slot-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .slot-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .slot {
+      aspect-ratio: 1;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      background: #f8fcff;
+    }
+
+    .slot.filled {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .tools {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .tools-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .tool {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .tool:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .tool:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .tool .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .tool .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>羊了个羊</h1>
+    <p class="subtitle">消除重叠的方块，3个同类消除，卡槽有限</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span class="value blue" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">分数</span>
+        <span class="value green" id="score">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高分</span>
+        <span class="value gold" id="highScore">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="board" id="board"></div>
+
+        <div class="slot-container">
+          <div class="slot-title">卡槽 (<span id="slotCount">0</span>/7)</div>
+          <div class="slot-grid" id="slots"></div>
+        </div>
+
+        <div class="tools">
+          <div class="tools-title">道具</div>
+          <div class="tools-grid" id="tools"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="newGameBtn">新游戏</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      boardSize: 7,
+      slotSize: 7,
+      symbols: ['🐑', '🌾', '🌿', '🍃', '🌱', '☘️', '🍀', '🌲'],
+      tools: [
+        { id: 'undo', name: '撤回', emoji: '↩️', count: 3 },
+        { id: 'shuffle', name: '洗牌', emoji: '🔀', count: 2 },
+        { id: 'remove', name: '移除', emoji: '🗑️', count: 1 }
+      ]
+    };
+
+    // 游戏状态
+    let level = 1;
+    let score = 0;
+    let highScore = parseInt(localStorage.getItem('yang-le-ge-yang-highscore')) || 0;
+    let board = [];
+    let slots = [];
+    let tools = [];
+    let gameOver = false;
+    let selectedCell = null;
+
+    // DOM 元素
+    const levelEl = document.getElementById('level');
+    const scoreEl = document.getElementById('score');
+    const highScoreEl = document.getElementById('highScore');
+    const slotCountEl = document.getElementById('slotCount');
+    const boardEl = document.getElementById('board');
+    const slotsEl = document.getElementById('slots');
+    const toolsEl = document.getElementById('tools');
+    const newGameBtn = document.getElementById('newGameBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      level = 1;
+      score = 0;
+      board = [];
+      slots = [];
+      tools = JSON.parse(JSON.stringify(config.tools));
+      gameOver = false;
+      selectedCell = null;
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 初始化棋盘
+      initBoard();
+
+      // 更新显示
+      updateStats();
+      updateBoard();
+      updateSlots();
+      updateTools();
+    }
+
+    // 初始化棋盘
+    function initBoard() {
+      board = [];
+      const totalCells = config.boardSize * config.boardSize;
+      const symbolCount = Math.floor(totalCells / config.symbols.length) * 3;
+
+      // 生成方块
+      let symbols = [];
+      for (let i = 0; i < symbolCount; i++) {
+        symbols.push(config.symbols[i % config.symbols.length]);
+      }
+
+      // 打乱方块
+      symbols = shuffleArray(symbols);
+
+      // 创建棋盘
+      for (let i = 0; i < totalCells; i++) {
+        if (i < symbols.length) {
+          board.push({
+            symbol: symbols[i],
+            covered: false,
+            id: i
+          });
+        } else {
+          board.push(null);
+        }
+      }
+
+      // 设置覆盖关系
+      for (let i = 0; i < board.length; i++) {
+        if (board[i]) {
+          // 检查上方是否有方块
+          const row = Math.floor(i / config.boardSize);
+          const col = i % config.boardSize;
+          if (row > 0) {
+            const aboveIndex = (row - 1) * config.boardSize + col;
+            if (board[aboveIndex]) {
+              board[i].covered = true;
+            }
+          }
+        }
+      }
+    }
+
+    // 打乱数组
+    function shuffleArray(array) {
+      const newArray = [...array];
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      }
+      return newArray;
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('yang-le-ge-yang');
+      if (saved) {
+        const data = JSON.parse(saved);
+        level = data.level || 1;
+        score = data.score || 0;
+        board = data.board || [];
+        slots = data.slots || [];
+        tools = data.tools || JSON.parse(JSON.stringify(config.tools));
+        gameOver = data.gameOver || false;
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        level,
+        score,
+        board,
+        slots,
+        tools,
+        gameOver
+      };
+      localStorage.setItem('yang-le-ge-yang', JSON.stringify(data));
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      levelEl.textContent = level;
+      scoreEl.textContent = score;
+      highScoreEl.textContent = highScore;
+      slotCountEl.textContent = slots.length;
+
+      // 更新最高分
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('yang-le-ge-yang-highscore', highScore);
+      }
+    }
+
+    // 更新棋盘显示
+    function updateBoard() {
+      boardEl.innerHTML = '';
+      board.forEach((cell, index) => {
+        const cellEl = document.createElement('div');
+        cellEl.className = `cell ${cell ? '' : 'empty'} ${cell && cell.covered ? 'covered' : ''} ${selectedCell === index ? 'selected' : ''}`;
+        cellEl.textContent = cell ? cell.symbol : '';
+        if (cell && !cell.covered) {
+          cellEl.addEventListener('click', () => selectCell(index));
+        }
+        boardEl.appendChild(cellEl);
+      });
+    }
+
+    // 更新卡槽显示
+    function updateSlots() {
+      slotsEl.innerHTML = '';
+      for (let i = 0; i < config.slotSize; i++) {
+        const slotEl = document.createElement('div');
+        slotEl.className = `slot ${slots[i] ? 'filled' : ''}`;
+        slotEl.textContent = slots[i] ? slots[i].symbol : '';
+        slotsEl.appendChild(slotEl);
+      }
+    }
+
+    // 更新道具显示
+    function updateTools() {
+      toolsEl.innerHTML = '';
+      tools.forEach(tool => {
+        const toolEl = document.createElement('div');
+        toolEl.className = 'tool';
+        toolEl.innerHTML = `
+          <div class="emoji">${tool.emoji}</div>
+          <div class="name">${tool.name} (${tool.count})</div>
+        `;
+        if (tool.count > 0) {
+          toolEl.addEventListener('click', () => useTool(tool.id));
+        } else {
+          toolEl.disabled = true;
+        }
+        toolsEl.appendChild(toolEl);
+      });
+    }
+
+    // 选择单元格
+    function selectCell(index) {
+      if (gameOver) return;
+
+      const cell = board[index];
+      if (!cell || cell.covered) return;
+
+      // 检查卡槽是否已满
+      if (slots.length >= config.slotSize) {
+        alert('卡槽已满！游戏结束。');
+        gameOver = true;
+        saveGame();
+        return;
+      }
+
+      // 将方块添加到卡槽
+      slots.push(cell);
+      board[index] = null;
+
+      // 更新覆盖关系
+      updateCoveredCells();
+
+      // 检查是否可以消除
+      checkElimination();
+
+      // 检查游戏是否结束
+      checkGameOver();
+
+      // 更新显示
+      updateStats();
+      updateBoard();
+      updateSlots();
+      saveGame();
+    }
+
+    // 更新覆盖关系
+    function updateCoveredCells() {
+      for (let i = 0; i < board.length; i++) {
+        if (board[i]) {
+          board[i].covered = false;
+          const row = Math.floor(i / config.boardSize);
+          const col = i % config.boardSize;
+          if (row > 0) {
+            const aboveIndex = (row - 1) * config.boardSize + col;
+            if (board[aboveIndex]) {
+              board[i].covered = true;
+            }
+          }
+        }
+      }
+    }
+
+    // 检查消除
+    function checkElimination() {
+      const symbolCount = {};
+      slots.forEach(slot => {
+        symbolCount[slot.symbol] = (symbolCount[slot.symbol] || 0) + 1;
+      });
+
+      // 检查是否有3个相同的
+      for (const symbol in symbolCount) {
+        if (symbolCount[symbol] >= 3) {
+          // 消除
+          slots = slots.filter(slot => slot.symbol !== symbol);
+          score += 10 * level;
+          break;
+        }
+      }
+    }
+
+    // 检查游戏是否结束
+    function checkGameOver() {
+      // 检查卡槽是否已满
+      if (slots.length >= config.slotSize) {
+        gameOver = true;
+        alert('卡槽已满！游戏结束。');
+        return;
+      }
+
+      // 检查是否还有可消除的方块
+      const symbolCount = {};
+      slots.forEach(slot => {
+        symbolCount[slot.symbol] = (symbolCount[slot.symbol] || 0) + 1;
+      });
+
+      let hasElimination = false;
+      for (const symbol in symbolCount) {
+        if (symbolCount[symbol] >= 3) {
+          hasElimination = true;
+          break;
+        }
+      }
+
+      // 检查棋盘是否还有方块
+      const hasBoardCells = board.some(cell => cell !== null);
+
+      if (!hasBoardCells && !hasElimination) {
+        // 通关
+        level++;
+        alert(`恭喜通过第 ${level - 1} 关！进入第 ${level} 关`);
+        initBoard();
+        slots = [];
+        saveGame();
+      }
+    }
+
+    // 使用道具
+    function useTool(toolId) {
+      const tool = tools.find(t => t.id === toolId);
+      if (!tool || tool.count <= 0) return;
+
+      tool.count--;
+
+      switch (toolId) {
+        case 'undo':
+          // 撤回最后一步
+          if (slots.length > 0) {
+            const lastSlot = slots.pop();
+            // 找到第一个空位
+            for (let i = 0; i < board.length; i++) {
+              if (!board[i]) {
+                board[i] = lastSlot;
+                break;
+              }
+            }
+            updateCoveredCells();
+          }
+          break;
+        case 'shuffle':
+          // 洗牌
+          const cells = board.filter(cell => cell !== null);
+          const shuffled = shuffleArray(cells);
+          let index = 0;
+          for (let i = 0; i < board.length; i++) {
+            if (board[i] !== null) {
+              board[i] = shuffled[index++];
+            }
+          }
+          updateCoveredCells();
+          break;
+        case 'remove':
+          // 移除卡槽中的一个方块
+          if (slots.length > 0) {
+            slots.pop();
+          }
+          break;
+      }
+
+      updateStats();
+      updateBoard();
+      updateSlots();
+      updateTools();
+      saveGame();
+    }
+
+    // 新游戏
+    function newGame() {
+      if (confirm('确定要开始新游戏吗？当前进度将丢失。')) {
+        initGame();
+      }
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('yang-le-ge-yang');
+        localStorage.removeItem('yang-le-ge-yang-highscore');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    newGameBtn.addEventListener('click', newGame);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
