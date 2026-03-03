@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>数学太空跑</title>
+  <style>
+    :root {
+      --bg: #0a0a1a;
+      --card: #111827;
+      --accent: #22d3ee;
+      --ok: #22c55e;
+      --bad: #ef4444;
+      --text: #e5e7eb;
+      --tunnel: #1e293b;
+      --player: #3b82f6;
+      --shield: #fbbf24;
+      --obstacle: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(ellipse at center, #0f172a 0%, #0a0a1a 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      overflow: hidden;
+    }
+    .app {
+      width: min(720px, 100%);
+      background: rgba(17, 24, 39, .95);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(24px, 5vw, 34px);
+      text-align: center;
+      background: linear-gradient(135deg, #22d3ee, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .sub {
+      opacity: .85;
+      margin: 0 0 12px;
+      font-size: 14px;
+      text-align: center;
+    }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .box {
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+    .k { font-size: 12px; opacity: .7; }
+    .v { font-size: 22px; font-weight: 700; }
+    .game-container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .question-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .question-overlay.active { display: flex; }
+    .question-text {
+      font-size: clamp(26px, 7vw, 44px);
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--accent);
+      text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      width: 80%;
+      max-width: 300px;
+    }
+    .option-btn {
+      appearance: none;
+      border: 1px solid #334155;
+      background: #111827;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      min-height: 56px;
+      touch-action: manipulation;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .option-btn:active { transform: scale(.98); }
+    .option-btn.correct {
+      background: rgba(34, 197, 94, .18);
+      border-color: var(--ok);
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
+    }
+    .option-btn.wrong {
+      background: rgba(239, 68, 68, .18);
+      border-color: var(--bad);
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+    }
+    .game-over-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+    .game-over-overlay.active { display: flex; }
+    .game-over-title {
+      font-size: clamp(24px, 6vw, 36px);
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: var(--bad);
+      text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+    }
+    .game-over-stats {
+      font-size: 18px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .ctl {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+    .primary {
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.1s;
+    }
+    .primary:active { transform: scale(.98); }
+    .primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .msg {
+      min-height: 24px;
+      text-align: center;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+    .instructions {
+      font-size: 12px;
+      opacity: .7;
+      text-align: center;
+      margin-top: 8px;
+    }
+    .achievement-popup {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      color: #000;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 700;
+      z-index: 100;
+      display: none;
+      animation: slideDown 0.5s ease-out;
+    }
+    .achievement-popup.active { display: block; }
+    @keyframes slideDown {
+      from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>数学太空跑</h1>
+    <p class="sub">点击控制角色在太空隧道中奔跑，每前进100米回答数学题，答对获得护盾，答错减速！</p>
+    
+    <section class="hud">
+      <div class="box">
+        <div class="k">距离</div>
+        <div id="distance" class="v">0</div>
+      </div>
+      <div class="box">
+        <div class="k">得分</div>
+        <div id="score" class="v">0</div>
+      </div>
+      <div class="box">
+        <div class="k">最高分</div>
+        <div id="highScore" class="v">0</div>
+      </div>
+    </section>
+    
+    <div class="game-container">
+      <canvas id="gameCanvas"></canvas>
+      
+      <div id="questionOverlay" class="question-overlay">
+        <div id="questionText" class="question-text">加载中...</div>
+        <div id="options" class="options"></div>
+      </div>
+      
+      <div id="gameOverOverlay" class="game-over-overlay">
+        <div class="game-over-title">游戏结束</div>
+        <div class="game-over-stats">
+          <div>前进距离: <span id="finalDistance">0</span> 米</div>
+          <div>最终得分: <span id="finalScore">0</span></div>
+          <div>答对题目: <span id="correctAnswers">0</span></div>
+        </div>
+        <button id="restartBtn" class="primary">再来一局</button>
+      </div>
+    </div>
+    
+    <div id="msg" class="msg"></div>
+    <div class="instructions">点击屏幕控制角色跳跃，每100米触发数学题</div>
+    
+    <div class="ctl">
+      <button id="startBtn" class="primary">开始游戏</button>
+      <button id="resetBtn" class="primary" style="background: linear-gradient(135deg, #6b7280, #4b5563);">重置</button>
+    </div>
+  </main>
+  
+  <div id="achievementPopup" class="achievement-popup"></div>
+
+  <script>
+    // 游戏状态
+    const state = {
+      running: false,
+      paused: false,
+      distance: 0,
+      score: 0,
+      highScore: 0,
+      correctAnswers: 0,
+      lastQuestionDistance: 0,
+      difficulty: 1, // 1: 加法, 2: 减法, 3: 乘法, 4: 除法
+      player: {
+        x: 100,
+        y: 0,
+        vy: 0,
+        width: 30,
+        height: 40,
+        color: '#3b82f6',
+        shield: false,
+        shieldTime: 0,
+        jumping: false
+      },
+      tunnel: {
+        segments: [],
+        segmentWidth: 100,
+        height: 200,
+        centerY: 0
+      },
+      obstacles: [],
+      gravity: 0.8,
+      jumpForce: -15,
+      baseSpeed: 5,
+      speed: 5,
+      lastTime: 0,
+      deltaTime: 0,
+      achievements: {
+        distance1000: false,
+        correct50: false
+      }
+    };
+
+    // DOM 元素
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const distanceEl = document.getElementById('distance');
+    const scoreEl = document.getElementById('score');
+    const highScoreEl = document.getElementById('highScore');
+    const questionOverlay = document.getElementById('questionOverlay');
+    const questionText = document.getElementById('questionText');
+    const optionsEl = document.getElementById('options');
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const finalDistanceEl = document.getElementById('finalDistance');
+    const finalScoreEl = document.getElementById('finalScore');
+    const correctAnswersEl = document.getElementById('correctAnswers');
+    const msgEl = document.getElementById('msg');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const achievementPopup = document.getElementById('achievementPopup');
+
+    // 初始化
+    function init() {
+      loadHighScore();
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      canvas.addEventListener('click', handleClick);
+      canvas.addEventListener('touchstart', handleTouch);
+      startBtn.addEventListener('click', startGame);
+      resetBtn.addEventListener('click', resetGame);
+      restartBtn.addEventListener('click', restartGame);
+      requestAnimationFrame(gameLoop);
+    }
+
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+      state.tunnel.centerY = canvas.height / 2;
+      resetPlayer();
+    }
+
+    function loadHighScore() {
+      const saved = localStorage.getItem('mathSpaceRunHighScore');
+      if (saved) {
+        state.highScore = parseInt(saved);
+        highScoreEl.textContent = state.highScore;
+      }
+    }
+
+    function saveHighScore() {
+      if (state.score > state.highScore) {
+        state.highScore = state.score;
+        localStorage.setItem('mathSpaceRunHighScore', state.highScore);
+        highScoreEl.textContent = state.highScore;
+      }
+    }
+
+    function resetPlayer() {
+      state.player.x = 100;
+      state.player.y = state.tunnel.centerY - state.player.height / 2;
+      state.player.vy = 0;
+      state.player.color = '#3b82f6';
+      state.player.shield = false;
+      state.player.shieldTime = 0;
+      state.player.jumping = false;
+    }
+
+    function generateTunnel() {
+      state.tunnel.segments = [];
+      const numSegments = Math.ceil(canvas.width / state.tunnel.segmentWidth) + 3;
+      
+      for (let i = 0; i < numSegments; i++) {
+        const x = i * state.tunnel.segmentWidth;
+        const centerY = state.tunnel.centerY + Math.sin(i * 0.3) * 50;
+        state.tunnel.segments.push({ x, centerY });
+      }
+    }
+
+    function updateTunnel() {
+      // 移动隧道
+      for (let segment of state.tunnel.segments) {
+        segment.x -= state.speed;
+      }
+      
+      // 移除屏幕外的段
+      while (state.tunnel.segments.length > 0 && state.tunnel.segments[0].x < -state.tunnel.segmentWidth) {
+        state.tunnel.segments.shift();
+      }
+      
+      // 添加新段
+      const lastSegment = state.tunnel.segments[state.tunnel.segments.length - 1];
+      if (lastSegment.x < canvas.width + state.tunnel.segmentWidth) {
+        const newX = lastSegment.x + state.tunnel.segmentWidth;
+        const newCenterY = state.tunnel.centerY + Math.sin(state.tunnel.segments.length * 0.3) * 50;
+        state.tunnel.segments.push({ x: newX, centerY: newCenterY });
+      }
+    }
+
+    function generateObstacles() {
+      // 随机生成障碍物
+      if (Math.random() < 0.02) {
+        const lastSegment = state.tunnel.segments[state.tunnel.segments.length - 1];
+        if (lastSegment) {
+          const obstacle = {
+            x: lastSegment.x + Math.random() * state.tunnel.segmentWidth,
+            y: lastSegment.centerY + (Math.random() - 0.5) * state.tunnel.height * 0.6,
+            width: 20 + Math.random() * 20,
+            height: 20 + Math.random() * 20,
+            color: '#ef4444'
+          };
+          state.obstacles.push(obstacle);
+        }
+      }
+    }
+
+    function updateObstacles() {
+      // 移动障碍物
+      for (let obstacle of state.obstacles) {
+        obstacle.x -= state.speed;
+      }
+      
+      // 移除屏幕外的障碍物
+      state.obstacles = state.obstacles.filter(o => o.x > -o.width);
+    }
+
+    function handleClick(e) {
+      if (!state.running || state.paused) return;
+      e.preventDefault();
+      jump();
+    }
+
+    function handleTouch(e) {
+      if (!state.running || state.paused) return;
+      e.preventDefault();
+      jump();
+    }
+
+    function jump() {
+      if (!state.player.jumping) {
+        state.player.vy = state.jumpForce;
+        state.player.jumping = true;
+      }
+    }
+
+    function startGame() {
+      if (state.running) return;
+      state.running = true;
+      state.paused = false;
+      state.distance = 0;
+      state.score = 0;
+      state.correctAnswers = 0;
+      state.lastQuestionDistance = 0;
+      state.difficulty = 1;
+      state.speed = state.baseSpeed;
+      state.obstacles = [];
+      state.achievements = { distance1000: false, correct50: false };
+      resetPlayer();
+      generateTunnel();
+      updateHUD();
+      msgEl.textContent = '游戏开始！点击控制角色跳跃';
+      startBtn.textContent = '游戏中...';
+      startBtn.disabled = true;
+    }
+
+    function resetGame() {
+      state.running = false;
+      state.paused = false;
+      state.distance = 0;
+      state.score = 0;
+      state.correctAnswers = 0;
+      state.lastQuestionDistance = 0;
+      state.difficulty = 1;
+      state.speed = state.baseSpeed;
+      state.obstacles = [];
+      resetPlayer();
+      generateTunnel();
+      updateHUD();
+      msgEl.textContent = '';
+      startBtn.textContent = '开始游戏';
+      startBtn.disabled = false;
+      gameOverOverlay.classList.remove('active');
+      questionOverlay.classList.remove('active');
+    }
+
+    function restartGame() {
+      gameOverOverlay.classList.remove('active');
+      startGame();
+    }
+
+    function updateHUD() {
+      distanceEl.textContent = Math.floor(state.distance);
+      scoreEl.textContent = state.score;
+    }
+
+    function updateDifficulty() {
+      if (state.distance >= 1000) state.difficulty = 4;
+      else if (state.distance >= 600) state.difficulty = 3;
+      else if (state.distance >= 300) state.difficulty = 2;
+      else state.difficulty = 1;
+    }
+
+    function generateQuestion() {
+      let a, b, answer, operator;
+      
+      switch (state.difficulty) {
+        case 1: // 加法
+          a = Math.floor(Math.random() * 20) + 1;
+          b = Math.floor(Math.random() * 20) + 1;
+          answer = a + b;
+          operator = '+';
+          break;
+        case 2: // 减法
+          a = Math.floor(Math.random() * 30) + 10;
+          b = Math.floor(Math.random() * a) + 1;
+          answer = a - b;
+          operator = '-';
+          break;
+        case 3: // 乘法
+          a = Math.floor(Math.random() * 10) + 1;
+          b = Math.floor(Math.random() * 10) + 1;
+          answer = a * b;
+          operator = '×';
+          break;
+        case 4: // 除法
+          b = Math.floor(Math.random() * 9) + 2;
+          answer = Math.floor(Math.random() * 10) + 1;
+          a = b * answer;
+          operator = '÷';
+          break;
+      }
+      
+      const question = `${a} ${operator} ${b} = ?`;
+      const options = generateOptions(answer);
+      
+      return { question, answer, options };
+    }
+
+    function generateOptions(answer) {
+      const options = [answer];
+      while (options.length < 4) {
+        const offset = Math.floor(Math.random() * 20) - 10;
+        const option = answer + offset;
+        if (option > 0 && !options.includes(option)) {
+          options.push(option);
+        }
+      }
+      return options.sort(() => Math.random() - 0.5);
+    }
+
+    function showQuestion() {
+      state.paused = true;
+      const { question, answer, options } = generateQuestion();
+      
+      questionText.textContent = question;
+      optionsEl.innerHTML = '';
+      
+      options.forEach(option => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = option;
+        btn.addEventListener('click', () => handleAnswer(option, answer, btn));
+        optionsEl.appendChild(btn);
+      });
+      
+      questionOverlay.classList.add('active');
+    }
+
+    function handleAnswer(selected, correct, btn) {
+      const buttons = optionsEl.querySelectorAll('.option-btn');
+      buttons.forEach(b => b.disabled = true);
+      
+      if (selected === correct) {
+        btn.classList.add('correct');
+        state.correctAnswers++;
+        state.score += 50;
+        state.player.shield = true;
+        state.player.shieldTime = 3000;
+        state.player.color = '#fbbf24';
+        state.speed = state.baseSpeed * 1.2; // 加速
+        msgEl.textContent = '✅ 正确！获得护盾和加速';
+        
+        // 检查成就
+        if (state.correctAnswers >= 50 && !state.achievements.correct50) {
+          state.achievements.correct50 = true;
+          showAchievement('答对50题成就解锁！');
+        }
+      } else {
+        btn.classList.add('wrong');
+        buttons.forEach(b => {
+          if (parseInt(b.textContent) === correct) {
+            b.classList.add('correct');
+          }
+        });
+        state.speed = Math.max(state.baseSpeed * 0.7, state.speed * 0.8); // 减速
+        msgEl.textContent = `❌ 错误！正确答案是 ${correct}`;
+      }
+      
+      updateHUD();
+      
+      setTimeout(() => {
+        questionOverlay.classList.remove('active');
+        state.paused = false;
+        state.lastQuestionDistance = state.distance;
+      }, 1000);
+    }
+
+    function showAchievement(text) {
+      achievementPopup.textContent = text;
+      achievementPopup.classList.add('active');
+      setTimeout(() => {
+        achievementPopup.classList.remove('active');
+      }, 3000);
+    }
+
+    function checkQuestionTrigger() {
+      if (state.distance - state.lastQuestionDistance >= 100) {
+        showQuestion();
+      }
+    }
+
+    function updatePlayer() {
+      if (state.paused) return;
+      
+      // 重力
+      state.player.vy += state.gravity;
+      
+      // 更新位置
+      state.player.y += state.player.vy;
+      
+      // 护盾计时
+      if (state.player.shield) {
+        state.player.shieldTime -= state.deltaTime;
+        if (state.player.shieldTime <= 0) {
+          state.player.shield = false;
+          state.player.color = '#3b82f6';
+        }
+      }
+      
+      // 隧道边界检测
+      const currentSegment = getCurrentTunnelSegment();
+      if (currentSegment) {
+        const tunnelTop = currentSegment.centerY - state.tunnel.height / 2;
+        const tunnelBottom = currentSegment.centerY + state.tunnel.height / 2;
+        
+        if (state.player.y < tunnelTop) {
+          state.player.y = tunnelTop;
+          state.player.vy = 0;
+        }
+        
+        if (state.player.y + state.player.height > tunnelBottom) {
+          state.player.y = tunnelBottom - state.player.height;
+          state.player.vy = 0;
+          state.player.jumping = false;
+        }
+      }
+      
+      // 障碍物碰撞检测
+      checkObstacleCollision();
+      
+      // 更新距离
+      state.distance += state.speed * 0.1;
+      
+      // 检查成就
+      if (state.distance >= 1000 && !state.achievements.distance1000) {
+        state.achievements.distance1000 = true;
+        showAchievement('前进1000米成就解锁！');
+      }
+      
+      // 更新难度
+      updateDifficulty();
+      
+      // 检查是否触发问题
+      checkQuestionTrigger();
+      
+      // 更新HUD
+      updateHUD();
+    }
+
+    function getCurrentTunnelSegment() {
+      for (let i = 0; i < state.tunnel.segments.length - 1; i++) {
+        const seg1 = state.tunnel.segments[i];
+        const seg2 = state.tunnel.segments[i + 1];
+        if (state.player.x >= seg1.x && state.player.x < seg2.x) {
+          return seg1;
+        }
+      }
+      return state.tunnel.segments[0];
+    }
+
+    function checkObstacleCollision() {
+      if (state.player.shield) return; // 护盾状态下无敌
+      
+      for (let obstacle of state.obstacles) {
+        if (rectCollision(state.player, obstacle)) {
+          gameOver();
+          return;
+        }
+      }
+    }
+
+    function rectCollision(rect1, rect2) {
+      return rect1.x < rect2.x + rect2.width &&
+             rect1.x + rect1.width > rect2.x &&
+             rect1.y < rect2.y + rect2.height &&
+             rect1.y + rect1.height > rect2.y;
+    }
+
+    function gameOver() {
+      state.running = false;
+      saveHighScore();
+      finalDistanceEl.textContent = Math.floor(state.distance);
+      finalScoreEl.textContent = state.score;
+      correctAnswersEl.textContent = state.correctAnswers;
+      gameOverOverlay.classList.add('active');
+      startBtn.textContent = '开始游戏';
+      startBtn.disabled = false;
+    }
+
+    function draw() {
+      // 清空画布
+      ctx.fillStyle = '#0a0a1a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // 绘制星空背景
+      drawStars();
+      
+      // 绘制隧道
+      drawTunnel();
+      
+      // 绘制障碍物
+      drawObstacles();
+      
+      // 绘制玩家
+      drawPlayer();
+      
+      // 绘制距离标记
+      ctx.fillStyle = '#e5e7eb';
+      ctx.font = '14px sans-serif';
+      ctx.fillText(`距离: ${Math.floor(state.distance)}m`, 10, 20);
+    }
+
+    function drawStars() {
+      ctx.fillStyle = '#ffffff';
+      for (let i = 0; i < 50; i++) {
+        const x = (i * 137.5) % canvas.width;
+        const y = (i * 73.3) % canvas.height;
+        const size = (i % 3) + 1;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawTunnel() {
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      
+      // 绘制上边界
+      ctx.beginPath();
+      if (state.tunnel.segments.length > 0) {
+        ctx.moveTo(state.tunnel.segments[0].x, state.tunnel.segments[0].centerY - state.tunnel.height / 2);
+        for (let i = 1; i < state.tunnel.segments.length; i++) {
+          ctx.lineTo(state.tunnel.segments[i].x, state.tunnel.segments[i].centerY - state.tunnel.height / 2);
+        }
+      }
+      ctx.stroke();
+      
+      // 绘制下边界
+      ctx.beginPath();
+      if (state.tunnel.segments.length > 0) {
+        ctx.moveTo(state.tunnel.segments[0].x, state.tunnel.segments[0].centerY + state.tunnel.height / 2);
+        for (let i = 1; i < state.tunnel.segments.length; i++) {
+          ctx.lineTo(state.tunnel.segments[i].x, state.tunnel.segments[i].centerY + state.tunnel.height / 2);
+        }
+      }
+      ctx.stroke();
+      
+      // 绘制隧道内部渐变
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, 'rgba(30, 41, 59, 0.3)');
+      gradient.addColorStop(0.5, 'rgba(30, 41, 59, 0.1)');
+      gradient.addColorStop(1, 'rgba(30, 41, 59, 0.3)');
+      
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      if (state.tunnel.segments.length > 0) {
+        ctx.moveTo(state.tunnel.segments[0].x, state.tunnel.segments[0].centerY - state.tunnel.height / 2);
+        for (let i = 1; i < state.tunnel.segments.length; i++) {
+          ctx.lineTo(state.tunnel.segments[i].x, state.tunnel.segments[i].centerY - state.tunnel.height / 2);
+        }
+        for (let i = state.tunnel.segments.length - 1; i >= 0; i--) {
+          ctx.lineTo(state.tunnel.segments[i].x, state.tunnel.segments[i].centerY + state.tunnel.height / 2);
+        }
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawObstacles() {
+      for (let obstacle of state.obstacles) {
+        ctx.fillStyle = obstacle.color;
+        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        
+        // 绘制障碍物边框
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+      }
+    }
+
+    function drawPlayer() {
+      // 绘制玩家身体
+      ctx.fillStyle = state.player.color;
+      ctx.fillRect(state.player.x, state.player.y, state.player.width, state.player.height);
+      
+      // 绘制玩家眼睛
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(state.player.x + 10, state.player.y + 15, 5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // 绘制护盾效果
+      if (state.player.shield) {
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(state.player.x + state.player.width / 2, state.player.y + state.player.height / 2, 
+                Math.max(state.player.width, state.player.height) / 2 + 5, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    function gameLoop(timestamp) {
+      state.deltaTime = timestamp - state.lastTime;
+      state.lastTime = timestamp;
+      
+      if (state.running && !state.paused) {
+        updateTunnel();
+        generateObstacles();
+        updateObstacles();
+        updatePlayer();
+      }
+      
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 启动游戏
+    init();
+  </script>
+</body>
+</html>

@@ -780,5 +780,11 @@
     "path": "games/math-zigzag-runner/index.html",
     "category": "education",
     "createdAt": "2026-03-03T06:56:00Z"
+  },
+  {
+    "name": "数学太空跑",
+    "path": "games/math-space-run/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T12:21:00+08:00"
   }
 ]
