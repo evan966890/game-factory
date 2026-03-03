@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>旅行青蛙·中国之旅</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --clover: #4ade80;
+      --clover-dark: #22c55e;
+      --frog: #86efac;
+      --frog-dark: #4ade80;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .frog-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .frog {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--frog) 0%, var(--frog-dark) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      box-shadow: 0 4px 15px rgba(134, 239, 172, 0.3);
+      position: relative;
+    }
+
+    .frog.away {
+      opacity: 0.5;
+    }
+
+    .frog.away::after {
+      content: '旅行中...';
+      position: absolute;
+      bottom: -30px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .status {
+      text-align: center;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .preparation {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .preparation-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .preparation-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .preparation-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .preparation-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .preparation-item.selected {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .preparation-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .preparation-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .gallery {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .gallery-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .gallery-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      font-size: 0.9rem;
+    }
+
+    .gallery-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .gallery-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>旅行青蛙·中国之旅</h1>
+    <p class="subtitle">为青蛙准备食物和道具，让它去旅行吧</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">三叶草</span>
+        <span class="value green" id="clovers">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">照片</span>
+        <span class="value blue" id="photos">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">纪念品</span>
+        <span class="value gold" id="souvenirs">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="frog-container">
+          <div class="frog" id="frog">🐸</div>
+        </div>
+
+        <div class="status" id="status">青蛙在家，准备出发吧！</div>
+
+        <div class="preparation">
+          <div class="preparation-title">准备物品</div>
+          <div class="preparation-grid" id="preparation"></div>
+        </div>
+
+        <div class="gallery">
+          <div class="gallery-title">照片集</div>
+          <div class="gallery-grid" id="gallery"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="travelBtn">出发旅行</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      items: [
+        { id: 'food1', name: '馒头', emoji: '🍞', cost: 10, duration: 30 },
+        { id: 'food2', name: '包子', emoji: '🥟', cost: 20, duration: 60 },
+        { id: 'food3', name: '饺子', emoji: '🥟', cost: 30, duration: 90 },
+        { id: 'food4', name: '月饼', emoji: '🥮', cost: 50, duration: 120 },
+        { id: 'tool1', name: '帐篷', emoji: '⛺', cost: 100, duration: 180 },
+        { id: 'tool2', name: '灯笼', emoji: '🏮', cost: 150, duration: 240 }
+      ],
+      photos: [
+        { id: 'photo1', name: '长城', emoji: '🏯' },
+        { id: 'photo2', name: '西湖', emoji: '🏞️' },
+        { id: 'photo3', name: '故宫', emoji: '🏛️' },
+        { id: 'photo4', name: '黄山', emoji: '⛰️' },
+        { id: 'photo5', name: '桂林', emoji: '🏔️' },
+        { id: 'photo6', name: '张家界', emoji: '🌲' }
+      ],
+      souvenirs: [
+        { id: 'souvenir1', name: '剪纸', emoji: '✂️' },
+        { id: 'souvenir2', name: '脸谱', emoji: '🎭' },
+        { id: 'souvenir3', name: '风筝', emoji: '🪁' },
+        { id: 'souvenir4', name: '灯笼', emoji: '🏮' },
+        { id: 'souvenir5', name: '扇子', emoji: '🪭' },
+        { id: 'souvenir6', name: '茶具', emoji: '🍵' }
+      ],
+      cloverInterval: 10000, // 10秒
+      cloverAmount: 1
+    };
+
+    // 游戏状态
+    let clovers = 0;
+    let photos = [];
+    let souvenirs = [];
+    let selectedItem = null;
+    let frogAway = false;
+    let travelEndTime = null;
+    let cloverInterval = null;
+
+    // DOM 元素
+    const cloversEl = document.getElementById('clovers');
+    const photosEl = document.getElementById('photos');
+    const souvenirsEl = document.getElementById('souvenirs');
+    const frog = document.getElementById('frog');
+    const status = document.getElementById('status');
+    const preparationEl = document.getElementById('preparation');
+    const galleryEl = document.getElementById('gallery');
+    const travelBtn = document.getElementById('travelBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      clovers = 0;
+      photos = [];
+      souvenirs = [];
+      selectedItem = null;
+      frogAway = false;
+      travelEndTime = null;
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updatePreparation();
+      updateGallery();
+      updateFrog();
+
+      // 开始三叶草生长
+      startCloverGrowth();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('lv-xing-qing-wa-zhong-guo-zhi-lv');
+      if (saved) {
+        const data = JSON.parse(saved);
+        clovers = data.clovers || 0;
+        photos = data.photos || [];
+        souvenirs = data.souvenirs || [];
+        frogAway = data.frogAway || false;
+        travelEndTime = data.travelEndTime || null;
+
+        // 检查旅行是否结束
+        if (frogAway && travelEndTime && Date.now() >= travelEndTime) {
+          frogAway = false;
+          travelEndTime = null;
+          // 生成照片和纪念品
+          generateRewards();
+        }
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        clovers,
+        photos,
+        souvenirs,
+        frogAway,
+        travelEndTime
+      };
+      localStorage.setItem('lv-xing-qing-wa-zhong-guo-zhi-lv', JSON.stringify(data));
+    }
+
+    // 开始三叶草生长
+    function startCloverGrowth() {
+      if (cloverInterval) {
+        clearInterval(cloverInterval);
+      }
+
+      cloverInterval = setInterval(() => {
+        if (!frogAway) {
+          clovers += config.cloverAmount;
+          updateStats();
+          saveGame();
+        }
+      }, config.cloverInterval);
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      cloversEl.textContent = clovers;
+      photosEl.textContent = photos.length;
+      souvenirsEl.textContent = souvenirs.length;
+    }
+
+    // 更新准备界面
+    function updatePreparation() {
+      preparationEl.innerHTML = '';
+      config.items.forEach(item => {
+        const selected = selectedItem && selectedItem.id === item.id;
+
+        const itemEl = document.createElement('div');
+        itemEl.className = `preparation-item ${selected ? 'selected' : ''}`;
+        itemEl.innerHTML = `
+          <div class="emoji">${item.emoji}</div>
+          <div class="name">${item.name} (${item.cost}草)</div>
+        `;
+        itemEl.addEventListener('click', () => selectItem(item));
+        preparationEl.appendChild(itemEl);
+      });
+    }
+
+    // 选择物品
+    function selectItem(item) {
+      if (frogAway) return;
+
+      if (selectedItem && selectedItem.id === item.id) {
+        selectedItem = null;
+      } else {
+        selectedItem = item;
+      }
+      updatePreparation();
+    }
+
+    // 更新照片集
+    function updateGallery() {
+      galleryEl.innerHTML = '';
+      photos.forEach(photo => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'gallery-item';
+        itemEl.innerHTML = `
+          <div class="emoji">${photo.emoji}</div>
+          <div class="name">${photo.name}</div>
+        `;
+        galleryEl.appendChild(itemEl);
+      });
+    }
+
+    // 更新青蛙状态
+    function updateFrog() {
+      if (frogAway) {
+        frog.classList.add('away');
+        status.textContent = '青蛙正在旅行中...';
+        travelBtn.disabled = true;
+      } else {
+        frog.classList.remove('away');
+        status.textContent = '青蛙在家，准备出发吧！';
+        travelBtn.disabled = false;
+      }
+    }
+
+    // 出发旅行
+    function travel() {
+      if (frogAway || !selectedItem) return;
+
+      if (clovers < selectedItem.cost) {
+        alert('三叶草不足！');
+        return;
+      }
+
+      clovers -= selectedItem.cost;
+      frogAway = true;
+      travelEndTime = Date.now() + selectedItem.duration * 1000;
+
+      updateStats();
+      updateFrog();
+      saveGame();
+
+      // 设置旅行结束定时器
+      setTimeout(() => {
+        frogAway = false;
+        travelEndTime = null;
+        generateRewards();
+        updateFrog();
+        saveGame();
+      }, selectedItem.duration * 1000);
+
+      alert(`青蛙带着${selectedItem.name}出发了！`);
+    }
+
+    // 生成奖励
+    function generateRewards() {
+      // 随机生成照片
+      const randomPhoto = config.photos[Math.floor(Math.random() * config.photos.length)];
+      if (!photos.find(p => p.id === randomPhoto.id)) {
+        photos.push(randomPhoto);
+      }
+
+      // 随机生成纪念品
+      const randomSouvenir = config.souvenirs[Math.floor(Math.random() * config.souvenirs.length)];
+      if (!souvenirs.find(s => s.id === randomSouvenir.id)) {
+        souvenirs.push(randomSouvenir);
+      }
+
+      updateGallery();
+      updateStats();
+
+      alert(`青蛙回来了！带回了${randomPhoto.name}的照片和${randomSouvenir.name}纪念品！`);
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('lv-xing-qing-wa-zhong-guo-zhi-lv');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    travelBtn.addEventListener('click', travel);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>

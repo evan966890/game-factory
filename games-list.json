@@ -906,5 +906,11 @@
     "path": "games/fei-dao-tiao-zhan/index.html",
     "category": "弹射",
     "createdAt": "2026-03-03T22:07:00Z"
+  },
+  {
+    "name": "旅行青蛙·中国之旅",
+    "path": "games/lv-xing-qing-wa-zhong-guo-zhi-lv/index.html",
+    "category": "放置养成",
+    "createdAt": "2026-03-03T22:18:51Z"
   }
 ]
