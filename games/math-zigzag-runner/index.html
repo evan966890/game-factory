@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>数学曲折跑</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--accent:#22d3ee;--ok:#22c55e;--bad:#ef4444;--text:#e5e7eb;--shield:#8b5cf6;--speed:#f59e0b}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#0b1024,#111827);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:14px;overflow:hidden}
+    .app{width:min(720px,100%);background:rgba(17,24,39,.95);border:1px solid #1f2937;border-radius:16px;padding:16px;box-shadow:0 18px 40px rgba(0,0,0,.35)}
+    h1{margin:0 0 6px;font-size:clamp(24px,5vw,34px)}
+    .sub{opacity:.85;margin:0 0 12px;font-size:14px}
+    .hud{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+    .box{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:10px;text-align:center}
+    .k{font-size:12px;opacity:.7}.v{font-size:22px;font-weight:700}
+    #gameCanvas{width:100%;height:400px;border-radius:12px;background:#0b1220;border:1px solid #1f2937}
+    .overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:100}
+    .overlay.hidden{display:none}
+    .modal{background:var(--card);border:1px solid #1f2937;border-radius:16px;padding:24px;text-align:center;max-width:400px;width:90%}
+    .modal h2{margin:0 0 16px;font-size:28px}
+    .modal p{margin:0 0 20px;opacity:.85}
+    .question{font-size:clamp(28px,8vw,48px;font-weight:800;margin:20px 0}
+    .options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:20px 0}
+    button{appearance:none;border:1px solid #334155;background:#111827;color:#e5e7eb;border-radius:12px;padding:16px;font-size:20px;font-weight:700;min-height:60px;touch-action:manipulation;cursor:pointer}
+    button:active{transform:scale(.98)}
+    button.correct{background:rgba(34,197,94,.18);border-color:var(--ok)}
+    button.wrong{background:rgba(239,68,68,.18);border-color:var(--bad)}
+    .primary{background:linear-gradient(135deg,#06b6d4,#3b82f6);border:none}
+    .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:20px 0}
+    .stat{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:12px}
+    .stat-label{font-size:12px;opacity:.7}
+    .stat-value{font-size:24px;font-weight:700}
+    .achievements{margin:20px 0;text-align:left}
+    .achievement{display:flex;align-items:center;gap:8px;padding:8px;background:#0b1220;border-radius:8px;margin:4px 0}
+    .achievement.unlocked{border:1px solid var(--ok)}
+    .achievement-icon{font-size:20px}
+    .status-effects{display:flex;gap:8px;margin-top:8px}
+    .effect{padding:4px 8px;border-radius:4px;font-size:12px;font-weight:700}
+    .effect.shield{background:rgba(139,92,246,.2);border:1px solid var(--shield)}
+    .effect.speed{background:rgba(245,158,11,.2);border:1px solid var(--speed)}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>数学曲折跑</h1>
+    <p class="sub">点击控制球在曲折路径上滚动，每100米弹出数学题，答对获得奖励！</p>
+    <section class="hud">
+      <div class="box"><div class="k">距离</div><div id="distance" class="v">0</div></div>
+      <div class="box"><div class="k">得分</div><div id="score" class="v">0</div></div>
+      <div class="box"><div class="k">最高分</div><div id="highScore" class="v">0</div></div>
+    </section>
+    <div class="status-effects" id="statusEffects"></div>
+    <canvas id="gameCanvas"></canvas>
+  </main>
+
+  <!-- Start Screen -->
+  <div class="overlay" id="startOverlay">
+    <div class="modal">
+      <h2>数学曲折跑</h2>
+      <p>点击屏幕控制球体改变方向，在曲折路径上滚动！<br>每前进100米会弹出数学题，答对获得加速和护盾！</p>
+      <button class="primary" id="startBtn">开始游戏</button>
+    </div>
+  </div>
+
+  <!-- Question Overlay -->
+  <div class="overlay hidden" id="questionOverlay">
+    <div class="modal">
+      <h2>数学挑战</h2>
+      <div class="question" id="questionText">5 + 3 = ?</div>
+      <div class="options" id="questionOptions"></div>
+      <p id="questionResult"></p>
+    </div>
+  </div>
+
+  <!-- Game Over Overlay -->
+  <div class="overlay hidden" id="gameOverOverlay">
+    <div class="modal">
+      <h2>游戏结束</h2>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">本次得分</div>
+          <div class="stat-value" id="finalScore">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">前进距离</div>
+          <div class="stat-value" id="finalDistance">0</div>
+        </div>
+      </div>
+      <div class="achievements" id="achievementsList"></div>
+      <button class="primary" id="restartBtn">再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    // Game State
+    const state = {
+      running: false,
+      paused: false,
+      distance: 0,
+      score: 0,
+      highScore: 0,
+      speed: 2,
+      baseSpeed: 2,
+      direction: 1, // 1 = right, -1 = left
+      ball: { x: 0, y: 0, radius: 15, vx: 0, vy: 0 },
+      path: [],
+      pathWidth: 80,
+      lastPathY: 0,
+      nextQuestionAt: 100,
+      shield: false,
+      shieldTime: 0,
+      speedBoost: false,
+      speedBoostTime: 0,
+      achievements: {
+        distance1000: false,
+        questions50: false,
+        score1000: false,
+        perfectRun: false
+      },
+      questionsAnswered: 0,
+      correctAnswers: 0,
+      consecutiveCorrect: 0
+    };
+
+    // Canvas Setup
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let animationId = null;
+
+    // DOM Elements
+    const distanceEl = document.getElementById('distance');
+    const scoreEl = document.getElementById('score');
+    const highScoreEl = document.getElementById('highScore');
+    const statusEffectsEl = document.getElementById('statusEffects');
+    const startOverlay = document.getElementById('startOverlay');
+    const questionOverlay = document.getElementById('questionOverlay');
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const questionText = document.getElementById('questionText');
+    const questionOptions = document.getElementById('questionOptions');
+    const questionResult = document.getElementById('questionResult');
+    const finalScore = document.getElementById('finalScore');
+    const finalDistance = document.getElementById('finalDistance');
+    const achievementsList = document.getElementById('achievementsList');
+
+    // Initialize
+    function init() {
+      resizeCanvas();
+      loadHighScore();
+      setupEventListeners();
+      resetGame();
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+
+    function loadHighScore() {
+      const saved = localStorage.getItem('mathZigzagHighScore');
+      if (saved) state.highScore = parseInt(saved);
+      highScoreEl.textContent = state.highScore;
+    }
+
+    function saveHighScore() {
+      if (state.score > state.highScore) {
+        state.highScore = state.score;
+        localStorage.setItem('mathZigzagHighScore', state.highScore);
+        highScoreEl.textContent = state.highScore;
+      }
+    }
+
+    function setupEventListeners() {
+      document.getElementById('startBtn').addEventListener('click', startGame);
+      document.getElementById('restartBtn').addEventListener('click', restartGame);
+      
+      // Touch/Click to change direction
+      canvas.addEventListener('click', changeDirection);
+      canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        changeDirection();
+      });
+      
+      window.addEventListener('resize', resizeCanvas);
+    }
+
+    function changeDirection() {
+      if (!state.running || state.paused) return;
+      state.direction *= -1;
+    }
+
+    function resetGame() {
+      state.running = false;
+      state.paused = false;
+      state.distance = 0;
+      state.score = 0;
+      state.speed = state.baseSpeed;
+      state.direction = 1;
+      state.nextQuestionAt = 100;
+      state.shield = false;
+      state.speedBoost = false;
+      state.questionsAnswered = 0;
+      state.correctAnswers = 0;
+      state.consecutiveCorrect = 0;
+      
+      // Reset achievements for this run
+      state.achievements = {
+        distance1000: false,
+        questions50: false,
+        score1000: false,
+        perfectRun: false
+      };
+      
+      // Initialize ball position
+      const rect = canvas.getBoundingClientRect();
+      state.ball.x = rect.width / 2;
+      state.ball.y = rect.height - 50;
+      state.ball.vx = state.speed * state.direction;
+      state.ball.vy = -state.speed;
+      
+      // Generate initial path
+      generatePath();
+      
+      updateHUD();
+      updateStatusEffects();
+    }
+
+    function generatePath() {
+      const rect = canvas.getBoundingClientRect();
+      state.path = [];
+      state.lastPathY = rect.height + 100;
+      
+      let x = rect.width / 2;
+      let y = rect.height + 100;
+      
+      for (let i = 0; i < 20; i++) {
+        const segmentLength = 100 + Math.random() * 100;
+        const turnAngle = (Math.random() - 0.5) * Math.PI / 3; // -30 to 30 degrees
+        
+        const endX = x + Math.cos(turnAngle) * segmentLength;
+        const endY = y - segmentLength;
+        
+        state.path.push({
+          x1: x, y1: y,
+          x2: endX, y2: endY,
+          angle: turnAngle
+        });
+        
+        x = endX;
+        y = endY;
+      }
+    }
+
+    function startGame() {
+      startOverlay.classList.add('hidden');
+      resetGame();
+      state.running = true;
+      gameLoop();
+    }
+
+    function restartGame() {
+      gameOverOverlay.classList.add('hidden');
+      resetGame();
+      state.running = true;
+      gameLoop();
+    }
+
+    function gameLoop() {
+      if (!state.running) return;
+      
+      update();
+      render();
+      
+      animationId = requestAnimationFrame(gameLoop);
+    }
+
+    function update() {
+      if (state.paused) return;
+      
+      const rect = canvas.getBoundingClientRect();
+      
+      // Update ball position
+      state.ball.x += state.ball.vx;
+      state.ball.y += state.ball.vy;
+      
+      // Update distance
+      state.distance += state.speed * 0.1;
+      
+      // Update score
+      state.score += Math.floor(state.speed * 0.5);
+      
+      // Check for question trigger
+      if (state.distance >= state.nextQuestionAt) {
+        pauseForQuestion();
+        return;
+      }
+      
+      // Update status effects
+      if (state.shield && Date.now() > state.shieldTime) {
+        state.shield = false;
+        updateStatusEffects();
+      }
+      if (state.speedBoost && Date.now() > state.speedBoostTime) {
+        state.speedBoost = false;
+        state.speed = state.baseSpeed;
+        updateStatusEffects();
+      }
+      
+      // Check collision with path boundaries
+      if (checkCollision()) {
+        if (state.shield) {
+          // Shield protects from one collision
+          state.shield = false;
+          updateStatusEffects();
+          // Bounce back
+          state.ball.vy *= -0.5;
+        } else {
+          gameOver();
+          return;
+        }
+      }
+      
+      // Check if ball is off screen
+      if (state.ball.y < -50 || state.ball.x < -50 || state.ball.x > rect.width + 50) {
+        gameOver();
+        return;
+      }
+      
+      // Generate more path if needed
+      if (state.ball.y < state.lastPathY - 200) {
+        extendPath();
+      }
+      
+      // Update HUD
+      updateHUD();
+      
+      // Check achievements
+      checkAchievements();
+    }
+
+    function checkCollision() {
+      const ball = state.ball;
+      const pathWidth = state.pathWidth / 2;
+      
+      for (const segment of state.path) {
+        // Check if ball is near this segment
+        if (ball.y < Math.min(segment.y1, segment.y2) - 50 || 
+            ball.y > Math.max(segment.y1, segment.y2) + 50) {
+          continue;
+        }
+        
+        // Calculate distance from ball to line segment
+        const dist = pointToLineDistance(ball.x, ball.y, segment.x1, segment.y1, segment.x2, segment.y2);
+        
+        if (dist > pathWidth) {
+          return true; // Collision
+        }
+      }
+      
+      return false;
+    }
+
+    function pointToLineDistance(px, py, x1, y1, x2, y2) {
+      const A = px - x1;
+      const B = py - y1;
+      const C = x2 - x1;
+      const D = y2 - y1;
+      
+      const dot = A * C + B * D;
+      const lenSq = C * C + D * D;
+      let param = -1;
+      
+      if (lenSq !== 0) param = dot / lenSq;
+      
+      let xx, yy;
+      
+      if (param < 0) {
+        xx = x1;
+        yy = y1;
+      } else if (param > 1) {
+        xx = x2;
+        yy = y2;
+      } else {
+        xx = x1 + param * C;
+        yy = y1 + param * D;
+      }
+      
+      const dx = px - xx;
+      const dy = py - yy;
+      
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function extendPath() {
+      const rect = canvas.getBoundingClientRect();
+      const lastSegment = state.path[state.path.length - 1];
+      
+      let x = lastSegment.x2;
+      let y = lastSegment.y2;
+      
+      for (let i = 0; i < 5; i++) {
+        const segmentLength = 100 + Math.random() * 100;
+        const turnAngle = (Math.random() - 0.5) * Math.PI / 3;
+        
+        const endX = x + Math.cos(turnAngle) * segmentLength;
+        const endY = y - segmentLength;
+        
+        state.path.push({
+          x1: x, y1: y,
+          x2: endX, y2: endY,
+          angle: turnAngle
+        });
+        
+        x = endX;
+        y = endY;
+      }
+      
+      state.lastPathY = y;
+      
+      // Remove old segments
+      if (state.path.length > 50) {
+        state.path = state.path.slice(-40);
+      }
+    }
+
+    function pauseForQuestion() {
+      state.paused = true;
+      state.nextQuestionAt += 100;
+      
+      const question = generateQuestion();
+      showQuestion(question);
+    }
+
+    function generateQuestion() {
+      const distance = state.distance;
+      let type, a, b, answer;
+      
+      if (distance < 500) {
+        // Addition
+        type = 'addition';
+        a = Math.floor(Math.random() * 50) + 1;
+        b = Math.floor(Math.random() * 50) + 1;
+        answer = a + b;
+      } else if (distance < 1000) {
+        // Subtraction
+        type = 'subtraction';
+        a = Math.floor(Math.random() * 50) + 20;
+        b = Math.floor(Math.random() * 20) + 1;
+        answer = a - b;
+      } else if (distance < 1500) {
+        // Multiplication
+        type = 'multiplication';
+        a = Math.floor(Math.random() * 12) + 1;
+        b = Math.floor(Math.random() * 12) + 1;
+        answer = a * b;
+      } else {
+        // Division
+        type = 'division';
+        b = Math.floor(Math.random() * 10) + 2;
+        answer = Math.floor(Math.random() * 10) + 1;
+        a = b * answer;
+      }
+      
+      let questionText;
+      switch (type) {
+        case 'addition':
+          questionText = `${a} + ${b} = ?`;
+          break;
+        case 'subtraction':
+          questionText = `${a} - ${b} = ?`;
+          break;
+        case 'multiplication':
+          questionText = `${a} × ${b} = ?`;
+          break;
+        case 'division':
+          questionText = `${a} ÷ ${b} = ?`;
+          break;
+      }
+      
+      // Generate options
+      const options = [answer];
+      while (options.length < 4) {
+        const offset = Math.floor(Math.random() * 10) - 5;
+        const wrongAnswer = answer + offset;
+        if (wrongAnswer > 0 && !options.includes(wrongAnswer)) {
+          options.push(wrongAnswer);
+        }
+      }
+      
+      // Shuffle options
+      options.sort(() => Math.random() - 0.5);
+      
+      return { text: questionText, answer, options };
+    }
+
+    function showQuestion(question) {
+      questionText.textContent = question.text;
+      questionOptions.innerHTML = '';
+      questionResult.textContent = '';
+      
+      question.options.forEach(option => {
+        const btn = document.createElement('button');
+        btn.textContent = option;
+        btn.addEventListener('click', () => answerQuestion(option, question.answer, btn));
+        questionOptions.appendChild(btn);
+      });
+      
+      questionOverlay.classList.remove('hidden');
+    }
+
+    function answerQuestion(selected, correct, btn) {
+      state.questionsAnswered++;
+      
+      const buttons = questionOptions.querySelectorAll('button');
+      buttons.forEach(b => b.disabled = true);
+      
+      if (selected === correct) {
+        btn.classList.add('correct');
+        questionResult.textContent = '✅ 正确！获得加速和护盾！';
+        state.correctAnswers++;
+        state.consecutiveCorrect++;
+        
+        // Apply rewards
+        state.speedBoost = true;
+        state.speedBoostTime = Date.now() + 5000; // 5 seconds
+        state.speed = state.baseSpeed * 1.5;
+        
+        state.shield = true;
+        state.shieldTime = Date.now() + 10000; // 10 seconds
+        
+        state.score += 50;
+      } else {
+        btn.classList.add('wrong');
+        questionResult.textContent = `❌ 正确答案是 ${correct}`;
+        state.consecutiveCorrect = 0;
+        
+        // Apply penalty
+        state.speed = state.baseSpeed * 0.7;
+        setTimeout(() => {
+          state.speed = state.baseSpeed;
+        }, 3000);
+      }
+      
+      updateStatusEffects();
+      
+      setTimeout(() => {
+        questionOverlay.classList.add('hidden');
+        state.paused = false;
+      }, 1500);
+    }
+
+    function gameOver() {
+      state.running = false;
+      cancelAnimationFrame(animationId);
+      
+      saveHighScore();
+      checkAchievements();
+      
+      finalScore.textContent = state.score;
+      finalDistance.textContent = Math.floor(state.distance);
+      
+      // Show achievements
+      achievementsList.innerHTML = '<h3>成就</h3>';
+      const achievementData = [
+        { id: 'distance1000', name: '千里之行', desc: '前进1000米', icon: '🏃' },
+        { id: 'questions50', name: '数学达人', desc: '答对50题', icon: '🧮' },
+        { id: 'score1000', name: '高分王者', desc: '得分1000分', icon: '👑' },
+        { id: 'perfectRun', name: '完美表现', desc: '连续答对10题', icon: '⭐' }
+      ];
+      
+      achievementData.forEach(ach => {
+        const div = document.createElement('div');
+        div.className = `achievement ${state.achievements[ach.id] ? 'unlocked' : ''}`;
+        div.innerHTML = `
+          <span class="achievement-icon">${ach.icon}</span>
+          <div>
+            <strong>${ach.name}</strong>
+            <div style="font-size:12px;opacity:.7">${ach.desc}</div>
+          </div>
+        `;
+        achievementsList.appendChild(div);
+      });
+      
+      gameOverOverlay.classList.remove('hidden');
+    }
+
+    function checkAchievements() {
+      if (state.distance >= 1000) state.achievements.distance1000 = true;
+      if (state.correctAnswers >= 50) state.achievements.questions50 = true;
+      if (state.score >= 1000) state.achievements.score1000 = true;
+      if (state.consecutiveCorrect >= 10) state.achievements.perfectRun = true;
+      
+      // Save achievements
+      localStorage.setItem('mathZigzagAchievements', JSON.stringify(state.achievements));
+    }
+
+    function updateHUD() {
+      distanceEl.textContent = Math.floor(state.distance);
+      scoreEl.textContent = state.score;
+    }
+
+    function updateStatusEffects() {
+      statusEffectsEl.innerHTML = '';
+      
+      if (state.shield) {
+        const div = document.createElement('div');
+        div.className = 'effect shield';
+        div.textContent = '🛡️ 护盾';
+        statusEffectsEl.appendChild(div);
+      }
+      
+      if (state.speedBoost) {
+        const div = document.createElement('div');
+        div.className = 'effect speed';
+        div.textContent = '⚡ 加速';
+        statusEffectsEl.appendChild(div);
+      }
+    }
+
+    function render() {
+      const rect = canvas.getBoundingClientRect();
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      
+      // Draw path
+      ctx.strokeStyle = '#22d3ee';
+      ctx.lineWidth = state.pathWidth;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      
+      ctx.beginPath();
+      state.path.forEach((segment, i) => {
+        if (i === 0) {
+          ctx.moveTo(segment.x1, segment.y1);
+        }
+        ctx.lineTo(segment.x2, segment.y2);
+      });
+      ctx.stroke();
+      
+      // Draw path borders
+      ctx.strokeStyle = '#0ea5e9';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // Draw ball
+      const ballColor = state.shield ? '#8b5cf6' : (state.speedBoost ? '#f59e0b' : '#22d3ee');
+      ctx.fillStyle = ballColor;
+      ctx.beginPath();
+      ctx.arc(state.ball.x, state.ball.y, state.ball.radius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Draw ball glow
+      ctx.shadowColor = ballColor;
+      ctx.shadowBlur = 20;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Draw distance markers
+      ctx.fillStyle = '#e5e7eb';
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'center';
+      
+      for (let d = 100; d <= state.distance + 500; d += 100) {
+        const markerY = state.ball.y + (state.distance - d) * 10;
+        if (markerY > 0 && markerY < rect.height) {
+          ctx.fillText(`${d}m`, rect.width / 2, markerY);
+        }
+      }
+    }
+
+    // Start
+    init();
+  </script>
+</body>
+</html>
