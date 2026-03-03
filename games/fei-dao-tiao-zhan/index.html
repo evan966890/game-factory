@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>飞刀挑战</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --wood: #8b4513;
+      --wood-dark: #654321;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+      position: relative;
+    }
+
+    .target-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .target {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--wood) 0%, var(--wood-dark) 100%);
+      position: relative;
+      box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+    }
+
+    .target.spinning {
+      animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .knife {
+      position: absolute;
+      font-size: 1.5rem;
+      transform-origin: center bottom;
+    }
+
+    .knife-slot {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .knife-slot.filled {
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .knife-slot .knife {
+      font-size: 1rem;
+    }
+
+    .level-info {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .level-info .level {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .level-info .knives {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .achievements {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .achievements-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .achievement-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      font-size: 0.9rem;
+    }
+
+    .achievement-item.unlocked {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .achievement-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .achievement-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>飞刀挑战</h1>
+    <p class="subtitle">点击屏幕甩出飞刀，钉在旋转的圆木上</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span class="value blue" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">飞刀</span>
+        <span class="value green" id="knives">5</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高关</span>
+        <span class="value gold" id="highLevel">1</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="level-info">
+          <div class="level">第 <span id="currentLevel">1</span> 关</div>
+          <div class="knives">剩余飞刀: <span id="remainingKnives">5</span></div>
+        </div>
+
+        <div class="target-container">
+          <div class="target spinning" id="target"></div>
+        </div>
+
+        <div class="achievements">
+          <div class="achievements-title">成就</div>
+          <div class="achievements-grid" id="achievements"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="throwBtn">甩出飞刀</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      levels: [
+        { knives: 5, speed: 2, slots: 8 },
+        { knives: 6, speed: 1.8, slots: 10 },
+        { knives: 7, speed: 1.6, slots: 12 },
+        { knives: 8, speed: 1.4, slots: 14 },
+        { knives: 9, speed: 1.2, slots: 16 },
+        { knives: 10, speed: 1, slots: 18 }
+      ],
+      achievements: [
+        { id: 'level5', name: '5关', emoji: '🥉', requirement: 5 },
+        { id: 'level10', name: '10关', emoji: '🥈', requirement: 10 },
+        { id: 'level20', name: '20关', emoji: '🥇', requirement: 20 },
+        { id: 'level50', name: '50关', emoji: '🏆', requirement: 50 },
+        { id: 'level100', name: '100关', emoji: '👑', requirement: 100 },
+        { id: 'perfect', name: '完美', emoji: '💎', requirement: 1 }
+      ]
+    };
+
+    // 游戏状态
+    let level = 1;
+    let highLevel = parseInt(localStorage.getItem('fei-dao-tiao-zhan-highlevel')) || 1;
+    let remainingKnives = 5;
+    let thrownKnives = [];
+    let unlockedAchievements = new Set();
+    let gameOver = false;
+
+    // DOM 元素
+    const levelEl = document.getElementById('level');
+    const knivesEl = document.getElementById('knives');
+    const highLevelEl = document.getElementById('highLevel');
+    const currentLevelEl = document.getElementById('currentLevel');
+    const remainingKnivesEl = document.getElementById('remainingKnives');
+    const target = document.getElementById('target');
+    const achievementsEl = document.getElementById('achievements');
+    const throwBtn = document.getElementById('throwBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      level = 1;
+      remainingKnives = config.levels[0].knives;
+      thrownKnives = [];
+      gameOver = false;
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateTarget();
+      updateAchievements();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('fei-dao-tiao-zhan');
+      if (saved) {
+        const data = JSON.parse(saved);
+        highLevel = data.highLevel || 1;
+        unlockedAchievements = new Set(data.unlockedAchievements || []);
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        highLevel,
+        unlockedAchievements: Array.from(unlockedAchievements)
+      };
+      localStorage.setItem('fei-dao-tiao-zhan', JSON.stringify(data));
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      levelEl.textContent = level;
+      knivesEl.textContent = remainingKnives;
+      highLevelEl.textContent = highLevel;
+      currentLevelEl.textContent = level;
+      remainingKnivesEl.textContent = remainingKnives;
+
+      // 更新最高关
+      if (level > highLevel) {
+        highLevel = level;
+        localStorage.setItem('fei-dao-tiao-zhan-highlevel', highLevel);
+      }
+
+      // 检查成就
+      checkAchievements();
+    }
+
+    // 更新目标显示
+    function updateTarget() {
+      target.innerHTML = '';
+      thrownKnives = [];
+
+      const levelConfig = config.levels[(level - 1) % config.levels.length];
+      const slots = levelConfig.slots;
+
+      // 创建飞刀槽位
+      for (let i = 0; i < slots; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'knife-slot';
+        const angle = (360 / slots) * i;
+        const radius = 55;
+        const x = Math.cos(angle * Math.PI / 180) * radius + 65;
+        const y = Math.sin(angle * Math.PI / 180) * radius + 65;
+        slot.style.left = `${x}px`;
+        slot.style.top = `${y}px`;
+        slot.dataset.angle = angle;
+        target.appendChild(slot);
+      }
+
+      // 更新旋转速度
+      target.style.animationDuration = `${levelConfig.speed}s`;
+    }
+
+    // 更新成就显示
+    function updateAchievements() {
+      achievementsEl.innerHTML = '';
+      config.achievements.forEach(achievement => {
+        const unlocked = unlockedAchievements.has(achievement.id);
+
+        const item = document.createElement('div');
+        item.className = `achievement-item ${unlocked ? 'unlocked' : ''}`;
+        item.innerHTML = `
+          <div class="emoji">${unlocked ? achievement.emoji : '🔒'}</div>
+          <div class="name">${achievement.name}</div>
+        `;
+        achievementsEl.appendChild(item);
+      });
+    }
+
+    // 检查成就
+    function checkAchievements() {
+      config.achievements.forEach(achievement => {
+        if (achievement.id === 'perfect') return;
+
+        if (level >= achievement.requirement && !unlockedAchievements.has(achievement.id)) {
+          unlockedAchievements.add(achievement.id);
+          updateAchievements();
+          saveGame();
+        }
+      });
+    }
+
+    // 甩出飞刀
+    function throwKnife() {
+      if (gameOver || remainingKnives <= 0) return;
+
+      // 获取当前旋转角度
+      const transform = getComputedStyle(target).transform;
+      let currentAngle = 0;
+      if (transform !== 'none') {
+        const values = transform.split('(')[1].split(')')[0].split(',');
+        const a = values[0];
+        const b = values[1];
+        currentAngle = Math.round(Math.atan2(b, a) * (180 / Math.PI));
+      }
+
+      // 找到最近的空槽位
+      const slots = target.querySelectorAll('.knife-slot:not(.filled)');
+      if (slots.length === 0) {
+        // 所有槽位都满了，进入下一关
+        nextLevel();
+        return;
+      }
+
+      // 计算哪个槽位最接近当前角度
+      let closestSlot = null;
+      let minDiff = 360;
+      slots.forEach(slot => {
+        const slotAngle = parseFloat(slot.dataset.angle);
+        let diff = Math.abs((currentAngle - slotAngle + 360) % 360);
+        if (diff > 180) diff = 360 - diff;
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestSlot = slot;
+        }
+      });
+
+      // 检查是否碰撞
+      if (minDiff < 20) {
+        // 碰撞，游戏结束
+        gameOver = true;
+        target.classList.remove('spinning');
+        alert(`游戏结束！你到达了第 ${level} 关`);
+        return;
+      }
+
+      // 将飞刀钉在槽位上
+      closestSlot.classList.add('filled');
+      const knife = document.createElement('div');
+      knife.className = 'knife';
+      knife.textContent = '🔪';
+      closestSlot.appendChild(knife);
+
+      remainingKnives--;
+      thrownKnives.push(closestSlot);
+
+      updateStats();
+
+      // 检查是否完成关卡
+      if (remainingKnives <= 0) {
+        nextLevel();
+      }
+    }
+
+    // 进入下一关
+    function nextLevel() {
+      level++;
+      const levelConfig = config.levels[(level - 1) % config.levels.length];
+      remainingKnives = levelConfig.knives;
+
+      updateStats();
+      updateTarget();
+
+      alert(`恭喜通过第 ${level - 1} 关！进入第 ${level} 关`);
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('fei-dao-tiao-zhan');
+        localStorage.removeItem('fei-dao-tiao-zhan-highlevel');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    throwBtn.addEventListener('click', throwKnife);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 点击屏幕也可以甩出飞刀
+    document.querySelector('.game-area').addEventListener('click', (e) => {
+      if (e.target.closest('.btn') || e.target.closest('.achievements')) return;
+      throwKnife();
+    });
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>

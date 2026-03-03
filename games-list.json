@@ -900,5 +900,11 @@
     "path": "games/fei-e-jian-shen-fang/index.html",
     "category": "合成消除",
     "createdAt": "2026-03-03T21:55:29Z"
+  },
+  {
+    "name": "飞刀挑战",
+    "path": "games/fei-dao-tiao-zhan/index.html",
+    "category": "弹射",
+    "createdAt": "2026-03-03T22:07:00Z"
   }
 ]
