@@ -1,0 +1,780 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>别抢我的座</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --seat: #fef3c7;
+      --seat-dark: #f59e0b;
+      --character: #dbeafe;
+      --character-dark: #3b82f6;
+      --level: #d1fae5;
+      --level-dark: #10b981;
+      --scene: #fce7f3;
+      --scene-dark: #ec4899;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .characters {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--character);
+      margin-bottom: 16px;
+    }
+
+    .characters-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .characters-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .character {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .character:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .character:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .character .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .character .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .character .requirement {
+      font-size: 0.7rem;
+      color: var(--character-dark);
+      font-weight: 700;
+    }
+
+    .seats {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--seat);
+      margin-bottom: 16px;
+    }
+
+    .seats-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .seats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .seat {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .seat:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .seat:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .seat .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .seat .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .seat .status {
+      font-size: 0.7rem;
+      color: var(--seat-dark);
+      font-weight: 700;
+    }
+
+    .levels {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--level);
+      margin-bottom: 16px;
+    }
+
+    .levels-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .levels-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .level {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .level:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .level:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .level .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .level .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .level .difficulty {
+      font-size: 0.7rem;
+      color: var(--level-dark);
+      font-weight: 700;
+    }
+
+    .scenes {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--scene);
+      margin-bottom: 16px;
+    }
+
+    .scenes-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .scenes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .scene {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .scene:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .scene:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .scene .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .scene .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .scene .seats {
+      font-size: 0.7rem;
+      color: var(--scene-dark);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--character-dark);
+    }
+
+    .btn.secondary:hover {
+      background: #2563eb;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>别抢我的座</h1>
+    <p class="subtitle">根据角色需求安排座位，满足所有条件</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span class="value blue" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">星星</span>
+        <span class="value gold" id="stars">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高关卡</span>
+        <span class="value green" id="highLevel">1</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="characters">
+          <div class="characters-title">角色</div>
+          <div class="characters-grid" id="characters"></div>
+        </div>
+
+        <div class="seats">
+          <div class="seats-title">座位</div>
+          <div class="seats-grid" id="seats"></div>
+        </div>
+
+        <div class="levels">
+          <div class="levels-title">关卡</div>
+          <div class="levels-grid" id="levels"></div>
+        </div>
+
+        <div class="scenes">
+          <div class="scenes-title">场景</div>
+          <div class="scenes-grid" id="scenes"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="checkBtn">检查答案</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      characters: [
+        { id: 'student', name: '学霸', emoji: '📚', requirement: '安静' },
+        { id: 'athlete', name: '运动员', emoji: '🏃', requirement: '靠窗' },
+        { id: 'musician', name: '音乐家', emoji: '🎵', requirement: '靠门' },
+        { id: 'artist', name: '艺术家', emoji: '🎨', requirement: '靠墙' },
+        { id: 'chef', name: '厨师', emoji: '🍳', requirement: '靠厨房' },
+        { id: 'doctor', name: '医生', emoji: '👨‍⚕️', requirement: '靠急救箱' }
+      ],
+      seats: [
+        { id: 'window', name: '靠窗', emoji: '🪟', status: '空闲' },
+        { id: 'door', name: '靠门', emoji: '🚪', status: '空闲' },
+        { id: 'wall', name: '靠墙', emoji: '🧱', status: '空闲' },
+        { id: 'kitchen', name: '靠厨房', emoji: '🍳', status: '空闲' },
+        { id: 'firstaid', name: '靠急救箱', emoji: '🏥', status: '空闲' },
+        { id: 'quiet', name: '安静区', emoji: '🤫', status: '空闲' }
+      ],
+      levels: [
+        { id: 1, name: '第一关', difficulty: '简单', characters: 2, seats: 2 },
+        { id: 2, name: '第二关', difficulty: '简单', characters: 3, seats: 3 },
+        { id: 3, name: '第三关', difficulty: '中等', characters: 4, seats: 4 },
+        { id: 4, name: '第四关', difficulty: '中等', characters: 5, seats: 5 },
+        { id: 5, name: '第五关', difficulty: '困难', characters: 6, seats: 6 },
+        { id: 6, name: '第六关', difficulty: '困难', characters: 6, seats: 6 }
+      ],
+      scenes: [
+        { id: 'classroom', name: '教室', emoji: '🏫', seats: 6 },
+        { id: 'restaurant', name: '餐厅', emoji: '🍽️', seats: 6 },
+        { id: 'office', name: '办公室', emoji: '🏢', seats: 6 },
+        { id: 'library', name: '图书馆', emoji: '📚', seats: 6 },
+        { id: 'hospital', name: '医院', emoji: '🏥', seats: 6 },
+        { id: 'park', name: '公园', emoji: '🌳', seats: 6 }
+      ]
+    };
+
+    // 游戏状态
+    let level = 1;
+    let stars = 0;
+    let highLevel = parseInt(localStorage.getItem('bie-qiang-wo-de-zuo-highlevel')) || 1;
+    let currentScene = 'classroom';
+    let currentCharacters = [];
+    let currentSeats = [];
+    let assignments = {};
+    let gameLoop = null;
+
+    // DOM 元素
+    const levelEl = document.getElementById('level');
+    const starsEl = document.getElementById('stars');
+    const highLevelEl = document.getElementById('highLevel');
+    const charactersEl = document.getElementById('characters');
+    const seatsEl = document.getElementById('seats');
+    const levelsEl = document.getElementById('levels');
+    const scenesEl = document.getElementById('scenes');
+    const checkBtn = document.getElementById('checkBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      level = 1;
+      stars = 0;
+      currentScene = 'classroom';
+      assignments = {};
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 生成当前关卡
+      generateLevel();
+
+      // 更新显示
+      updateStats();
+      updateCharacters();
+      updateSeats();
+      updateLevels();
+      updateScenes();
+
+      // 开始游戏循环
+      startGameLoop();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('bie-qiang-wo-de-zuo');
+      if (saved) {
+        const data = JSON.parse(saved);
+        level = data.level || 1;
+        stars = data.stars || 0;
+        highLevel = data.highLevel || 1;
+        currentScene = data.currentScene || 'classroom';
+        assignments = data.assignments || {};
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        level,
+        stars,
+        highLevel,
+        currentScene,
+        assignments
+      };
+      localStorage.setItem('bie-qiang-wo-de-zuo', JSON.stringify(data));
+    }
+
+    // 开始游戏循环
+    function startGameLoop() {
+      if (gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => {
+        updateStats();
+        saveGame();
+      }, 1000);
+    }
+
+    // 生成当前关卡
+    function generateLevel() {
+      const levelConfig = config.levels.find(l => l.id === level);
+      if (!levelConfig) return;
+
+      // 随机选择角色
+      const shuffledCharacters = [...config.characters].sort(() => Math.random() - 0.5);
+      currentCharacters = shuffledCharacters.slice(0, levelConfig.characters);
+
+      // 随机选择座位
+      const shuffledSeats = [...config.seats].sort(() => Math.random() - 0.5);
+      currentSeats = shuffledSeats.slice(0, levelConfig.seats);
+
+      // 重置分配
+      assignments = {};
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      levelEl.textContent = level;
+      starsEl.textContent = stars;
+      highLevelEl.textContent = highLevel;
+
+      // 更新最高关卡
+      if (level > highLevel) {
+        highLevel = level;
+        localStorage.setItem('bie-qiang-wo-de-zuo-highlevel', highLevel);
+      }
+    }
+
+    // 更新角色显示
+    function updateCharacters() {
+      charactersEl.innerHTML = '';
+      currentCharacters.forEach(character => {
+        const assigned = Object.values(assignments).includes(character.id);
+
+        const characterEl = document.createElement('div');
+        characterEl.className = 'character';
+        characterEl.innerHTML = `
+          <div class="emoji">${character.emoji}</div>
+          <div class="name">${character.name}</div>
+          <div class="requirement">${character.requirement}</div>
+        `;
+        if (!assigned) {
+          characterEl.addEventListener('click', () => selectCharacter(character));
+        } else {
+          characterEl.disabled = true;
+        }
+        charactersEl.appendChild(characterEl);
+      });
+    }
+
+    // 更新座位显示
+    function updateSeats() {
+      seatsEl.innerHTML = '';
+      currentSeats.forEach(seat => {
+        const assigned = assignments[seat.id];
+        const assignedCharacter = assigned ? currentCharacters.find(c => c.id === assigned) : null;
+
+        const seatEl = document.createElement('div');
+        seatEl.className = 'seat';
+        seatEl.innerHTML = `
+          <div class="emoji">${assignedCharacter ? assignedCharacter.emoji : seat.emoji}</div>
+          <div class="name">${seat.name}</div>
+          <div class="status">${assignedCharacter ? assignedCharacter.name : seat.status}</div>
+        `;
+        if (assignedCharacter) {
+          seatEl.addEventListener('click', () => removeAssignment(seat));
+        } else {
+          seatEl.addEventListener('click', () => selectSeat(seat));
+        }
+        seatsEl.appendChild(seatEl);
+      });
+    }
+
+    // 更新关卡显示
+    function updateLevels() {
+      levelsEl.innerHTML = '';
+      config.levels.forEach(levelConfig => {
+        const unlocked = levelConfig.id <= level;
+        const completed = levelConfig.id < level;
+
+        const levelEl = document.createElement('div');
+        levelEl.className = 'level';
+        levelEl.innerHTML = `
+          <div class="emoji">${completed ? '✅' : '🎯'}</div>
+          <div class="name">${levelConfig.name}</div>
+          <div class="difficulty">${levelConfig.difficulty}</div>
+        `;
+        if (unlocked) {
+          levelEl.addEventListener('click', () => selectLevel(levelConfig));
+        } else {
+          levelEl.disabled = true;
+        }
+        levelsEl.appendChild(levelEl);
+      });
+    }
+
+    // 更新场景显示
+    function updateScenes() {
+      scenesEl.innerHTML = '';
+      config.scenes.forEach(scene => {
+        const current = scene.id === currentScene;
+
+        const sceneEl = document.createElement('div');
+        sceneEl.className = 'scene';
+        sceneEl.innerHTML = `
+          <div class="emoji">${scene.emoji}</div>
+          <div class="name">${scene.name}</div>
+          <div class="seats">${scene.seats}个座位</div>
+        `;
+        if (!current) {
+          sceneEl.addEventListener('click', () => switchScene(scene));
+        } else {
+          sceneEl.disabled = true;
+        }
+        scenesEl.appendChild(sceneEl);
+      });
+    }
+
+    // 选择角色
+    let selectedCharacter = null;
+    function selectCharacter(character) {
+      selectedCharacter = character;
+      updateCharacters();
+      updateSeats();
+    }
+
+    // 选择座位
+    function selectSeat(seat) {
+      if (selectedCharacter) {
+        assignments[seat.id] = selectedCharacter.id;
+        selectedCharacter = null;
+        updateCharacters();
+        updateSeats();
+        saveGame();
+      }
+    }
+
+    // 移除分配
+    function removeAssignment(seat) {
+      delete assignments[seat.id];
+      updateCharacters();
+      updateSeats();
+      saveGame();
+    }
+
+    // 选择关卡
+    function selectLevel(levelConfig) {
+      level = levelConfig.id;
+      generateLevel();
+      updateStats();
+      updateCharacters();
+      updateSeats();
+      updateLevels();
+      saveGame();
+    }
+
+    // 切换场景
+    function switchScene(scene) {
+      currentScene = scene.id;
+      generateLevel();
+      updateScenes();
+      updateCharacters();
+      updateSeats();
+      saveGame();
+    }
+
+    // 检查答案
+    function checkAnswer() {
+      // 检查是否所有角色都已分配
+      if (Object.keys(assignments).length !== currentCharacters.length) {
+        alert('请为所有角色安排座位！');
+        return;
+      }
+
+      // 检查分配是否正确
+      let correct = true;
+      for (const [seatId, characterId] of Object.entries(assignments)) {
+        const character = currentCharacters.find(c => c.id === characterId);
+        const seat = currentSeats.find(s => s.id === seatId);
+
+        // 检查座位是否满足角色需求
+        if (!seat.name.includes(character.requirement)) {
+          correct = false;
+          break;
+        }
+      }
+
+      if (correct) {
+        stars += 10;
+        level++;
+        if (level > config.levels.length) {
+          level = 1;
+        }
+        generateLevel();
+        updateStats();
+        updateCharacters();
+        updateSeats();
+        updateLevels();
+        saveGame();
+        alert('恭喜！答案正确！进入下一关！');
+      } else {
+        alert('答案不正确，请重新安排座位！');
+      }
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('bie-qiang-wo-de-zuo');
+        localStorage.removeItem('bie-qiang-wo-de-zuo-highlevel');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    checkBtn.addEventListener('click', checkAnswer);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>

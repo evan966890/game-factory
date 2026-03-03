@@ -966,5 +966,11 @@
     "path": "games/dong-wu-can-ting/index.html",
     "category": "模拟经营",
     "createdAt": "2026-03-03T23:19:10Z"
+  },
+  {
+    "name": "别抢我的座",
+    "path": "games/bie-qiang-wo-de-zuo/index.html",
+    "category": "解谜",
+    "createdAt": "2026-03-03T23:28:30Z"
   }
 ]
