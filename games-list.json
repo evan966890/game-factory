@@ -768,5 +768,11 @@
     "path": "games/math-incremental-factory/index.html",
     "category": "education",
     "createdAt": "2026-03-03T19:20:00+08:00"
+  },
+  {
+    "name": "数学曲折跑",
+    "path": "games/math-zigzag-runner/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T19:52:00Z"
   }
 ]
