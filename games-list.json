@@ -858,5 +858,11 @@
     "path": "games/xiang-jiang-shi-kai-pao/index.html",
     "category": "休闲益智",
     "createdAt": "2026-03-03T20:05:11Z"
+  },
+  {
+    "name": "生存33天",
+    "path": "games/sheng-cun-33-tian/index.html",
+    "category": "生存策略",
+    "createdAt": "2026-03-03T20:13:18Z"
   }
 ]

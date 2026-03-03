@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>生存33天</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --food: #f59e0b;
+      --water: #3b82f6;
+      --material: #6b7280;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.food {
+      color: var(--food);
+    }
+
+    .stat .value.water {
+      color: var(--water);
+    }
+
+    .stat .value.material {
+      color: var(--material);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 200px;
+    }
+
+    .day-display {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .weather-display {
+      text-align: center;
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      padding: 8px;
+      background: #f0f9ff;
+      border-radius: 8px;
+    }
+
+    .resources {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .resource {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .resource .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .resource .value {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .resource .value.food {
+      color: var(--food);
+    }
+
+    .resource .value.water {
+      color: var(--water);
+    }
+
+    .resource .value.material {
+      color: var(--material);
+    }
+
+    .buildings {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .buildings-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .buildings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .building-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .building-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .building-item.owned {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .building-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .building-item .cost {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .enemies {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .enemies-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .enemies-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .enemy-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      font-size: 0.9rem;
+    }
+
+    .enemy-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .enemy-item .health {
+      font-size: 0.8rem;
+      color: var(--red);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .event-display {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .event-display .event-text {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .event-display .event-choices {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .event-choice {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .event-choice:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .game-over {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .game-over h2 {
+      margin-bottom: 16px;
+    }
+
+    .final-day {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .high-day {
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>生存33天</h1>
+    <p class="subtitle">管理资源，建造设施，抵御敌人</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">天数</span>
+        <span class="value" id="day">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高天数</span>
+        <span class="value" id="highDay">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">生存状态</span>
+        <span class="value" id="status">正常</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="day-display" id="dayDisplay">第 1 天</div>
+        <div class="weather-display" id="weatherDisplay">☀️ 晴天</div>
+
+        <div class="resources">
+          <div class="resource">
+            <span class="label">食物</span>
+            <span class="value food" id="food">100</span>
+          </div>
+          <div class="resource">
+            <span class="label">水</span>
+            <span class="value water" id="water">100</span>
+          </div>
+          <div class="resource">
+            <span class="label">材料</span>
+            <span class="value material" id="material">50</span>
+          </div>
+        </div>
+
+        <div class="buildings">
+          <div class="buildings-title">设施</div>
+          <div class="buildings-grid" id="buildings"></div>
+        </div>
+
+        <div class="enemies">
+          <div class="enemies-title">敌人</div>
+          <div class="enemies-grid" id="enemies"></div>
+        </div>
+
+        <div class="event-display hidden" id="eventDisplay">
+          <div class="event-text" id="eventText"></div>
+          <div class="event-choices" id="eventChoices"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="nextDayBtn">下一天</button>
+      <button class="btn secondary" id="restartBtn">重新开始</button>
+    </div>
+
+    <div class="game-over hidden" id="gameOver">
+      <h2>游戏结束</h2>
+      <div class="final-day" id="finalDay">1</div>
+      <div class="high-day" id="finalHighDay">最高天数: 1</div>
+      <button class="btn" id="playAgainBtn">再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      maxDays: 33,
+      initialFood: 100,
+      initialWater: 100,
+      initialMaterial: 50,
+      foodConsumption: 10,
+      waterConsumption: 10,
+      weatherTypes: ['☀️ 晴天', '🌧️ 雨天', '❄️ 寒冷', '🌪️ 暴风雨'],
+      weatherEffects: {
+        '☀️ 晴天': { food: 1, water: 1, enemy: 1 },
+        '🌧️ 雨天': { food: 0.8, water: 1.2, enemy: 0.8 },
+        '❄️ 寒冷': { food: 1.2, water: 0.8, enemy: 1.2 },
+        '🌪️ 暴风雨': { food: 1.5, water: 1.5, enemy: 1.5 }
+      },
+      buildings: [
+        { id: 'farm', name: '农场', emoji: '🌾', cost: 20, effect: { food: 20 } },
+        { id: 'well', name: '水井', emoji: '💧', cost: 20, effect: { water: 20 } },
+        { id: 'workshop', name: '工坊', emoji: '🔨', cost: 30, effect: { material: 10 } },
+        { id: 'wall', name: '围墙', emoji: '🧱', cost: 40, effect: { defense: 10 } },
+        { id: 'tower', name: '瞭望塔', emoji: '🗼', cost: 50, effect: { defense: 20 } },
+        { id: 'hospital', name: '医院', emoji: '🏥', cost: 60, effect: { health: 20 } }
+      ],
+      enemies: [
+        { id: 'zombie', name: '僵尸', emoji: '🧟', health: 50, attack: 10 },
+        { id: 'bandit', name: '强盗', emoji: '🥷', health: 80, attack: 15 },
+        { id: 'beast', name: '野兽', emoji: '🐺', health: 100, attack: 20 }
+      ],
+      events: [
+        { id: 'found_food', text: '你发现了一些食物！', choices: [{ text: '收集', effect: { food: 20 } }, { text: '忽略', effect: {} }] },
+        { id: 'found_water', text: '你发现了一些水！', choices: [{ text: '收集', effect: { water: 20 } }, { text: '忽略', effect: {} }] },
+        { id: 'found_material', text: '你发现了一些材料！', choices: [{ text: '收集', effect: { material: 20 } }, { text: '忽略', effect: {} }] },
+        { id: 'enemy_attack', text: '敌人来袭！', choices: [{ text: '战斗', effect: { health: -20 } }, { text: '逃跑', effect: { food: -10, water: -10 } }] },
+        { id: 'illness', text: '你生病了！', choices: [{ text: '休息', effect: { food: -10, water: -10 } }, { text: '工作', effect: { health: -10 } }] }
+      ]
+    };
+
+    // 游戏状态
+    let day = 1;
+    let highDay = parseInt(localStorage.getItem('sheng-cun-33-tian-highday')) || 1;
+    let food = config.initialFood;
+    let water = config.initialWater;
+    let material = config.initialMaterial;
+    let health = 100;
+    let defense = 0;
+    let weather = '☀️ 晴天';
+    let buildings = new Set();
+    let enemies = [];
+    let currentEvent = null;
+    let gameOver = false;
+
+    // DOM 元素
+    const dayEl = document.getElementById('day');
+    const highDayEl = document.getElementById('highDay');
+    const statusEl = document.getElementById('status');
+    const dayDisplayEl = document.getElementById('dayDisplay');
+    const weatherDisplayEl = document.getElementById('weatherDisplay');
+    const foodEl = document.getElementById('food');
+    const waterEl = document.getElementById('water');
+    const materialEl = document.getElementById('material');
+    const buildingsEl = document.getElementById('buildings');
+    const enemiesEl = document.getElementById('enemies');
+    const eventDisplayEl = document.getElementById('eventDisplay');
+    const eventTextEl = document.getElementById('eventText');
+    const eventChoicesEl = document.getElementById('eventChoices');
+    const gameOverEl = document.getElementById('gameOver');
+    const finalDayEl = document.getElementById('finalDay');
+    const finalHighDayEl = document.getElementById('finalHighDay');
+    const nextDayBtn = document.getElementById('nextDayBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+
+    // 初始化游戏
+    function initGame() {
+      day = 1;
+      food = config.initialFood;
+      water = config.initialWater;
+      material = config.initialMaterial;
+      health = 100;
+      defense = 0;
+      weather = '☀️ 晴天';
+      buildings = new Set();
+      enemies = [];
+      currentEvent = null;
+      gameOver = false;
+
+      // 生成初始敌人
+      spawnEnemies();
+
+      // 更新显示
+      updateStats();
+      updateBuildings();
+      updateEnemies();
+      updateWeather();
+
+      // 隐藏游戏结束界面
+      gameOverEl.classList.add('hidden');
+      eventDisplayEl.classList.add('hidden');
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      dayEl.textContent = day;
+      highDayEl.textContent = highDay;
+      dayDisplayEl.textContent = `第 ${day} 天`;
+      foodEl.textContent = Math.max(0, Math.floor(food));
+      waterEl.textContent = Math.max(0, Math.floor(water));
+      materialEl.textContent = Math.max(0, Math.floor(material));
+
+      // 更新状态
+      if (food <= 0 || water <= 0) {
+        statusEl.textContent = '危险';
+        statusEl.style.color = 'var(--red)';
+      } else if (food < 30 || water < 30) {
+        statusEl.textContent = '警告';
+        statusEl.style.color = 'var(--gold)';
+      } else {
+        statusEl.textContent = '正常';
+        statusEl.style.color = 'var(--green)';
+      }
+    }
+
+    // 更新天气
+    function updateWeather() {
+      weather = config.weatherTypes[Math.floor(Math.random() * config.weatherTypes.length)];
+      weatherDisplayEl.textContent = weather;
+    }
+
+    // 生成敌人
+    function spawnEnemies() {
+      enemies = [];
+      const enemyCount = Math.min(3, Math.floor(day / 5) + 1);
+      for (let i = 0; i < enemyCount; i++) {
+        const enemy = config.enemies[Math.floor(Math.random() * config.enemies.length)];
+        enemies.push({
+          id: enemy.id,
+          name: enemy.name,
+          emoji: enemy.emoji,
+          health: enemy.health + day * 5,
+          attack: enemy.attack + day * 2
+        });
+      }
+    }
+
+    // 更新设施显示
+    function updateBuildings() {
+      buildingsEl.innerHTML = '';
+      config.buildings.forEach(building => {
+        const owned = buildings.has(building.id);
+        const item = document.createElement('div');
+        item.className = `building-item ${owned ? 'owned' : ''}`;
+        item.innerHTML = `
+          <div class="emoji">${building.emoji}</div>
+          <div class="cost">${owned ? '已建造' : `${building.cost}材料`}</div>
+        `;
+        if (!owned) {
+          item.addEventListener('click', () => buildBuilding(building));
+        }
+        buildingsEl.appendChild(item);
+      });
+    }
+
+    // 更新敌人显示
+    function updateEnemies() {
+      enemiesEl.innerHTML = '';
+      enemies.forEach(enemy => {
+        const item = document.createElement('div');
+        item.className = 'enemy-item';
+        item.innerHTML = `
+          <div class="emoji">${enemy.emoji}</div>
+          <div class="health">HP: ${enemy.health}</div>
+        `;
+        enemiesEl.appendChild(item);
+      });
+    }
+
+    // 建造设施
+    function buildBuilding(building) {
+      if (material >= building.cost) {
+        material -= building.cost;
+        buildings.add(building.id);
+
+        // 应用设施效果
+        if (building.effect.food) food += building.effect.food;
+        if (building.effect.water) water += building.effect.water;
+        if (building.effect.material) material += building.effect.material;
+        if (building.effect.defense) defense += building.effect.defense;
+        if (building.effect.health) health = Math.min(100, health + building.effect.health);
+
+        updateStats();
+        updateBuildings();
+      }
+    }
+
+    // 下一天
+    function nextDay() {
+      if (gameOver) return;
+
+      // 消耗资源
+      const weatherEffect = config.weatherEffects[weather];
+      food -= config.foodConsumption * weatherEffect.food;
+      water -= config.waterConsumption * weatherEffect.water;
+
+      // 检查资源是否耗尽
+      if (food <= 0 || water <= 0) {
+        endGame();
+        return;
+      }
+
+      // 增加天数
+      day++;
+
+      // 检查是否达到33天
+      if (day > config.maxDays) {
+        winGame();
+        return;
+      }
+
+      // 更新天气
+      updateWeather();
+
+      // 生成敌人
+      spawnEnemies();
+
+      // 随机事件
+      if (Math.random() < 0.3) {
+        triggerEvent();
+      }
+
+      // 更新显示
+      updateStats();
+      updateEnemies();
+    }
+
+    // 触发事件
+    function triggerEvent() {
+      currentEvent = config.events[Math.floor(Math.random() * config.events.length)];
+      eventTextEl.textContent = currentEvent.text;
+      eventChoicesEl.innerHTML = '';
+
+      currentEvent.choices.forEach(choice => {
+        const btn = document.createElement('div');
+        btn.className = 'event-choice';
+        btn.textContent = choice.text;
+        btn.addEventListener('click', () => handleEventChoice(choice));
+        eventChoicesEl.appendChild(btn);
+      });
+
+      eventDisplayEl.classList.remove('hidden');
+    }
+
+    // 处理事件选择
+    function handleEventChoice(choice) {
+      // 应用效果
+      if (choice.effect.food) food += choice.effect.food;
+      if (choice.effect.water) water += choice.effect.water;
+      if (choice.effect.material) material += choice.effect.material;
+      if (choice.effect.health) health += choice.effect.health;
+
+      // 检查资源是否耗尽
+      if (food <= 0 || water <= 0 || health <= 0) {
+        endGame();
+        return;
+      }
+
+      // 隐藏事件
+      eventDisplayEl.classList.add('hidden');
+      currentEvent = null;
+
+      // 更新显示
+      updateStats();
+    }
+
+    // 结束游戏
+    function endGame() {
+      gameOver = true;
+
+      // 更新最高天数
+      if (day > highDay) {
+        highDay = day;
+        localStorage.setItem('sheng-cun-33-tian-highday', highDay);
+      }
+
+      // 显示游戏结束界面
+      finalDayEl.textContent = day;
+      finalHighDayEl.textContent = `最高天数: ${highDay}`;
+      gameOverEl.classList.remove('hidden');
+    }
+
+    // 胜利游戏
+    function winGame() {
+      gameOver = true;
+
+      // 更新最高天数
+      if (day > highDay) {
+        highDay = day;
+        localStorage.setItem('sheng-cun-33-tian-highday', highDay);
+      }
+
+      // 显示游戏结束界面
+      finalDayEl.textContent = '胜利！';
+      finalHighDayEl.textContent = `最高天数: ${highDay}`;
+      gameOverEl.classList.remove('hidden');
+    }
+
+    // 事件监听
+    nextDayBtn.addEventListener('click', nextDay);
+    restartBtn.addEventListener('click', initGame);
+    playAgainBtn.addEventListener('click', initGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《细胞生存》
-灵感来源：微信小游戏《Cell Survivor（不服来通关）》
-控制细胞移动，吞噬成长，躲避危险，成为最强细胞，关卡系统
-▶️ 试玩：https://evan966890.github.io/game-factory/games/xi-bao-sheng-cun/
+《向僵尸开炮》
+灵感来源：微信小游戏《向僵尸开炮》
+控制炮台角度和力度，发射炮弹消灭僵尸，物理弹道系统，关卡挑战
+▶️ 试玩：https://evan966890.github.io/game-factory/games/xiang-jiang-shi-kai-pao/
 
-📊 游戏工厂累计：142 个游戏
+📊 游戏工厂累计：143 个游戏
