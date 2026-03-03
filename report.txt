@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《数学纸夹宇宙》
-灵感来源：Universal Paperclips + 数学教育
-点击数学公式获得点数，购买升级自动化生产，解锁更高级的数学概念，难度从加法递进到微积分
-▶️ 试玩：https://evan966890.github.io/game-factory/games/math-paperclip-universe/
+《数学表情合成》
+灵感来源：Emoji Merge + 数学教育
+点击放置数学符号，相同符号合并成更高级的数学概念，数字合并、运算符合并、公式创建
+▶️ 试玩：https://evan966890.github.io/game-factory/games/math-emoji-merge/
 
-📊 游戏工厂累计：130 个游戏
+📊 游戏工厂累计：132 个游戏

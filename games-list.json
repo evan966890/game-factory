@@ -792,5 +792,11 @@
     "path": "games/math-emoji-merge/index.html",
     "category": "education",
     "createdAt": "2026-03-03T15:31:05Z"
+  },
+  {
+    "name": "数学曲折跑",
+    "path": "games/math-zigzag-runner/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T23:43:00Z"
   }
 ]
