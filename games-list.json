@@ -954,5 +954,11 @@
     "path": "games/di-tie-pao-ku/index.html",
     "category": "跑酷",
     "createdAt": "2026-03-03T23:07:10Z"
+  },
+  {
+    "name": "三国：冰河时代",
+    "path": "games/san-guo-bing-he-shi-dai/index.html",
+    "category": "策略",
+    "createdAt": "2026-03-03T23:12:15Z"
   }
 ]

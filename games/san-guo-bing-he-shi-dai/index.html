@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>三国：冰河时代</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --ice: #e0f2fe;
+      --ice-dark: #7dd3fc;
+      --snow: #dbeafe;
+      --snow-dark: #3b82f6;
+      --cold: #93c5fd;
+      --cold-dark: #1d4ed8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .generals {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--ice);
+      margin-bottom: 16px;
+    }
+
+    .generals-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .generals-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .general {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .general:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .general:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .general .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .general .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .general .cost {
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .city {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--snow);
+      margin-bottom: 16px;
+    }
+
+    .city-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .city-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .city-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .city-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .city-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .city-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .city-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .city-item .cost {
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .army {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--cold);
+      margin-bottom: 16px;
+    }
+
+    .army-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .army-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .army-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .army-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .army-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .army-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .army-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .army-item .cost {
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .battle {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--snow);
+      margin-bottom: 16px;
+    }
+
+    .battle-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .battle-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .battle-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .battle-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .battle-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .battle-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .battle-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .battle-item .cost {
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .alliance {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--ice);
+      margin-bottom: 16px;
+    }
+
+    .alliance-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .alliance-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .alliance-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .alliance-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .alliance-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .alliance-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .alliance-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .alliance-item .cost {
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>三国：冰河时代</h1>
+    <p class="subtitle">招募名将，建设城池，组建军团，参与国战</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">等级</span>
+        <span class="value blue" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">资源</span>
+        <span class="value gold" id="resources">1000</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高等级</span>
+        <span class="value green" id="highLevel">1</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="generals">
+          <div class="generals-title">武将</div>
+          <div class="generals-grid" id="generals"></div>
+        </div>
+
+        <div class="city">
+          <div class="city-title">城池</div>
+          <div class="city-grid" id="city"></div>
+        </div>
+
+        <div class="army">
+          <div class="army-title">军团</div>
+          <div class="army-grid" id="army"></div>
+        </div>
+
+        <div class="battle">
+          <div class="battle-title">战斗</div>
+          <div class="battle-grid" id="battle"></div>
+        </div>
+
+        <div class="alliance">
+          <div class="alliance-title">联盟</div>
+          <div class="alliance-grid" id="alliance"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="collectBtn">收集资源</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      generals: [
+        { id: 'zhuge', name: '诸葛亮', emoji: '🧙', cost: 500, skill: 'strategy' },
+        { id: 'lvbu', name: '吕布', emoji: '⚔️', cost: 800, skill: 'attack' },
+        { id: 'guanyu', name: '关羽', emoji: '🗡️', cost: 600, skill: 'defense' },
+        { id: 'zhangfei', name: '张飞', emoji: '🦁', cost: 550, skill: 'attack' },
+        { id: 'zhaoyun', name: '赵云', emoji: '🐎', cost: 650, skill: 'speed' },
+        { id: 'caocao', name: '曹操', emoji: '👑', cost: 700, skill: 'leadership' }
+      ],
+      city: [
+        { id: 'farm', name: '农场', emoji: '🌾', cost: 200, effect: { resources: 10 } },
+        { id: 'mine', name: '矿场', emoji: '⛏️', cost: 300, effect: { resources: 15 } },
+        { id: 'barracks', name: '兵营', emoji: '🏰', cost: 400, effect: { army: 1 } },
+        { id: 'workshop', name: '工坊', emoji: '🔨', cost: 350, effect: { building: 1 } },
+        { id: 'school', name: '学院', emoji: '🏫', cost: 450, effect: { tech: 1 } },
+        { id: 'wall', name: '城墙', emoji: '🧱', cost: 500, effect: { defense: 1 } }
+      ],
+      army: [
+        { id: 'infantry', name: '步兵', emoji: '🚶', cost: 100, power: 10 },
+        { id: 'cavalry', name: '骑兵', emoji: '🏇', cost: 200, power: 20 },
+        { id: 'archer', name: '弓兵', emoji: '🏹', cost: 150, power: 15 },
+        { id: 'siege', name: '攻城器械', emoji: '🏗️', cost: 300, power: 30 },
+        { id: 'elite', name: '精锐部队', emoji: '🛡️', cost: 400, power: 40 },
+        { id: 'general', name: '将领卫队', emoji: '⚔️', cost: 500, power: 50 }
+      ],
+      battle: [
+        { id: 'bandit', name: '山贼', emoji: '🦹', cost: { army: 10 }, reward: { resources: 100 } },
+        { id: 'rebel', name: '叛军', emoji: '🏴', cost: { army: 20 }, reward: { resources: 200 } },
+        { id: 'enemy', name: '敌军', emoji: '⚔️', cost: { army: 30 }, reward: { resources: 300 } },
+        { id: 'fortress', name: '要塞', emoji: '🏰', cost: { army: 40 }, reward: { resources: 400 } },
+        { id: 'capital', name: '都城', emoji: '👑', cost: { army: 50 }, reward: { resources: 500 } },
+        { id: 'dragon', name: '冰龙', emoji: '🐉', cost: { army: 60 }, reward: { resources: 1000 } }
+      ],
+      alliance: [
+        { id: 'join', name: '加入联盟', emoji: '🤝', cost: 100, effect: { alliance: 1 } },
+        { id: 'donate', name: '捐献资源', emoji: '💰', cost: 200, effect: { alliance: 2 } },
+        { id: 'war', name: '联盟战争', emoji: '⚔️', cost: 300, effect: { alliance: 3 } },
+        { id: 'territory', name: '争夺领土', emoji: '🗺️', cost: 400, effect: { alliance: 4 } },
+        { id: 'diplomacy', name: '外交策略', emoji: '📜', cost: 500, effect: { alliance: 5 } },
+        { id: 'victory', name: '联盟胜利', emoji: '🏆', cost: 1000, effect: { alliance: 10 } }
+      ]
+    };
+
+    // 游戏状态
+    let level = 1;
+    let resources = 1000;
+    let highLevel = parseInt(localStorage.getItem('san-guo-bing-he-shi-dai-highlevel')) || 1;
+    let generals = [];
+    let city = [];
+    let army = [];
+    let alliance = 0;
+    let gameLoop = null;
+
+    // DOM 元素
+    const levelEl = document.getElementById('level');
+    const resourcesEl = document.getElementById('resources');
+    const highLevelEl = document.getElementById('highLevel');
+    const generalsEl = document.getElementById('generals');
+    const cityEl = document.getElementById('city');
+    const armyEl = document.getElementById('army');
+    const battleEl = document.getElementById('battle');
+    const allianceEl = document.getElementById('alliance');
+    const collectBtn = document.getElementById('collectBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      level = 1;
+      resources = 1000;
+      generals = [];
+      city = [];
+      army = [];
+      alliance = 0;
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateGenerals();
+      updateCity();
+      updateArmy();
+      updateBattle();
+      updateAlliance();
+
+      // 开始游戏循环
+      startGameLoop();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('san-guo-bing-he-shi-dai');
+      if (saved) {
+        const data = JSON.parse(saved);
+        level = data.level || 1;
+        resources = data.resources || 1000;
+        highLevel = data.highLevel || 1;
+        generals = data.generals || [];
+        city = data.city || [];
+        army = data.army || [];
+        alliance = data.alliance || 0;
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        level,
+        resources,
+        highLevel,
+        generals,
+        city,
+        army,
+        alliance
+      };
+      localStorage.setItem('san-guo-bing-he-shi-dai', JSON.stringify(data));
+    }
+
+    // 开始游戏循环
+    function startGameLoop() {
+      if (gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => {
+        // 自动收集资源
+        collectResources();
+        updateStats();
+        saveGame();
+      }, 1000);
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      levelEl.textContent = level;
+      resourcesEl.textContent = resources;
+      highLevelEl.textContent = highLevel;
+
+      // 更新最高等级
+      if (level > highLevel) {
+        highLevel = level;
+        localStorage.setItem('san-guo-bing-he-shi-dai-highlevel', highLevel);
+      }
+    }
+
+    // 更新武将显示
+    function updateGenerals() {
+      generalsEl.innerHTML = '';
+      config.generals.forEach(general => {
+        const owned = generals.some(g => g.id === general.id);
+        const canAfford = resources >= general.cost;
+
+        const generalEl = document.createElement('div');
+        generalEl.className = 'general';
+        generalEl.innerHTML = `
+          <div class="emoji">${general.emoji}</div>
+          <div class="name">${general.name}</div>
+          <div class="cost">${general.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          generalEl.addEventListener('click', () => recruitGeneral(general));
+        } else {
+          generalEl.disabled = true;
+        }
+        generalsEl.appendChild(generalEl);
+      });
+    }
+
+    // 更新城池显示
+    function updateCity() {
+      cityEl.innerHTML = '';
+      config.city.forEach(building => {
+        const owned = city.some(c => c.id === building.id);
+        const canAfford = resources >= building.cost;
+
+        const buildingEl = document.createElement('div');
+        buildingEl.className = 'city-item';
+        buildingEl.innerHTML = `
+          <div class="emoji">${building.emoji}</div>
+          <div class="name">${building.name}</div>
+          <div class="cost">${building.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          buildingEl.addEventListener('click', () => buildCity(building));
+        } else {
+          buildingEl.disabled = true;
+        }
+        cityEl.appendChild(buildingEl);
+      });
+    }
+
+    // 更新军团显示
+    function updateArmy() {
+      armyEl.innerHTML = '';
+      config.army.forEach(unit => {
+        const owned = army.some(a => a.id === unit.id);
+        const canAfford = resources >= unit.cost;
+
+        const unitEl = document.createElement('div');
+        unitEl.className = 'army-item';
+        unitEl.innerHTML = `
+          <div class="emoji">${unit.emoji}</div>
+          <div class="name">${unit.name}</div>
+          <div class="cost">${unit.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          unitEl.addEventListener('click', () => recruitArmy(unit));
+        } else {
+          unitEl.disabled = true;
+        }
+        armyEl.appendChild(unitEl);
+      });
+    }
+
+    // 更新战斗显示
+    function updateBattle() {
+      battleEl.innerHTML = '';
+      config.battle.forEach(enemy => {
+        const canAfford = army.length >= enemy.cost.army;
+
+        const enemyEl = document.createElement('div');
+        enemyEl.className = 'battle-item';
+        enemyEl.innerHTML = `
+          <div class="emoji">${enemy.emoji}</div>
+          <div class="name">${enemy.name}</div>
+          <div class="cost">⚔️${enemy.cost.army}</div>
+        `;
+        if (canAfford) {
+          enemyEl.addEventListener('click', () => fight(enemy));
+        } else {
+          enemyEl.disabled = true;
+        }
+        battleEl.appendChild(enemyEl);
+      });
+    }
+
+    // 更新联盟显示
+    function updateAlliance() {
+      allianceEl.innerHTML = '';
+      config.alliance.forEach(action => {
+        const canAfford = resources >= action.cost;
+
+        const actionEl = document.createElement('div');
+        actionEl.className = 'alliance-item';
+        actionEl.innerHTML = `
+          <div class="emoji">${action.emoji}</div>
+          <div class="name">${action.name}</div>
+          <div class="cost">${action.cost}</div>
+        `;
+        if (canAfford) {
+          actionEl.addEventListener('click', () => doAlliance(action));
+        } else {
+          actionEl.disabled = true;
+        }
+        allianceEl.appendChild(actionEl);
+      });
+    }
+
+    // 招募武将
+    function recruitGeneral(general) {
+      if (resources >= general.cost) {
+        resources -= general.cost;
+        generals.push(general);
+        updateStats();
+        updateGenerals();
+        saveGame();
+        alert(`招募成功！获得 ${general.name}`);
+      }
+    }
+
+    // 建设城池
+    function buildCity(building) {
+      if (resources >= building.cost) {
+        resources -= building.cost;
+        city.push(building);
+        updateStats();
+        updateCity();
+        saveGame();
+        alert(`建设成功！获得 ${building.name}`);
+      }
+    }
+
+    // 招募军团
+    function recruitArmy(unit) {
+      if (resources >= unit.cost) {
+        resources -= unit.cost;
+        army.push(unit);
+        updateStats();
+        updateArmy();
+        updateBattle();
+        saveGame();
+        alert(`招募成功！获得 ${unit.name}`);
+      }
+    }
+
+    // 战斗
+    function fight(enemy) {
+      if (army.length >= enemy.cost.army) {
+        // 扣除军团
+        for (let i = 0; i < enemy.cost.army; i++) {
+          army.pop();
+        }
+
+        // 获得奖励
+        resources += enemy.reward.resources;
+
+        // 升级
+        level++;
+
+        updateStats();
+        updateArmy();
+        updateBattle();
+        saveGame();
+        alert(`战斗胜利！获得 ${enemy.reward.resources} 资源`);
+      }
+    }
+
+    // 联盟行动
+    function doAlliance(action) {
+      if (resources >= action.cost) {
+        resources -= action.cost;
+        alliance += action.effect.alliance;
+        updateStats();
+        updateAlliance();
+        saveGame();
+        alert(`联盟行动成功！联盟等级 +${action.effect.alliance}`);
+      }
+    }
+
+    // 收集资源
+    function collectResources() {
+      // 城池加成
+      city.forEach(building => {
+        if (building.effect.resources) resources += building.effect.resources;
+      });
+
+      // 联盟加成
+      resources += alliance * 5;
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('san-guo-bing-he-shi-dai');
+        localStorage.removeItem('san-guo-bing-he-shi-dai-highlevel');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    collectBtn.addEventListener('click', () => {
+      collectResources();
+      updateStats();
+      saveGame();
+    });
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
