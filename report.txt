@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《弹射英雄》
-灵感来源：微信小游戏《新弹弹堂》
-拖动角色调整角度和力度发射炮弹，击中敌人获得分数，多种武器和关卡
-▶️ 试玩：https://evan966890.github.io/game-factory/games/tan-she-ying-xiong/
+《动物餐厅》
+灵感来源：微信小游戏《动物餐厅》
+经营餐厅接待动物顾客，制作食物赚取金币，升级设施收集顾客，离线收益系统
+▶️ 试玩：https://evan966890.github.io/game-factory/games/dong-wu-can-ting/
 
-📊 游戏工厂累计：138 个游戏
+📊 游戏工厂累计：139 个游戏

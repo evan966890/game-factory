@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>QQ经典农场</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --brown: #8B4513;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .farm {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+      min-height: 200px;
+    }
+
+    .farm-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .land-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .land {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .land:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .land.planted {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .land.ready {
+      background: #fff3cd;
+      border-color: var(--gold);
+    }
+
+    .land .emoji {
+      font-size: 1.5rem;
+      margin-bottom: 4px;
+    }
+
+    .land .timer {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .warehouse {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .warehouse-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .warehouse-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .warehouse-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      font-size: 0.9rem;
+    }
+
+    .warehouse-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .warehouse-item .count {
+      font-weight: 600;
+      color: var(--gold);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .upgrade-panel {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .upgrade-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .upgrade-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .upgrade-item:last-child {
+      border-bottom: none;
+    }
+
+    .upgrade-item .name {
+      font-weight: 600;
+    }
+
+    .upgrade-item .level {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .upgrade-item .cost {
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .upgrade-item .btn {
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      width: auto;
+    }
+
+    .tasks {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .tasks-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .task-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .task-item:last-child {
+      border-bottom: none;
+    }
+
+    .task-item .name {
+      font-weight: 600;
+    }
+
+    .task-item .progress {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .task-item .reward {
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .task-item.completed {
+      opacity: 0.5;
+    }
+
+    .offline-earnings {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .offline-earnings .amount {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>QQ经典农场</h1>
+    <p class="subtitle">经营你的农场，种植作物赚取金币</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="coins">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">等级</span>
+        <span class="value" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">经验</span>
+        <span class="value" id="exp">0</span>
+      </div>
+    </div>
+
+    <div class="offline-earnings" id="offlineEarnings">
+      <div class="amount" id="offlineAmount">+0</div>
+      <div>离线收益</div>
+      <button class="btn" id="collectOffline">领取</button>
+    </div>
+
+    <div class="farm">
+      <div class="farm-title">农场土地</div>
+      <div class="land-grid" id="landGrid"></div>
+    </div>
+
+    <div class="warehouse">
+      <div class="warehouse-title">仓库</div>
+      <div class="warehouse-grid" id="warehouse"></div>
+    </div>
+
+    <div class="upgrade-panel">
+      <div class="upgrade-title">设施升级</div>
+      <div id="upgrades"></div>
+    </div>
+
+    <div class="tasks">
+      <div class="tasks-title">任务</div>
+      <div id="tasks"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="harvestBtn">收获作物</button>
+      <button class="btn secondary" id="sellBtn">出售作物</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      crops: [
+        { id: 'wheat', name: '小麦', emoji: '🌾', growTime: 10000, price: 5, exp: 1 },
+        { id: 'corn', name: '玉米', emoji: '🌽', growTime: 15000, price: 8, exp: 2 },
+        { id: 'carrot', name: '胡萝卜', emoji: '🥕', growTime: 20000, price: 12, exp: 3 },
+        { id: 'tomato', name: '番茄', emoji: '🍅', growTime: 25000, price: 15, exp: 4 },
+        { id: 'potato', name: '土豆', emoji: '🥔', growTime: 30000, price: 20, exp: 5 },
+        { id: 'strawberry', name: '草莓', emoji: '🍓', growTime: 35000, price: 25, exp: 6 }
+      ],
+      upgrades: [
+        { id: 'land', name: '土地', baseCost: 100, effect: 'landCount' },
+        { id: 'warehouse', name: '仓库', baseCost: 150, effect: 'warehouseCapacity' },
+        { id: 'tools', name: '工具', baseCost: 200, effect: 'growSpeed' }
+      ],
+      tasks: [
+        { id: 'harvest10', name: '收获10次', target: 10, reward: 50, type: 'harvest' },
+        { id: 'sell50', name: '出售50个作物', target: 50, reward: 100, type: 'sell' },
+        { id: 'level5', name: '达到5级', target: 5, reward: 200, type: 'level' }
+      ]
+    };
+
+    // 游戏状态
+    let coins = 0;
+    let level = 1;
+    let exp = 0;
+    let expToNextLevel = 10;
+    let landCount = 4;
+    let warehouseCapacity = 20;
+    let growSpeed = 1;
+    let lands = [];
+    let warehouse = {};
+    let taskProgress = {};
+    let lastSaveTime = Date.now();
+
+    // DOM 元素
+    const coinsEl = document.getElementById('coins');
+    const levelEl = document.getElementById('level');
+    const expEl = document.getElementById('exp');
+    const landGridEl = document.getElementById('landGrid');
+    const warehouseEl = document.getElementById('warehouse');
+    const upgradesEl = document.getElementById('upgrades');
+    const tasksEl = document.getElementById('tasks');
+    const offlineEarningsEl = document.getElementById('offlineEarnings');
+    const offlineAmountEl = document.getElementById('offlineAmount');
+    const collectOfflineBtn = document.getElementById('collectOffline');
+    const harvestBtn = document.getElementById('harvestBtn');
+    const sellBtn = document.getElementById('sellBtn');
+
+    // 加载游戏进度
+    function loadProgress() {
+      const saved = localStorage.getItem('qq-jing-dian-nong-chang-progress');
+      if (saved) {
+        const progress = JSON.parse(saved);
+        coins = progress.coins || 0;
+        level = progress.level || 1;
+        exp = progress.exp || 0;
+        expToNextLevel = progress.expToNextLevel || 10;
+        landCount = progress.landCount || 4;
+        warehouseCapacity = progress.warehouseCapacity || 20;
+        growSpeed = progress.growSpeed || 1;
+        lands = progress.lands || [];
+        warehouse = progress.warehouse || {};
+        taskProgress = progress.taskProgress || {};
+        lastSaveTime = progress.lastSaveTime || Date.now();
+
+        // 计算离线收益
+        const offlineTime = Date.now() - lastSaveTime;
+        const offlineEarnings = calculateOfflineEarnings(offlineTime);
+        if (offlineEarnings > 0) {
+          offlineAmountEl.textContent = `+${offlineEarnings}`;
+          offlineEarningsEl.classList.remove('hidden');
+        } else {
+          offlineEarningsEl.classList.add('hidden');
+        }
+      }
+      updateStats();
+      renderLand();
+      renderWarehouse();
+      renderUpgrades();
+      renderTasks();
+    }
+
+    // 保存游戏进度
+    function saveProgress() {
+      const progress = {
+        coins,
+        level,
+        exp,
+        expToNextLevel,
+        landCount,
+        warehouseCapacity,
+        growSpeed,
+        lands,
+        warehouse,
+        taskProgress,
+        lastSaveTime: Date.now()
+      };
+      localStorage.setItem('qq-jing-dian-nong-chang-progress', JSON.stringify(progress));
+    }
+
+    // 计算离线收益
+    function calculateOfflineEarnings(time) {
+      const baseEarnings = 1; // 每秒1金币
+      const upgradeBonus = growSpeed * 0.1;
+      return Math.floor(time / 1000 * baseEarnings * (1 + upgradeBonus));
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      coinsEl.textContent = coins;
+      levelEl.textContent = level;
+      expEl.textContent = exp;
+    }
+
+    // 渲染土地
+    function renderLand() {
+      landGridEl.innerHTML = '';
+      for (let i = 0; i < landCount; i++) {
+        const land = lands[i] || { crop: null, plantedAt: null, ready: false };
+        const btn = document.createElement('div');
+        btn.className = 'land';
+        if (land.crop) {
+          if (land.ready) {
+            btn.classList.add('ready');
+          } else {
+            btn.classList.add('planted');
+          }
+        }
+        btn.innerHTML = `
+          <div class="emoji">${land.crop ? getCropEmoji(land.crop) : '🌱'}</div>
+          <div class="timer">${land.crop ? (land.ready ? '可收获' : getRemainingTime(land)) : '空闲'}</div>
+        `;
+        btn.addEventListener('click', () => handleLandClick(i));
+        landGridEl.appendChild(btn);
+      }
+    }
+
+    // 获取作物表情
+    function getCropEmoji(cropId) {
+      const crop = config.crops.find(c => c.id === cropId);
+      return crop ? crop.emoji : '🌱';
+    }
+
+    // 获取剩余时间
+    function getRemainingTime(land) {
+      if (!land.crop || land.ready) return '';
+      const crop = config.crops.find(c => c.id === land.crop);
+      const elapsed = Date.now() - land.plantedAt;
+      const remaining = Math.max(0, crop.growTime / growSpeed - elapsed);
+      return `${Math.ceil(remaining / 1000)}秒`;
+    }
+
+    // 处理土地点击
+    function handleLandClick(index) {
+      const land = lands[index];
+      if (!land.crop) {
+        // 种植作物
+        const crop = config.crops[Math.floor(Math.random() * config.crops.length)];
+        lands[index] = {
+          crop: crop.id,
+          plantedAt: Date.now(),
+          ready: false
+        };
+        renderLand();
+        saveProgress();
+      } else if (land.ready) {
+        // 收获作物
+        harvestCrop(index);
+      }
+    }
+
+    // 收获作物
+    function harvestCrop(index) {
+      const land = lands[index];
+      if (!land.crop || !land.ready) return;
+
+      const crop = config.crops.find(c => c.id === land.crop);
+      const warehouseCount = Object.values(warehouse).reduce((sum, count) => sum + count, 0);
+
+      if (warehouseCount < warehouseCapacity) {
+        // 添加到仓库
+        warehouse[land.crop] = (warehouse[land.crop] || 0) + 1;
+
+        // 增加经验
+        exp += crop.exp;
+        checkLevelUp();
+
+        // 更新任务进度
+        updateTaskProgress('harvest', 1);
+
+        // 清空土地
+        lands[index] = { crop: null, plantedAt: null, ready: false };
+
+        renderLand();
+        renderWarehouse();
+        updateStats();
+        saveProgress();
+      }
+    }
+
+    // 检查升级
+    function checkLevelUp() {
+      while (exp >= expToNextLevel) {
+        exp -= expToNextLevel;
+        level++;
+        expToNextLevel = Math.floor(expToNextLevel * 1.5);
+        updateTaskProgress('level', level);
+      }
+    }
+
+    // 更新任务进度
+    function updateTaskProgress(type, value) {
+      config.tasks.forEach(task => {
+        if (task.type === type) {
+          taskProgress[task.id] = (taskProgress[task.id] || 0) + value;
+        }
+      });
+      renderTasks();
+    }
+
+    // 渲染仓库
+    function renderWarehouse() {
+      warehouseEl.innerHTML = '';
+      config.crops.forEach(crop => {
+        const count = warehouse[crop.id] || 0;
+        const item = document.createElement('div');
+        item.className = 'warehouse-item';
+        item.innerHTML = `
+          <div class="emoji">${crop.emoji}</div>
+          <div class="count">${count}</div>
+        `;
+        warehouseEl.appendChild(item);
+      });
+    }
+
+    // 渲染升级面板
+    function renderUpgrades() {
+      upgradesEl.innerHTML = '';
+      config.upgrades.forEach(upgrade => {
+        const level = getUpgradeLevel(upgrade.id);
+        const cost = Math.floor(upgrade.baseCost * Math.pow(1.5, level - 1));
+
+        const item = document.createElement('div');
+        item.className = 'upgrade-item';
+        item.innerHTML = `
+          <div>
+            <div class="name">${upgrade.name}</div>
+            <div class="level">等级 ${level}</div>
+          </div>
+          <div>
+            <div class="cost">${cost}金币</div>
+            <button class="btn" data-upgrade="${upgrade.id}" ${coins < cost ? 'disabled' : ''}>升级</button>
+          </div>
+        `;
+        upgradesEl.appendChild(item);
+      });
+
+      // 添加升级事件监听
+      upgradesEl.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const upgradeId = btn.dataset.upgrade;
+          const upgrade = config.upgrades.find(u => u.id === upgradeId);
+          const level = getUpgradeLevel(upgradeId);
+          const cost = Math.floor(upgrade.baseCost * Math.pow(1.5, level - 1));
+
+          if (coins >= cost) {
+            coins -= cost;
+            applyUpgrade(upgradeId);
+            updateStats();
+            renderUpgrades();
+            saveProgress();
+          }
+        });
+      });
+    }
+
+    // 获取升级等级
+    function getUpgradeLevel(upgradeId) {
+      switch (upgradeId) {
+        case 'land': return Math.floor(landCount / 4);
+        case 'warehouse': return Math.floor(warehouseCapacity / 20);
+        case 'tools': return Math.floor(growSpeed);
+        default: return 1;
+      }
+    }
+
+    // 应用升级
+    function applyUpgrade(upgradeId) {
+      switch (upgradeId) {
+        case 'land':
+          landCount += 4;
+          break;
+        case 'warehouse':
+          warehouseCapacity += 20;
+          break;
+        case 'tools':
+          growSpeed += 0.5;
+          break;
+      }
+    }
+
+    // 渲染任务
+    function renderTasks() {
+      tasksEl.innerHTML = '';
+      config.tasks.forEach(task => {
+        const progress = taskProgress[task.id] || 0;
+        const completed = progress >= task.target;
+
+        const item = document.createElement('div');
+        item.className = `task-item ${completed ? 'completed' : ''}`;
+        item.innerHTML = `
+          <div>
+            <div class="name">${task.name}</div>
+            <div class="progress">${progress}/${task.target}</div>
+          </div>
+          <div class="reward">${task.reward}金币</div>
+        `;
+        if (completed) {
+          item.addEventListener('click', () => claimTaskReward(task));
+        }
+        tasksEl.appendChild(item);
+      });
+    }
+
+    // 领取任务奖励
+    function claimTaskReward(task) {
+      const progress = taskProgress[task.id] || 0;
+      if (progress >= task.target) {
+        coins += task.reward;
+        taskProgress[task.id] = 0; // 重置任务
+        updateStats();
+        renderTasks();
+        saveProgress();
+      }
+    }
+
+    // 领取离线收益
+    collectOfflineBtn.addEventListener('click', () => {
+      const offlineTime = Date.now() - lastSaveTime;
+      const offlineEarnings = calculateOfflineEarnings(offlineTime);
+      if (offlineEarnings > 0) {
+        coins += offlineEarnings;
+        offlineEarningsEl.classList.add('hidden');
+        updateStats();
+        saveProgress();
+      }
+    });
+
+    // 收获作物按钮
+    harvestBtn.addEventListener('click', () => {
+      // 收获所有成熟的作物
+      lands.forEach((land, index) => {
+        if (land.crop && land.ready) {
+          harvestCrop(index);
+        }
+      });
+    });
+
+    // 出售作物按钮
+    sellBtn.addEventListener('click', () => {
+      // 出售所有仓库中的作物
+      let totalValue = 0;
+      Object.entries(warehouse).forEach(([cropId, count]) => {
+        const crop = config.crops.find(c => c.id === cropId);
+        if (crop) {
+          totalValue += crop.price * count;
+          updateTaskProgress('sell', count);
+        }
+      });
+      warehouse = {};
+      coins += totalValue;
+      updateStats();
+      renderWarehouse();
+      saveProgress();
+    });
+
+    // 游戏循环
+    setInterval(() => {
+      // 检查作物是否成熟
+      lands.forEach((land, index) => {
+        if (land.crop && !land.ready) {
+          const crop = config.crops.find(c => c.id === land.crop);
+          const elapsed = Date.now() - land.plantedAt;
+          if (elapsed >= crop.growTime / growSpeed) {
+            land.ready = true;
+          }
+        }
+      });
+      renderLand();
+    }, 1000);
+
+    // 开始游戏
+    loadProgress();
+  </script>
+</body>
+</html>

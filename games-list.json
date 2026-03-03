@@ -834,5 +834,11 @@
     "path": "games/dong-wu-can-ting/index.html",
     "category": "模拟经营",
     "createdAt": "2026-03-03T19:33:40Z"
+  },
+  {
+    "name": "QQ经典农场",
+    "path": "games/qq-jing-dian-nong-chang/index.html",
+    "category": "模拟经营",
+    "createdAt": "2026-03-03T19:41:24Z"
   }
 ]
