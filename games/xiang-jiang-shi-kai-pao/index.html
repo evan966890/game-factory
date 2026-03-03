@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>向僵尸开炮</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    #gameCanvas {
+      display: block;
+      width: 100%;
+      height: 300px;
+      background: linear-gradient(180deg, #87CEEB 0%, #98FB98 100%);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .instructions {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .game-over {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .game-over h2 {
+      margin-bottom: 16px;
+    }
+
+    .final-score {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .high-score {
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .power-bar {
+      margin-top: 10px;
+      height: 20px;
+      background: #e0e0e0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .power-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #22c55e, #f59e0b, #ef4444);
+      width: 0%;
+      transition: width 0.1s;
+    }
+
+    .angle-display {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>向僵尸开炮</h1>
+    <p class="subtitle">控制炮台，消灭所有僵尸</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">分数</span>
+        <span class="value" id="score">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span class="value" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高分</span>
+        <span class="value" id="highScore">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="instructions">
+      <strong>操作说明：</strong> 使用方向键或触摸滑动控制炮台角度，按住空格键或触摸屏幕蓄力，松开发射炮弹。
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="startBtn">开始游戏</button>
+      <button class="btn secondary" id="restartBtn">重新开始</button>
+    </div>
+
+    <div class="game-over hidden" id="gameOver">
+      <h2>游戏结束</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <div class="high-score" id="finalHighScore">最高分: 0</div>
+      <button class="btn" id="playAgainBtn">再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      cannonSize: 30,
+      cannonAngle: 45,
+      cannonPower: 0,
+      maxPower: 100,
+      powerChargeRate: 2,
+      bulletSize: 10,
+      bulletSpeed: 5,
+      gravity: 0.2,
+      zombieMinSize: 20,
+      zombieMaxSize: 40,
+      zombieHealth: 100,
+      zombieSpeed: 1,
+      spawnRate: 2000,
+      levelUpScore: 500
+    };
+
+    // 游戏状态
+    let canvas, ctx;
+    let score = 0;
+    let level = 1;
+    let highScore = parseInt(localStorage.getItem('xiang-jiang-shi-kai-pao-highscore')) || 0;
+    let cannon = { x: 50, y: 250, angle: config.cannonAngle, power: 0 };
+    let bullets = [];
+    let zombies = [];
+    let gameRunning = false;
+    let gameOver = false;
+    let lastSpawnTime = 0;
+    let powerCharging = false;
+
+    // DOM 元素
+    const scoreEl = document.getElementById('score');
+    const levelEl = document.getElementById('level');
+    const highScoreEl = document.getElementById('highScore');
+    const gameOverEl = document.getElementById('gameOver');
+    const finalScore = document.getElementById('finalScore');
+    const finalHighScore = document.getElementById('finalHighScore');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+
+    // 初始化游戏
+    function initGame() {
+      canvas = document.getElementById('gameCanvas');
+      ctx = canvas.getContext('2d');
+
+      // 设置 Canvas 大小
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      // 初始化游戏状态
+      score = 0;
+      level = 1;
+      gameOver = false;
+      gameRunning = false;
+      bullets = [];
+      zombies = [];
+      powerCharging = false;
+
+      // 初始化炮台
+      cannon = {
+        x: 50,
+        y: canvas.height - 50,
+        angle: config.cannonAngle,
+        power: 0
+      };
+
+      // 生成初始僵尸
+      spawnZombies();
+
+      // 更新显示
+      updateStats();
+
+      // 隐藏游戏结束界面
+      gameOverEl.classList.add('hidden');
+
+      // 绘制初始画面
+      draw();
+    }
+
+    // 调整 Canvas 大小
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      canvas.width = container.clientWidth;
+      canvas.height = 300;
+
+      // 更新炮台位置
+      if (cannon) {
+        cannon.y = canvas.height - 50;
+      }
+    }
+
+    // 生成僵尸
+    function spawnZombies() {
+      const zombieCount = 3 + level * 2;
+      for (let i = 0; i < zombieCount; i++) {
+        spawnZombie();
+      }
+    }
+
+    // 生成单个僵尸
+    function spawnZombie() {
+      const size = config.zombieMinSize + Math.random() * (config.zombieMaxSize - config.zombieMinSize);
+      const x = canvas.width - 100 - Math.random() * 200;
+      const y = canvas.height - size / 2 - 10;
+      const health = config.zombieHealth + level * 20;
+
+      zombies.push({ x, y, size, health, maxHealth: health });
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      scoreEl.textContent = score;
+      levelEl.textContent = level;
+      highScoreEl.textContent = highScore;
+    }
+
+    // 开始游戏
+    function startGame() {
+      if (gameRunning) return;
+      gameRunning = true;
+      gameOver = false;
+      gameOverEl.classList.add('hidden');
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 游戏循环
+    function gameLoop(timestamp) {
+      if (!gameRunning || gameOver) return;
+
+      // 更新游戏状态
+      update(timestamp);
+
+      // 绘制游戏画面
+      draw();
+
+      // 继续游戏循环
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 更新游戏状态
+    function update(timestamp) {
+      // 更新炮弹
+      updateBullets();
+
+      // 更新僵尸
+      updateZombies();
+
+      // 检测碰撞
+      checkCollisions();
+
+      // 生成新僵尸
+      if (timestamp - lastSpawnTime > config.spawnRate) {
+        spawnZombie();
+        lastSpawnTime = timestamp;
+      }
+
+      // 检查升级
+      checkLevelUp();
+
+      // 检查游戏结束
+      checkGameOver();
+    }
+
+    // 更新炮弹
+    function updateBullets() {
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        const bullet = bullets[i];
+        bullet.x += bullet.vx;
+        bullet.y += bullet.vy;
+        bullet.vy += config.gravity;
+
+        // 边界检测
+        if (bullet.x < 0 || bullet.x > canvas.width || bullet.y > canvas.height) {
+          bullets.splice(i, 1);
+        }
+      }
+    }
+
+    // 更新僵尸
+    function updateZombies() {
+      zombies.forEach(zombie => {
+        // 僵尸向左移动
+        zombie.x -= config.zombieSpeed;
+      });
+    }
+
+    // 检测碰撞
+    function checkCollisions() {
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        const bullet = bullets[i];
+
+        for (let j = zombies.length - 1; j >= 0; j--) {
+          const zombie = zombies[j];
+          const dx = bullet.x - zombie.x;
+          const dy = bullet.y - zombie.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < bullet.size / 2 + zombie.size / 2) {
+            // 击中僵尸
+            zombie.health -= 50;
+            bullets.splice(i, 1);
+
+            if (zombie.health <= 0) {
+              // 僵尸死亡
+              score += Math.floor(zombie.maxHealth / 10);
+              zombies.splice(j, 1);
+              spawnZombie();
+              updateStats();
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    // 检查升级
+    function checkLevelUp() {
+      if (score >= level * config.levelUpScore) {
+        level++;
+        updateStats();
+      }
+    }
+
+    // 检查游戏结束
+    function checkGameOver() {
+      // 检查是否有僵尸到达左侧
+      for (let i = zombies.length - 1; i >= 0; i--) {
+        const zombie = zombies[i];
+        if (zombie.x < 100) {
+          endGame();
+          return;
+        }
+      }
+    }
+
+    // 绘制游戏画面
+    function draw() {
+      // 清空画布
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 绘制背景
+      drawBackground();
+
+      // 绘制僵尸
+      drawZombies();
+
+      // 绘制炮弹
+      drawBullets();
+
+      // 绘制炮台
+      drawCannon();
+
+      // 绘制瞄准线
+      drawAimLine();
+    }
+
+    // 绘制背景
+    function drawBackground() {
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#87CEEB');
+      gradient.addColorStop(1, '#98FB98');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 绘制地面
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+    }
+
+    // 绘制僵尸
+    function drawZombies() {
+      zombies.forEach(zombie => {
+        // 绘制僵尸身体
+        ctx.fillStyle = '#4ade80';
+        ctx.beginPath();
+        ctx.arc(zombie.x, zombie.y, zombie.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 绘制血条
+        const healthBarWidth = zombie.size;
+        const healthBarHeight = 5;
+        const healthPercent = zombie.health / zombie.maxHealth;
+
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(zombie.x - healthBarWidth / 2, zombie.y - zombie.size / 2 - 10, healthBarWidth, healthBarHeight);
+
+        ctx.fillStyle = '#22c55e';
+        ctx.fillRect(zombie.x - healthBarWidth / 2, zombie.y - zombie.size / 2 - 10, healthBarWidth * healthPercent, healthBarHeight);
+      });
+    }
+
+    // 绘制炮弹
+    function drawBullets() {
+      bullets.forEach(bullet => {
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(bullet.x, bullet.y, bullet.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // 绘制炮台
+    function drawCannon() {
+      // 绘制炮台底座
+      ctx.fillStyle = '#6b7280';
+      ctx.fillRect(cannon.x - 20, cannon.y, 40, 20);
+
+      // 绘制炮管
+      ctx.save();
+      ctx.translate(cannon.x, cannon.y);
+      ctx.rotate(-cannon.angle * Math.PI / 180);
+      ctx.fillStyle = '#374151';
+      ctx.fillRect(0, -5, 40, 10);
+      ctx.restore();
+    }
+
+    // 绘制瞄准线
+    function drawAimLine() {
+      if (!gameRunning || gameOver) return;
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(cannon.x, cannon.y);
+
+      const angleRad = cannon.angle * Math.PI / 180;
+      const power = cannon.power / config.maxPower;
+      const length = 100 * power;
+
+      ctx.lineTo(
+        cannon.x + Math.cos(angleRad) * length,
+        cannon.y - Math.sin(angleRad) * length
+      );
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // 发射炮弹
+    function fireBullet() {
+      if (!gameRunning || gameOver) return;
+
+      const angleRad = cannon.angle * Math.PI / 180;
+      const power = cannon.power / config.maxPower;
+      const speed = config.bulletSpeed * power;
+
+      const bullet = {
+        x: cannon.x + Math.cos(angleRad) * 40,
+        y: cannon.y - Math.sin(angleRad) * 40,
+        size: config.bulletSize,
+        vx: Math.cos(angleRad) * speed,
+        vy: -Math.sin(angleRad) * speed
+      };
+
+      bullets.push(bullet);
+      cannon.power = 0;
+    }
+
+    // 结束游戏
+    function endGame() {
+      gameOver = true;
+      gameRunning = false;
+
+      // 更新最高分
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('xiang-jiang-shi-kai-pao-highscore', highScore);
+      }
+
+      // 显示游戏结束界面
+      finalScore.textContent = score;
+      finalHighScore.textContent = `最高分: ${highScore}`;
+      gameOverEl.classList.remove('hidden');
+    }
+
+    // 事件监听
+    // 键盘控制
+    document.addEventListener('keydown', (e) => {
+      if (!gameRunning || gameOver) return;
+
+      switch (e.key) {
+        case 'ArrowUp':
+          cannon.angle = Math.min(90, cannon.angle + 5);
+          break;
+        case 'ArrowDown':
+          cannon.angle = Math.max(0, cannon.angle - 5);
+          break;
+        case ' ':
+          powerCharging = true;
+          break;
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      if (e.key === ' ' && powerCharging) {
+        powerCharging = false;
+        fireBullet();
+      }
+    });
+
+    // 触摸控制
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    canvas.addEventListener('touchstart', (e) => {
+      if (!gameRunning || gameOver) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      powerCharging = true;
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (!gameRunning || gameOver) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const dx = touch.clientX - touchStartX;
+      const dy = touch.clientY - touchStartY;
+
+      // 根据滑动方向调整角度
+      if (Math.abs(dx) > Math.abs(dy)) {
+        cannon.angle = Math.max(0, Math.min(90, cannon.angle + dx * 0.1));
+      }
+
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+    });
+
+    canvas.addEventListener('touchend', () => {
+      if (powerCharging) {
+        powerCharging = false;
+        fireBullet();
+      }
+    });
+
+    // 按钮事件
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', initGame);
+    playAgainBtn.addEventListener('click', initGame);
+
+    // 蓄力系统
+    setInterval(() => {
+      if (powerCharging && gameRunning && !gameOver) {
+        cannon.power = Math.min(config.maxPower, cannon.power + config.powerChargeRate);
+      }
+    }, 50);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>

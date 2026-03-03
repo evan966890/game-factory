@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《我的花园世界》
-灵感来源：微信小游戏《我的花园世界》
-经营花园种植花卉，装饰花园吸引游客，赚取金币解锁新花卉，离线收益系统
-▶️ 试玩：https://evan966890.github.io/game-factory/games/wo-de-hua-yuan-shi-jie/
+《细胞生存》
+灵感来源：微信小游戏《Cell Survivor（不服来通关）》
+控制细胞移动，吞噬成长，躲避危险，成为最强细胞，关卡系统
+▶️ 试玩：https://evan966890.github.io/game-factory/games/xi-bao-sheng-cun/
 
-📊 游戏工厂累计：141 个游戏
+📊 游戏工厂累计：142 个游戏
