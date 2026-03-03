@@ -948,5 +948,11 @@
     "path": "games/yang-liao-ge-yang-xing-qiu/index.html",
     "category": "消除",
     "createdAt": "2026-03-03T23:01:50Z"
+  },
+  {
+    "name": "地铁跑酷",
+    "path": "games/di-tie-pao-ku/index.html",
+    "category": "跑酷",
+    "createdAt": "2026-03-03T23:07:10Z"
   }
 ]

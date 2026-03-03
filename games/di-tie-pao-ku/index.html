@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>地铁跑酷</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --track: #374151;
+      --track-dark: #1f2937;
+      --train: #6b7280;
+      --train-dark: #374151;
+      --coin: #fcd34d;
+      --coin-dark: #f59e0b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .track {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--track);
+      margin-bottom: 16px;
+      height: 200px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .track-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: white;
+    }
+
+    .player {
+      position: absolute;
+      bottom: 20px;
+      left: 50px;
+      width: 40px;
+      height: 60px;
+      background: var(--blue);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      transition: all 0.1s;
+      z-index: 10;
+    }
+
+    .player.jumping {
+      bottom: 80px;
+    }
+
+    .player.sliding {
+      height: 30px;
+      bottom: 10px;
+    }
+
+    .obstacle {
+      position: absolute;
+      bottom: 20px;
+      width: 40px;
+      height: 60px;
+      background: var(--train);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .obstacle.train {
+      height: 80px;
+      background: var(--train-dark);
+    }
+
+    .obstacle.barrier {
+      height: 40px;
+      background: var(--red);
+    }
+
+    .obstacle.guard {
+      height: 70px;
+      background: var(--orange);
+    }
+
+    .coin {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: var(--coin);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+
+    .powerup {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: var(--purple);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .controls {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .controls-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .control-btn {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1.2rem;
+    }
+
+    .control-btn:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .control-btn:active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .powerups {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .powerups-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .powerups-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .powerup-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .powerup-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .powerup-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .powerup-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .powerup-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .powerup-item .count {
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .game-controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>地铁跑酷</h1>
+    <p class="subtitle">扮演涂鸦艺术家，躲避警卫追捕，收集金币和道具</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">距离</span>
+        <span class="value blue" id="distance">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="coins">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高分</span>
+        <span class="value green" id="highScore">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="track">
+          <div class="track-title">奔跑区域</div>
+          <div class="player" id="player">🏃</div>
+          <div id="obstacles"></div>
+          <div id="coins"></div>
+          <div id="powerups"></div>
+        </div>
+
+        <div class="controls">
+          <div class="controls-title">控制</div>
+          <div class="controls-grid">
+            <div class="control-btn" id="leftBtn">⬅️</div>
+            <div class="control-btn" id="jumpBtn">⬆️</div>
+            <div class="control-btn" id="rightBtn">➡️</div>
+            <div class="control-btn" id="slideBtn">⬇️</div>
+          </div>
+        </div>
+
+        <div class="powerups">
+          <div class="powerups-title">道具</div>
+          <div class="powerups-grid" id="powerupsGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-controls">
+      <button class="btn" id="startBtn">开始游戏</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      lanes: 3,
+      laneWidth: 80,
+      playerSpeed: 5,
+      obstacleSpeed: 3,
+      coinSpeed: 2,
+      powerupSpeed: 2,
+      jumpHeight: 60,
+      slideHeight: 30,
+      powerups: [
+        { id: 'board', name: '滑板', emoji: '🛹', count: 3, duration: 5000 },
+        { id: 'magnet', name: '磁铁', emoji: '🧲', count: 2, duration: 8000 },
+        { id: 'jetpack', name: '喷射器', emoji: '🚀', count: 1, duration: 3000 }
+      ]
+    };
+
+    // 游戏状态
+    let distance = 0;
+    let coins = 0;
+    let highScore = parseInt(localStorage.getItem('di-tie-pao-ku-highscore')) || 0;
+    let playerLane = 1;
+    let playerState = 'running'; // running, jumping, sliding
+    let obstacles = [];
+    let coinItems = [];
+    let powerupItems = [];
+    let powerups = JSON.parse(JSON.stringify(config.powerups));
+    let activePowerups = {};
+    let gameLoop = null;
+    let isPlaying = false;
+
+    // DOM 元素
+    const distanceEl = document.getElementById('distance');
+    const coinsEl = document.getElementById('coins');
+    const highScoreEl = document.getElementById('highScore');
+    const playerEl = document.getElementById('player');
+    const obstaclesEl = document.getElementById('obstacles');
+    const coinsEl = document.getElementById('coins');
+    const powerupsEl = document.getElementById('powerups');
+    const powerupsGridEl = document.getElementById('powerupsGrid');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const leftBtn = document.getElementById('leftBtn');
+    const rightBtn = document.getElementById('rightBtn');
+    const jumpBtn = document.getElementById('jumpBtn');
+    const slideBtn = document.getElementById('slideBtn');
+
+    // 初始化游戏
+    function initGame() {
+      distance = 0;
+      coins = 0;
+      playerLane = 1;
+      playerState = 'running';
+      obstacles = [];
+      coinItems = [];
+      powerupItems = [];
+      powerups = JSON.parse(JSON.stringify(config.powerups));
+      activePowerups = {};
+      isPlaying = false;
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updatePlayer();
+      updateObstacles();
+      updateCoins();
+      updatePowerups();
+      updatePowerupsGrid();
+
+      // 开始游戏循环
+      startGameLoop();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('di-tie-pao-ku');
+      if (saved) {
+        const data = JSON.parse(saved);
+        distance = data.distance || 0;
+        coins = data.coins || 0;
+        highScore = data.highScore || 0;
+        powerups = data.powerups || JSON.parse(JSON.stringify(config.powerups));
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        distance,
+        coins,
+        highScore,
+        powerups
+      };
+      localStorage.setItem('di-tie-pao-ku', JSON.stringify(data));
+    }
+
+    // 开始游戏循环
+    function startGameLoop() {
+      if (gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => {
+        if (isPlaying) {
+          // 更新距离
+          distance += 1;
+
+          // 生成障碍物
+          if (Math.random() < 0.02) {
+            generateObstacle();
+          }
+
+          // 生成金币
+          if (Math.random() < 0.05) {
+            generateCoin();
+          }
+
+          // 生成道具
+          if (Math.random() < 0.01) {
+            generatePowerup();
+          }
+
+          // 更新障碍物位置
+          updateObstaclesPosition();
+
+          // 更新金币位置
+          updateCoinsPosition();
+
+          // 更新道具位置
+          updatePowerupsPosition();
+
+          // 检查碰撞
+          checkCollisions();
+
+          // 更新显示
+          updateStats();
+          updateObstacles();
+          updateCoins();
+          updatePowerups();
+
+          // 保存游戏
+          saveGame();
+        }
+      }, 100);
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      distanceEl.textContent = Math.floor(distance);
+      coinsEl.textContent = coins;
+      highScoreEl.textContent = highScore;
+
+      // 更新最高分
+      if (distance > highScore) {
+        highScore = Math.floor(distance);
+        localStorage.setItem('di-tie-pao-ku-highscore', highScore);
+      }
+    }
+
+    // 更新玩家位置
+    function updatePlayer() {
+      const trackWidth = document.querySelector('.track').offsetWidth;
+      const laneWidth = trackWidth / config.lanes;
+      const left = playerLane * laneWidth + (laneWidth - 40) / 2;
+
+      playerEl.style.left = `${left}px`;
+      playerEl.className = 'player';
+      if (playerState === 'jumping') playerEl.classList.add('jumping');
+      if (playerState === 'sliding') playerEl.classList.add('sliding');
+    }
+
+    // 生成障碍物
+    function generateObstacle() {
+      const trackWidth = document.querySelector('.track').offsetWidth;
+      const laneWidth = trackWidth / config.lanes;
+      const lane = Math.floor(Math.random() * config.lanes);
+      const left = lane * laneWidth + (laneWidth - 40) / 2;
+
+      const types = ['train', 'barrier', 'guard'];
+      const type = types[Math.floor(Math.random() * types.length)];
+
+      obstacles.push({
+        id: Date.now(),
+        type,
+        lane,
+        left,
+        bottom: 20
+      });
+    }
+
+    // 生成金币
+    function generateCoin() {
+      const trackWidth = document.querySelector('.track').offsetWidth;
+      const laneWidth = trackWidth / config.lanes;
+      const lane = Math.floor(Math.random() * config.lanes);
+      const left = lane * laneWidth + (laneWidth - 20) / 2;
+
+      coinItems.push({
+        id: Date.now(),
+        lane,
+        left,
+        bottom: 40
+      });
+    }
+
+    // 生成道具
+    function generatePowerup() {
+      const trackWidth = document.querySelector('.track').offsetWidth;
+      const laneWidth = trackWidth / config.lanes;
+      const lane = Math.floor(Math.random() * config.lanes);
+      const left = lane * laneWidth + (laneWidth - 30) / 2;
+
+      const types = ['board', 'magnet', 'jetpack'];
+      const type = types[Math.floor(Math.random() * types.length)];
+
+      powerupItems.push({
+        id: Date.now(),
+        type,
+        lane,
+        left,
+        bottom: 50
+      });
+    }
+
+    // 更新障碍物位置
+    function updateObstaclesPosition() {
+      obstacles.forEach(obstacle => {
+        obstacle.left -= config.obstacleSpeed;
+      });
+      obstacles = obstacles.filter(obstacle => obstacle.left > -50);
+    }
+
+    // 更新金币位置
+    function updateCoinsPosition() {
+      coinItems.forEach(coin => {
+        coin.left -= config.coinSpeed;
+      });
+      coinItems = coinItems.filter(coin => coin.left > -30);
+    }
+
+    // 更新道具位置
+    function updatePowerupsPosition() {
+      powerupItems.forEach(powerup => {
+        powerup.left -= config.powerupSpeed;
+      });
+      powerupItems = powerupItems.filter(powerup => powerup.left > -40);
+    }
+
+    // 更新障碍物显示
+    function updateObstacles() {
+      obstaclesEl.innerHTML = '';
+      obstacles.forEach(obstacle => {
+        const obstacleEl = document.createElement('div');
+        obstacleEl.className = `obstacle ${obstacle.type}`;
+        obstacleEl.style.left = `${obstacle.left}px`;
+        obstacleEl.style.bottom = `${obstacle.bottom}px`;
+
+        let emoji = '🚧';
+        if (obstacle.type === 'train') emoji = '🚃';
+        if (obstacle.type === 'barrier') emoji = '🚧';
+        if (obstacle.type === 'guard') emoji = '👮';
+
+        obstacleEl.textContent = emoji;
+        obstaclesEl.appendChild(obstacleEl);
+      });
+    }
+
+    // 更新金币显示
+    function updateCoins() {
+      coinsEl.innerHTML = '';
+      coinItems.forEach(coin => {
+        const coinEl = document.createElement('div');
+        coinEl.className = 'coin';
+        coinEl.style.left = `${coin.left}px`;
+        coinEl.style.bottom = `${coin.bottom}px`;
+        coinEl.textContent = '💰';
+        coinsEl.appendChild(coinEl);
+      });
+    }
+
+    // 更新道具显示
+    function updatePowerups() {
+      powerupsEl.innerHTML = '';
+      powerupItems.forEach(powerup => {
+        const powerupEl = document.createElement('div');
+        powerupEl.className = 'powerup';
+        powerupEl.style.left = `${powerup.left}px`;
+        powerupEl.style.bottom = `${powerup.bottom}px`;
+
+        let emoji = '❓';
+        if (powerup.type === 'board') emoji = '🛹';
+        if (powerup.type === 'magnet') emoji = '🧲';
+        if (powerup.type === 'jetpack') emoji = '🚀';
+
+        powerupEl.textContent = emoji;
+        powerupsEl.appendChild(powerupEl);
+      });
+    }
+
+    // 更新道具网格显示
+    function updatePowerupsGrid() {
+      powerupsGridEl.innerHTML = '';
+      powerups.forEach(powerup => {
+        const powerupEl = document.createElement('div');
+        powerupEl.className = 'powerup-item';
+        powerupEl.innerHTML = `
+          <div class="emoji">${powerup.emoji}</div>
+          <div class="name">${powerup.name}</div>
+          <div class="count">${powerup.count}</div>
+        `;
+        if (powerup.count > 0) {
+          powerupEl.addEventListener('click', () => usePowerup(powerup));
+        } else {
+          powerupEl.disabled = true;
+        }
+        powerupsGridEl.appendChild(powerupEl);
+      });
+    }
+
+    // 检查碰撞
+    function checkCollisions() {
+      const playerLeft = parseInt(playerEl.style.left);
+      const playerBottom = parseInt(playerEl.style.bottom);
+
+      // 检查障碍物碰撞
+      obstacles.forEach(obstacle => {
+        if (Math.abs(obstacle.left - playerLeft) < 30 && 
+            Math.abs(obstacle.bottom - playerBottom) < 30) {
+          if (playerState !== 'jumping' && playerState !== 'sliding') {
+            gameOver();
+          }
+        }
+      });
+
+      // 检查金币碰撞
+      coinItems.forEach((coin, index) => {
+        if (Math.abs(coin.left - playerLeft) < 20 && 
+            Math.abs(coin.bottom - playerBottom) < 20) {
+          coins += 1;
+          coinItems.splice(index, 1);
+        }
+      });
+
+      // 检查道具碰撞
+      powerupItems.forEach((powerup, index) => {
+        if (Math.abs(powerup.left - playerLeft) < 25 && 
+            Math.abs(powerup.bottom - playerBottom) < 25) {
+          const powerupConfig = powerups.find(p => p.id === powerup.type);
+          if (powerupConfig) {
+            powerupConfig.count += 1;
+          }
+          powerupItems.splice(index, 1);
+          updatePowerupsGrid();
+        }
+      });
+    }
+
+    // 使用道具
+    function usePowerup(powerup) {
+      if (powerup.count <= 0) return;
+
+      powerup.count--;
+      activePowerups[powerup.id] = Date.now() + powerup.duration;
+
+      updatePowerupsGrid();
+
+      // 道具效果
+      switch (powerup.id) {
+        case 'board':
+          // 滑板：无敌
+          break;
+        case 'magnet':
+          // 磁铁：自动收集金币
+          break;
+        case 'jetpack':
+          // 喷射器：飞行
+          playerState = 'jumping';
+          setTimeout(() => {
+            playerState = 'running';
+            updatePlayer();
+          }, powerup.duration);
+          break;
+      }
+    }
+
+    // 移动玩家
+    function movePlayer(direction) {
+      if (!isPlaying) return;
+
+      switch (direction) {
+        case 'left':
+          if (playerLane > 0) playerLane--;
+          break;
+        case 'right':
+          if (playerLane < config.lanes - 1) playerLane++;
+          break;
+        case 'jump':
+          if (playerState === 'running') {
+            playerState = 'jumping';
+            setTimeout(() => {
+              playerState = 'running';
+              updatePlayer();
+            }, 500);
+          }
+          break;
+        case 'slide':
+          if (playerState === 'running') {
+            playerState = 'sliding';
+            setTimeout(() => {
+              playerState = 'running';
+              updatePlayer();
+            }, 500);
+          }
+          break;
+      }
+
+      updatePlayer();
+    }
+
+    // 开始游戏
+    function startGame() {
+      isPlaying = true;
+      startBtn.textContent = '暂停游戏';
+    }
+
+    // 暂停游戏
+    function pauseGame() {
+      isPlaying = false;
+      startBtn.textContent = '继续游戏';
+    }
+
+    // 游戏结束
+    function gameOver() {
+      isPlaying = false;
+      alert(`游戏结束！你跑了 ${Math.floor(distance)} 米，收集了 ${coins} 个金币`);
+      saveGame();
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('di-tie-pao-ku');
+        localStorage.removeItem('di-tie-pao-ku-highscore');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    startBtn.addEventListener('click', () => {
+      if (isPlaying) {
+        pauseGame();
+      } else {
+        startGame();
+      }
+    });
+    resetBtn.addEventListener('click', resetGame);
+    leftBtn.addEventListener('click', () => movePlayer('left'));
+    rightBtn.addEventListener('click', () => movePlayer('right'));
+    jumpBtn.addEventListener('click', () => movePlayer('jump'));
+    slideBtn.addEventListener('click', () => movePlayer('slide'));
+
+    // 键盘控制
+    document.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowLeft':
+          movePlayer('left');
+          break;
+        case 'ArrowRight':
+          movePlayer('right');
+          break;
+        case 'ArrowUp':
+          movePlayer('jump');
+          break;
+        case 'ArrowDown':
+          movePlayer('slide');
+          break;
+        case ' ':
+          if (isPlaying) {
+            pauseGame();
+          } else {
+            startGame();
+          }
+          break;
+      }
+    });
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
