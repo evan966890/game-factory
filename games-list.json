@@ -894,5 +894,11 @@
     "path": "games/xian-zhi-nong-suo-ka-fei-dian/index.html",
     "category": "模拟经营",
     "createdAt": "2026-03-03T21:39:08Z"
+  },
+  {
+    "name": "肥鹅健身房",
+    "path": "games/fei-e-jian-shen-fang/index.html",
+    "category": "合成消除",
+    "createdAt": "2026-03-03T21:55:29Z"
   }
 ]

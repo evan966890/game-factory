@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>肥鹅健身房</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --feather: #f0e6d3;
+      --feather-dark: #d4c4a8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .cell:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .cell.selected {
+      background: #d4edda;
+      border-color: var(--green);
+      transform: scale(1.1);
+    }
+
+    .cell.empty {
+      background: #f0f0f0;
+      border-color: #ddd;
+    }
+
+    .gym {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .gym-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .gym-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .gym-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .gym-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .gym-item.owned {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .gym-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .gym-item .cost {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>肥鹅健身房</h1>
+    <p class="subtitle">合成元素，装饰健身房</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">星星</span>
+        <span class="value gold" id="stars">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">经验</span>
+        <span class="value green" id="exp">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">等级</span>
+        <span class="value blue" id="level">1</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="board" id="board"></div>
+
+        <div class="gym">
+          <div class="gym-title">健身房装饰</div>
+          <div class="gym-grid" id="gym"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="refreshBtn">刷新棋盘</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      boardSize: 5,
+      elements: [
+        { id: 'feather1', emoji: '🪶', level: 1 },
+        { id: 'feather2', emoji: '🪶', level: 2 },
+        { id: 'feather3', emoji: '🪶', level: 3 },
+        { id: 'feather4', emoji: '🪶', level: 4 },
+        { id: 'feather5', emoji: '🪶', level: 5 }
+      ],
+      gymItems: [
+        { id: 'treadmill', name: '跑步机', emoji: '🏃', cost: 50, exp: 10 },
+        { id: 'dumbbell', name: '哑铃', emoji: '🏋️', cost: 100, exp: 20 },
+        { id: 'yoga', name: '瑜伽垫', emoji: '🧘', cost: 150, exp: 30 },
+        { id: 'bike', name: '动感单车', emoji: '🚴', cost: 200, exp: 40 },
+        { id: 'pool', name: '游泳池', emoji: '🏊', cost: 300, exp: 50 },
+        { id: 'sauna', name: '桑拿房', emoji: '🧖', cost: 400, exp: 60 }
+      ],
+      refreshCost: 10
+    };
+
+    // 游戏状态
+    let stars = 0;
+    let exp = 0;
+    let level = 1;
+    let board = [];
+    let selectedCell = null;
+    let ownedGymItems = new Set();
+
+    // DOM 元素
+    const starsEl = document.getElementById('stars');
+    const expEl = document.getElementById('exp');
+    const levelEl = document.getElementById('level');
+    const boardEl = document.getElementById('board');
+    const gymEl = document.getElementById('gym');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      stars = 0;
+      exp = 0;
+      level = 1;
+      board = [];
+      selectedCell = null;
+      ownedGymItems = new Set();
+
+      // 初始化棋盘
+      initBoard();
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateBoard();
+      updateGym();
+    }
+
+    // 初始化棋盘
+    function initBoard() {
+      board = [];
+      for (let i = 0; i < config.boardSize * config.boardSize; i++) {
+        board.push(generateElement());
+      }
+    }
+
+    // 生成元素
+    function generateElement() {
+      const level = Math.floor(Math.random() * 3) + 1; // 1-3级
+      return {
+        id: `feather${level}`,
+        emoji: '🪶',
+        level: level
+      };
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('fei-e-jian-shen-fang');
+      if (saved) {
+        const data = JSON.parse(saved);
+        stars = data.stars || 0;
+        exp = data.exp || 0;
+        level = data.level || 1;
+        board = data.board || [];
+        ownedGymItems = new Set(data.ownedGymItems || []);
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        stars,
+        exp,
+        level,
+        board,
+        ownedGymItems: Array.from(ownedGymItems)
+      };
+      localStorage.setItem('fei-e-jian-shen-fang', JSON.stringify(data));
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      starsEl.textContent = stars;
+      expEl.textContent = exp;
+      levelEl.textContent = level;
+
+      // 检查升级
+      const expNeeded = level * 100;
+      if (exp >= expNeeded) {
+        level++;
+        exp -= expNeeded;
+        alert(`恭喜升级到 ${level} 级！`);
+      }
+    }
+
+    // 更新棋盘显示
+    function updateBoard() {
+      boardEl.innerHTML = '';
+      board.forEach((element, index) => {
+        const cell = document.createElement('div');
+        cell.className = `cell ${element ? '' : 'empty'} ${selectedCell === index ? 'selected' : ''}`;
+        cell.textContent = element ? element.emoji : '';
+        cell.addEventListener('click', () => selectCell(index));
+        boardEl.appendChild(cell);
+      });
+    }
+
+    // 选择单元格
+    function selectCell(index) {
+      if (selectedCell === null) {
+        selectedCell = index;
+      } else if (selectedCell === index) {
+        selectedCell = null;
+      } else {
+        // 尝试合成
+        tryMerge(selectedCell, index);
+        selectedCell = null;
+      }
+      updateBoard();
+    }
+
+    // 尝试合成
+    function tryMerge(index1, index2) {
+      const element1 = board[index1];
+      const element2 = board[index2];
+
+      if (!element1 || !element2) return;
+
+      // 检查是否可以合成
+      if (element1.id === element2.id && element1.level === element2.level) {
+        // 合成成功
+        const newLevel = element1.level + 1;
+        const newElement = {
+          id: `feather${newLevel}`,
+          emoji: '🪶',
+          level: newLevel
+        };
+
+        // 更新棋盘
+        board[index1] = null;
+        board[index2] = newElement;
+
+        // 奖励星星和经验
+        const starsEarned = newLevel * 10;
+        const expEarned = newLevel * 5;
+        stars += starsEarned;
+        exp += expEarned;
+
+        alert(`合成成功！获得 ${starsEarned} 星星，${expEarned} 经验`);
+
+        updateStats();
+        saveGame();
+      }
+    }
+
+    // 更新健身房显示
+    function updateGym() {
+      gymEl.innerHTML = '';
+      config.gymItems.forEach(item => {
+        const owned = ownedGymItems.has(item.id);
+
+        const itemEl = document.createElement('div');
+        itemEl.className = `gym-item ${owned ? 'owned' : ''}`;
+        itemEl.innerHTML = `
+          <div class="emoji">${item.emoji}</div>
+          <div class="cost">${owned ? '已拥有' : `${item.cost}星星`}</div>
+        `;
+        if (!owned) {
+          itemEl.addEventListener('click', () => buyGymItem(item));
+        }
+        gymEl.appendChild(itemEl);
+      });
+    }
+
+    // 购买健身房物品
+    function buyGymItem(item) {
+      if (stars >= item.cost && !ownedGymItems.has(item.id)) {
+        stars -= item.cost;
+        ownedGymItems.add(item.id);
+        exp += item.exp;
+
+        alert(`购买成功！获得 ${item.exp} 经验`);
+
+        updateStats();
+        updateGym();
+        saveGame();
+      }
+    }
+
+    // 刷新棋盘
+    function refreshBoard() {
+      if (stars >= config.refreshCost) {
+        stars -= config.refreshCost;
+        initBoard();
+        updateStats();
+        updateBoard();
+        saveGame();
+      } else {
+        alert('星星不足！');
+      }
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('fei-e-jian-shen-fang');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    refreshBtn.addEventListener('click', refreshBoard);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
