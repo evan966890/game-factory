@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
 《看图猜成语》
-灵感来源：成语小秀才 + 看图猜成语
-根据 emoji 图片提示猜成语，四选一答题，连续答对有连击加分，每题 30 秒限时挑战
-▶️ 试玩：https://evan966890.github.io/game-factory/games/picture-guess-idiom/
+灵感来源：微信小游戏"看图猜成语"
+根据emoji图片提示猜成语，答对显示释义和出处，有连击和时间限制
+▶️ 试玩：https://evan966890.github.io/game-factory/games/看图猜成语/
 
 📊 游戏工厂累计：134 个游戏
