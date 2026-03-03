@@ -780,5 +780,11 @@
     "path": "games/math-paperclip-universe/index.html",
     "category": "education",
     "createdAt": "2026-03-03T14:00:00Z"
+  },
+  {
+    "name": "数学节奏冲刺",
+    "path": "games/math-rhythm-sprint/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T15:09:26Z"
   }
 ]

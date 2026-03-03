@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《数学曲折跑》
-灵感来源：Zigzag Runner + 数学教育
-单指点击控制球在曲折路径上滚动，每前进 100 米弹出数学题，答对获得加速和护盾，答错减速，难度随距离递进
-▶️ 试玩：https://evan966890.github.io/game-factory/games/math-zigzag-runner/
+《数学纸夹宇宙》
+灵感来源：Universal Paperclips + 数学教育
+点击数学公式获得点数，购买升级自动化生产，解锁更高级的数学概念，难度从加法递进到微积分
+▶️ 试玩：https://evan966890.github.io/game-factory/games/math-paperclip-universe/
 
-📊 游戏工厂累计：128 个游戏
+📊 游戏工厂累计：130 个游戏

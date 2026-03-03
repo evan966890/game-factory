@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>数学节奏冲刺</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            max-height: 800px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            padding: 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid #e94560;
+        }
+        
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e94560;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            font-size: 16px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #aaa;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .combo {
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        .game-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .question-display {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            border: 2px solid #e94560;
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+            z-index: 10;
+        }
+        
+        .controls {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .answer-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(145deg, #e94560, #c73e54);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+            transition: all 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .answer-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(233, 69, 96, 0.4);
+        }
+        
+        .answer-btn.correct {
+            background: linear-gradient(145deg, #4CAF50, #45a049);
+            animation: pulse 0.3s ease;
+        }
+        
+        .answer-btn.wrong {
+            background: linear-gradient(145deg, #f44336, #d32f2f);
+            animation: shake 0.3s ease;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .start-screen, .game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .start-screen h1, .game-over-screen h1 {
+            font-size: 36px;
+            color: #e94560;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+        }
+        
+        .start-screen p, .game-over-screen p {
+            font-size: 18px;
+            color: #aaa;
+            margin-bottom: 30px;
+            text-align: center;
+            padding: 0 20px;
+        }
+        
+        .start-btn, .restart-btn {
+            padding: 15px 40px;
+            font-size: 20px;
+            background: linear-gradient(145deg, #e94560, #c73e54);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(233, 69, 96, 0.4);
+            transition: all 0.2s ease;
+        }
+        
+        .start-btn:hover, .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(233, 69, 96, 0.5);
+        }
+        
+        .high-score {
+            font-size: 24px;
+            color: #ffd700;
+            margin-bottom: 20px;
+        }
+        
+        .final-score {
+            font-size: 48px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        .feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            font-weight: bold;
+            color: #4CAF50;
+            text-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 20;
+            pointer-events: none;
+        }
+        
+        .feedback.wrong {
+            color: #f44336;
+            text-shadow: 0 0 20px rgba(244, 67, 54, 0.5);
+        }
+        
+        .feedback.show {
+            opacity: 1;
+        }
+        
+        .difficulty-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 14px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <div class="title">数学节奏冲刺</div>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-label">得分</div>
+                    <div class="stat-value" id="score">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">连击</div>
+                    <div class="stat-value combo" id="combo">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">最高分</div>
+                    <div class="stat-value" id="highScore">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <canvas id="gameCanvas"></canvas>
+            <div class="question-display" id="questionDisplay">准备开始</div>
+            <div class="feedback" id="feedback">正确！</div>
+            <div class="difficulty-indicator" id="difficultyIndicator">难度：初级</div>
+        </div>
+        
+        <div class="controls" id="controls">
+            <!-- Answer buttons will be generated here -->
+        </div>
+        
+        <div class="start-screen" id="startScreen">
+            <h1>数学节奏冲刺</h1>
+            <p>按照节奏点击正确的数学答案<br>连击越多得分越高！</p>
+            <div class="high-score">最高分: <span id="startHighScore">0</span></div>
+            <button class="start-btn" id="startBtn">开始游戏</button>
+        </div>
+        
+        <div class="game-over-screen" id="gameOverScreen" style="display: none;">
+            <h1>游戏结束</h1>
+            <div class="final-score" id="finalScore">0</div>
+            <p>本次得分</p>
+            <div class="high-score">最高分: <span id="endHighScore">0</span></div>
+            <button class="restart-btn" id="restartBtn">再来一局</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const state = {
+            score: 0,
+            combo: 0,
+            highScore: parseInt(localStorage.getItem('mathRhythmHighScore')) || 0,
+            isPlaying: false,
+            currentQuestion: null,
+            currentAnswer: null,
+            difficulty: 1, // 1: 加法, 2: 加减法, 3: 四则运算
+            questionInterval: 2000, // ms between questions
+            lastQuestionTime: 0,
+            gameStartTime: 0,
+            particles: [],
+            audioContext: null,
+            oscillators: []
+        };
+
+        // DOM elements
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const questionDisplay = document.getElementById('questionDisplay');
+        const scoreDisplay = document.getElementById('score');
+        const comboDisplay = document.getElementById('combo');
+        const highScoreDisplay = document.getElementById('highScore');
+        const startHighScoreDisplay = document.getElementById('startHighScore');
+        const endHighScoreDisplay = document.getElementById('endHighScore');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const controls = document.getElementById('controls');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const feedback = document.getElementById('feedback');
+        const difficultyIndicator = document.getElementById('difficultyIndicator');
+
+        // Initialize canvas size
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+
+        // Initialize audio context
+        function initAudio() {
+            try {
+                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.log('Web Audio API not supported');
+            }
+        }
+
+        // Play sound
+        function playSound(frequency, duration, type = 'sine') {
+            if (!state.audioContext) return;
+            
+            const oscillator = state.audioContext.createOscillator();
+            const gainNode = state.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(state.audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.3, state.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, state.audioContext.currentTime + duration);
+            
+            oscillator.start(state.audioContext.currentTime);
+            oscillator.stop(state.audioContext.currentTime + duration);
+            
+            state.oscillators.push(oscillator);
+        }
+
+        // Generate math question
+        function generateQuestion() {
+            let num1, num2, operator, answer;
+            
+            switch(state.difficulty) {
+                case 1: // 加法
+                    num1 = Math.floor(Math.random() * 10) + 1;
+                    num2 = Math.floor(Math.random() * 10) + 1;
+                    operator = '+';
+                    answer = num1 + num2;
+                    break;
+                case 2: // 加减法
+                    num1 = Math.floor(Math.random() * 15) + 1;
+                    num2 = Math.floor(Math.random() * 15) + 1;
+                    if (Math.random() > 0.5) {
+                        operator = '+';
+                        answer = num1 + num2;
+                    } else {
+                        // Ensure positive result
+                        if (num1 < num2) [num1, num2] = [num2, num1];
+                        operator = '-';
+                        answer = num1 - num2;
+                    }
+                    break;
+                case 3: // 四则运算
+                    const ops = ['+', '-', '×', '÷'];
+                    operator = ops[Math.floor(Math.random() * ops.length)];
+                    switch(operator) {
+                        case '+':
+                            num1 = Math.floor(Math.random() * 20) + 1;
+                            num2 = Math.floor(Math.random() * 20) + 1;
+                            answer = num1 + num2;
+                            break;
+                        case '-':
+                            num1 = Math.floor(Math.random() * 20) + 1;
+                            num2 = Math.floor(Math.random() * num1) + 1;
+                            answer = num1 - num2;
+                            break;
+                        case '×':
+                            num1 = Math.floor(Math.random() * 10) + 1;
+                            num2 = Math.floor(Math.random() * 10) + 1;
+                            answer = num1 * num2;
+                            break;
+                        case '÷':
+                            num2 = Math.floor(Math.random() * 9) + 2;
+                            answer = Math.floor(Math.random() * 10) + 1;
+                            num1 = num2 * answer;
+                            break;
+                    }
+                    break;
+            }
+            
+            state.currentQuestion = `${num1} ${operator} ${num2} = ?`;
+            state.currentAnswer = answer;
+            
+            // Generate answer options
+            const options = [answer];
+            while (options.length < 4) {
+                let wrongAnswer;
+                if (Math.random() > 0.5) {
+                    wrongAnswer = answer + Math.floor(Math.random() * 5) + 1;
+                } else {
+                    wrongAnswer = Math.max(1, answer - Math.floor(Math.random() * 5) - 1);
+                }
+                if (!options.includes(wrongAnswer)) {
+                    options.push(wrongAnswer);
+                }
+            }
+            
+            // Shuffle options
+            options.sort(() => Math.random() - 0.5);
+            
+            return { question: state.currentQuestion, options, answer };
+        }
+
+        // Create answer buttons
+        function createAnswerButtons(options) {
+            controls.innerHTML = '';
+            options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = option;
+                btn.addEventListener('click', () => handleAnswer(option, btn));
+                controls.appendChild(btn);
+            });
+        }
+
+        // Handle answer
+        function handleAnswer(selected, btn) {
+            if (!state.isPlaying) return;
+            
+            const isCorrect = selected === state.currentAnswer;
+            
+            if (isCorrect) {
+                // Correct answer
+                state.combo++;
+                const comboBonus = Math.floor(state.combo * 0.1 * 10);
+                const points = 10 + comboBonus;
+                state.score += points;
+                
+                // Visual feedback
+                btn.classList.add('correct');
+                showFeedback('正确！', false);
+                playSound(880, 0.1, 'sine');
+                
+                // Create particles
+                createParticles(btn, '#4CAF50');
+            } else {
+                // Wrong answer
+                state.combo = 0;
+                btn.classList.add('wrong');
+                showFeedback('错误！', true);
+                playSound(220, 0.2, 'sawtooth');
+                
+                // Highlight correct answer
+                const buttons = controls.querySelectorAll('.answer-btn');
+                buttons.forEach(b => {
+                    if (parseInt(b.textContent) === state.currentAnswer) {
+                        b.classList.add('correct');
+                    }
+                });
+            }
+            
+            // Update displays
+            updateDisplays();
+            
+            // Remove button classes after animation
+            setTimeout(() => {
+                btn.classList.remove('correct', 'wrong');
+                const buttons = controls.querySelectorAll('.answer-btn');
+                buttons.forEach(b => b.classList.remove('correct'));
+            }, 300);
+            
+            // Generate new question after delay
+            setTimeout(() => {
+                if (state.isPlaying) {
+                    const q = generateQuestion();
+                    questionDisplay.textContent = q.question;
+                    createAnswerButtons(q.options);
+                }
+            }, 500);
+        }
+
+        // Show feedback
+        function showFeedback(text, isWrong) {
+            feedback.textContent = text;
+            feedback.className = 'feedback show' + (isWrong ? ' wrong' : '');
+            setTimeout(() => {
+                feedback.className = 'feedback';
+            }, 500);
+        }
+
+        // Create particles
+        function createParticles(btn, color) {
+            const rect = btn.getBoundingClientRect();
+            const containerRect = canvas.parentElement.getBoundingClientRect();
+            const x = rect.left - containerRect.left + rect.width / 2;
+            const y = rect.top - containerRect.top + rect.height / 2;
+            
+            for (let i = 0; i < 10; i++) {
+                state.particles.push({
+                    x,
+                    y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 1,
+                    color
+                });
+            }
+        }
+
+        // Update displays
+        function updateDisplays() {
+            scoreDisplay.textContent = state.score;
+            comboDisplay.textContent = state.combo;
+            highScoreDisplay.textContent = state.highScore;
+            
+            // Update difficulty indicator
+            const difficulties = ['初级', '中级', '高级'];
+            difficultyIndicator.textContent = `难度：${difficulties[state.difficulty - 1]}`;
+        }
+
+        // Game loop
+        function gameLoop(timestamp) {
+            if (!state.isPlaying) return;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw rhythm track
+            drawRhythmTrack(timestamp);
+            
+            // Update and draw particles
+            updateParticles();
+            
+            // Increase difficulty over time
+            const elapsed = timestamp - state.gameStartTime;
+            if (elapsed > 60000 && state.difficulty < 3) {
+                state.difficulty = 3;
+                updateDisplays();
+            } else if (elapsed > 30000 && state.difficulty < 2) {
+                state.difficulty = 2;
+                updateDisplays();
+            }
+            
+            // Increase question frequency over time
+            if (elapsed > 30000) {
+                state.questionInterval = Math.max(1000, 2000 - Math.floor(elapsed / 10000) * 100);
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Draw rhythm track
+        function drawRhythmTrack(timestamp) {
+            const centerY = canvas.height / 2;
+            const trackHeight = 100;
+            
+            // Draw track background
+            ctx.fillStyle = 'rgba(233, 69, 96, 0.1)';
+            ctx.fillRect(0, centerY - trackHeight/2, canvas.width, trackHeight);
+            
+            // Draw beat lines
+            const beatInterval = 500; // ms
+            const beatWidth = canvas.width / 4;
+            const offset = (timestamp % beatInterval) / beatInterval * beatWidth;
+            
+            ctx.strokeStyle = 'rgba(233, 69, 96, 0.3)';
+            ctx.lineWidth = 2;
+            
+            for (let x = -offset; x < canvas.width + beatWidth; x += beatWidth) {
+                ctx.beginPath();
+                ctx.moveTo(x, centerY - trackHeight/2);
+                ctx.lineTo(x, centerY + trackHeight/2);
+                ctx.stroke();
+            }
+            
+            // Draw center line
+            ctx.strokeStyle = 'rgba(233, 69, 96, 0.8)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(canvas.width, centerY);
+            ctx.stroke();
+            
+            // Draw moving indicator
+            const indicatorX = (timestamp % 2000) / 2000 * canvas.width;
+            ctx.fillStyle = '#e94560';
+            ctx.beginPath();
+            ctx.arc(indicatorX, centerY, 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw glow
+            ctx.shadowColor = '#e94560';
+            ctx.shadowBlur = 20;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        // Update particles
+        function updateParticles() {
+            for (let i = state.particles.length - 1; i >= 0; i--) {
+                const p = state.particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.02;
+                
+                if (p.life <= 0) {
+                    state.particles.splice(i, 1);
+                    continue;
+                }
+                
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 5 * p.life, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        // Start game
+        function startGame() {
+            state.score = 0;
+            state.combo = 0;
+            state.difficulty = 1;
+            state.questionInterval = 2000;
+            state.isPlaying = true;
+            state.gameStartTime = performance.now();
+            state.particles = [];
+            
+            // Update high score display
+            startHighScoreDisplay.textContent = state.highScore;
+            endHighScoreDisplay.textContent = state.highScore;
+            
+            // Hide screens
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            
+            // Generate first question
+            const q = generateQuestion();
+            questionDisplay.textContent = q.question;
+            createAnswerButtons(q.options);
+            
+            // Update displays
+            updateDisplays();
+            
+            // Start game loop
+            requestAnimationFrame(gameLoop);
+            
+            // Play start sound
+            playSound(440, 0.2, 'sine');
+        }
+
+        // End game
+        function endGame() {
+            state.isPlaying = false;
+            
+            // Update high score
+            if (state.score > state.highScore) {
+                state.highScore = state.score;
+                localStorage.setItem('mathRhythmHighScore', state.highScore);
+            }
+            
+            // Show game over screen
+            finalScoreDisplay.textContent = state.score;
+            endHighScoreDisplay.textContent = state.highScore;
+            gameOverScreen.style.display = 'flex';
+            
+            // Play end sound
+            playSound(220, 0.5, 'sawtooth');
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+        
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Initialize
+        resizeCanvas();
+        initAudio();
+        startHighScoreDisplay.textContent = state.highScore;
+        
+        // Auto-end game after 2 minutes (for demo)
+        setTimeout(() => {
+            if (state.isPlaying) {
+                endGame();
+            }
+        }, 120000);
+    </script>
+</body>
+</html>
