@@ -930,5 +930,11 @@
     "path": "games/tang-ping-fa-yu/index.html",
     "category": "塔防",
     "createdAt": "2026-03-03T22:48:20Z"
+  },
+  {
+    "name": "时光大爆炸",
+    "path": "games/shi-guang-da-bao-zha/index.html",
+    "category": "模拟经营",
+    "createdAt": "2026-03-03T22:51:40Z"
   }
 ]

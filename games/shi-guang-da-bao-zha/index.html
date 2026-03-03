@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>时光大爆炸</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --ice: #e0f2fe;
+      --ice-dark: #7dd3fc;
+      --stone: #fef3c7;
+      --stone-dark: #fcd34d;
+      --bronze: #fef3c7;
+      --bronze-dark: #d97706;
+      --iron: #e5e7eb;
+      --iron-dark: #6b7280;
+      --electric: #dbeafe;
+      --electric-dark: #3b82f6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .era {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--ice);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .era-title {
+      font-weight: 700;
+      margin-bottom: 8px;
+      font-size: 1.2rem;
+    }
+
+    .era-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .era-progress {
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .era-progress-bar {
+      height: 100%;
+      background: var(--primary);
+      transition: width 0.3s;
+    }
+
+    .era-next {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .resources {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .resources-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .resources-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .resource {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      font-size: 0.9rem;
+    }
+
+    .resource .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .resource .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .resource .amount {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .buildings {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .buildings-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .buildings-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .building {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .building:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .building:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .building .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .building .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .building .cost {
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .tech {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .tech-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .tech-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .tech-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .tech-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .tech-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .tech-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .tech-item .cost {
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .population {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .population-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .population-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .population-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      font-size: 0.9rem;
+    }
+
+    .population-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .population-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .population-item .count {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>时光大爆炸</h1>
+    <p class="subtitle">通过对部落的发展，从冰川时代到电气时代</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">时代</span>
+        <span class="value blue" id="era">冰川时代</span>
+      </div>
+      <div class="stat">
+        <span class="label">人口</span>
+        <span class="value green" id="population">10</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高时代</span>
+        <span class="value gold" id="highEra">冰川时代</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="era" id="eraContainer">
+          <div class="era-title">当前时代</div>
+          <div class="era-name" id="eraName">冰川时代</div>
+          <div class="era-progress">
+            <div class="era-progress-bar" id="eraProgress"></div>
+          </div>
+          <div class="era-next" id="eraNext">下一个时代：石器时代</div>
+        </div>
+
+        <div class="resources">
+          <div class="resources-title">资源</div>
+          <div class="resources-grid" id="resources"></div>
+        </div>
+
+        <div class="buildings">
+          <div class="buildings-title">建筑</div>
+          <div class="buildings-grid" id="buildings"></div>
+        </div>
+
+        <div class="tech">
+          <div class="tech-title">科技</div>
+          <div class="tech-grid" id="tech"></div>
+        </div>
+
+        <div class="population">
+          <div class="population-title">人口</div>
+          <div class="population-grid" id="populationGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="collectBtn">收集资源</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      eras: [
+        { id: 'ice', name: '冰川时代', emoji: '❄️', next: '石器时代', requirement: 100 },
+        { id: 'stone', name: '石器时代', emoji: '🪨', next: '青铜时代', requirement: 500 },
+        { id: 'bronze', name: '青铜时代', emoji: '🥉', next: '铁器时代', requirement: 2000 },
+        { id: 'iron', name: '铁器时代', emoji: '⚙️', next: '电气时代', requirement: 5000 },
+        { id: 'electric', name: '电气时代', emoji: '⚡', next: '完成', requirement: 10000 }
+      ],
+      resources: [
+        { id: 'food', name: '食物', emoji: '🍖' },
+        { id: 'wood', name: '木材', emoji: '🪵' },
+        { id: 'stone', name: '石头', emoji: '🪨' },
+        { id: 'metal', name: '金属', emoji: '⚙️' }
+      ],
+      buildings: [
+        { id: 'hut', name: '小屋', emoji: '🏠', cost: { food: 10, wood: 20 }, effect: { population: 5 } },
+        { id: 'farm', name: '农场', emoji: '🌾', cost: { food: 20, wood: 30 }, effect: { food: 2 } },
+        { id: 'mine', name: '矿场', emoji: '⛏️', cost: { food: 30, wood: 40, stone: 10 }, effect: { stone: 2, metal: 1 } },
+        { id: 'workshop', name: '工坊', emoji: '🔨', cost: { food: 40, wood: 50, stone: 20 }, effect: { wood: 3 } },
+        { id: 'school', name: '学校', emoji: '🏫', cost: { food: 50, wood: 60, stone: 30, metal: 10 }, effect: { tech: 1 } },
+        { id: 'factory', name: '工厂', emoji: '🏭', cost: { food: 100, wood: 100, stone: 50, metal: 30 }, effect: { metal: 3 } }
+      ],
+      tech: [
+        { id: 'agriculture', name: '农业', emoji: '🌱', cost: { food: 50, wood: 30 }, effect: { food: 1 } },
+        { id: 'mining', name: '采矿', emoji: '⛏️', cost: { food: 60, wood: 40, stone: 20 }, effect: { stone: 1, metal: 1 } },
+        { id: 'construction', name: '建筑', emoji: '🏗️', cost: { food: 70, wood: 50, stone: 30 }, effect: { building: 1 } },
+        { id: 'metallurgy', name: '冶金', emoji: '🔥', cost: { food: 80, wood: 60, stone: 40, metal: 20 }, effect: { metal: 2 } },
+        { id: 'electricity', name: '电力', emoji: '⚡', cost: { food: 100, wood: 80, stone: 60, metal: 40 }, effect: { electric: 1 } },
+        { id: 'automation', name: '自动化', emoji: '🤖', cost: { food: 150, wood: 100, stone: 80, metal: 60 }, effect: { automation: 1 } }
+      ],
+      populationTypes: [
+        { id: 'farmer', name: '农民', emoji: '👨‍🌾' },
+        { id: 'lumberjack', name: '伐木工', emoji: '🪓' },
+        { id: 'miner', name: '矿工', emoji: '⛏️' },
+        { id: 'builder', name: '建筑工', emoji: '👷' },
+        { id: 'scientist', name: '科学家', emoji: '🔬' },
+        { id: 'engineer', name: '工程师', emoji: '🔧' }
+      ]
+    };
+
+    // 游戏状态
+    let era = 'ice';
+    let eraProgress = 0;
+    let population = 10;
+    let highEra = 'ice';
+    let resources = { food: 0, wood: 0, stone: 0, metal: 0 };
+    let buildings = [];
+    let tech = [];
+    let populationDistribution = { farmer: 5, lumberjack: 3, miner: 1, builder: 1, scientist: 0, engineer: 0 };
+    let gameLoop = null;
+
+    // DOM 元素
+    const eraEl = document.getElementById('era');
+    const populationEl = document.getElementById('population');
+    const highEraEl = document.getElementById('highEra');
+    const eraNameEl = document.getElementById('eraName');
+    const eraProgressEl = document.getElementById('eraProgress');
+    const eraNextEl = document.getElementById('eraNext');
+    const resourcesEl = document.getElementById('resources');
+    const buildingsEl = document.getElementById('buildings');
+    const techEl = document.getElementById('tech');
+    const populationGridEl = document.getElementById('populationGrid');
+    const collectBtn = document.getElementById('collectBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      era = 'ice';
+      eraProgress = 0;
+      population = 10;
+      resources = { food: 0, wood: 0, stone: 0, metal: 0 };
+      buildings = [];
+      tech = [];
+      populationDistribution = { farmer: 5, lumberjack: 3, miner: 1, builder: 1, scientist: 0, engineer: 0 };
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateEra();
+      updateResources();
+      updateBuildings();
+      updateTech();
+      updatePopulation();
+
+      // 开始游戏循环
+      startGameLoop();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('shi-guang-da-bao-zha');
+      if (saved) {
+        const data = JSON.parse(saved);
+        era = data.era || 'ice';
+        eraProgress = data.eraProgress || 0;
+        population = data.population || 10;
+        highEra = data.highEra || 'ice';
+        resources = data.resources || { food: 0, wood: 0, stone: 0, metal: 0 };
+        buildings = data.buildings || [];
+        tech = data.tech || [];
+        populationDistribution = data.populationDistribution || { farmer: 5, lumberjack: 3, miner: 1, builder: 1, scientist: 0, engineer: 0 };
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        era,
+        eraProgress,
+        population,
+        highEra,
+        resources,
+        buildings,
+        tech,
+        populationDistribution
+      };
+      localStorage.setItem('shi-guang-da-bao-zha', JSON.stringify(data));
+    }
+
+    // 开始游戏循环
+    function startGameLoop() {
+      if (gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => {
+        // 自动收集资源
+        collectResources();
+        updateStats();
+        updateResources();
+        saveGame();
+      }, 1000);
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      const eraData = config.eras.find(e => e.id === era);
+      eraEl.textContent = eraData.name;
+      populationEl.textContent = population;
+      highEraEl.textContent = config.eras.find(e => e.id === highEra).name;
+
+      // 更新最高时代
+      const eraIndex = config.eras.findIndex(e => e.id === era);
+      const highEraIndex = config.eras.findIndex(e => e.id === highEra);
+      if (eraIndex > highEraIndex) {
+        highEra = era;
+      }
+    }
+
+    // 更新时代显示
+    function updateEra() {
+      const eraData = config.eras.find(e => e.id === era);
+      const nextEra = config.eras.find(e => e.id === eraData.next.toLowerCase());
+      const requirement = eraData.requirement;
+
+      eraNameEl.textContent = eraData.name;
+      eraProgressEl.style.width = `${(eraProgress / requirement) * 100}%`;
+      eraNextEl.textContent = `下一个时代：${nextEra ? nextEra.name : '完成'}`;
+
+      // 更新时代背景
+      const eraContainer = document.getElementById('eraContainer');
+      eraContainer.style.background = `var(--${era})`;
+    }
+
+    // 更新资源显示
+    function updateResources() {
+      resourcesEl.innerHTML = '';
+      config.resources.forEach(resource => {
+        const resourceEl = document.createElement('div');
+        resourceEl.className = 'resource';
+        resourceEl.innerHTML = `
+          <div class="emoji">${resource.emoji}</div>
+          <div class="name">${resource.name}</div>
+          <div class="amount">${resources[resource.id]}</div>
+        `;
+        resourcesEl.appendChild(resourceEl);
+      });
+    }
+
+    // 更新建筑显示
+    function updateBuildings() {
+      buildingsEl.innerHTML = '';
+      config.buildings.forEach(building => {
+        const owned = buildings.some(b => b.id === building.id);
+        const canAfford = canAffordCost(building.cost);
+
+        const buildingEl = document.createElement('div');
+        buildingEl.className = 'building';
+        buildingEl.innerHTML = `
+          <div class="emoji">${building.emoji}</div>
+          <div class="name">${building.name}</div>
+          <div class="cost">${formatCost(building.cost)}</div>
+        `;
+        if (!owned && canAfford) {
+          buildingEl.addEventListener('click', () => buyBuilding(building));
+        } else {
+          buildingEl.disabled = true;
+        }
+        buildingsEl.appendChild(buildingEl);
+      });
+    }
+
+    // 更新科技显示
+    function updateTech() {
+      techEl.innerHTML = '';
+      config.tech.forEach(techItem => {
+        const owned = tech.some(t => t.id === techItem.id);
+        const canAfford = canAffordCost(techItem.cost);
+
+        const techItemEl = document.createElement('div');
+        techItemEl.className = 'tech-item';
+        techItemEl.innerHTML = `
+          <div class="emoji">${techItem.emoji}</div>
+          <div class="name">${techItem.name}</div>
+          <div class="cost">${formatCost(techItem.cost)}</div>
+        `;
+        if (!owned && canAfford) {
+          techItemEl.addEventListener('click', () => buyTech(techItem));
+        } else {
+          techItemEl.disabled = true;
+        }
+        techEl.appendChild(techItemEl);
+      });
+    }
+
+    // 更新人口显示
+    function updatePopulation() {
+      populationGridEl.innerHTML = '';
+      config.populationTypes.forEach(type => {
+        const count = populationDistribution[type.id] || 0;
+
+        const itemEl = document.createElement('div');
+        itemEl.className = 'population-item';
+        itemEl.innerHTML = `
+          <div class="emoji">${type.emoji}</div>
+          <div class="name">${type.name}</div>
+          <div class="count">${count}</div>
+        `;
+        populationGridEl.appendChild(itemEl);
+      });
+    }
+
+    // 检查是否可以支付成本
+    function canAffordCost(cost) {
+      for (const [resource, amount] of Object.entries(cost)) {
+        if (resources[resource] < amount) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // 格式化成本显示
+    function formatCost(cost) {
+      return Object.entries(cost).map(([resource, amount]) => {
+        const resourceData = config.resources.find(r => r.id === resource);
+        return `${resourceData.emoji}${amount}`;
+      }).join(' ');
+    }
+
+    // 购买建筑
+    function buyBuilding(building) {
+      if (canAffordCost(building.cost)) {
+        // 扣除资源
+        for (const [resource, amount] of Object.entries(building.cost)) {
+          resources[resource] -= amount;
+        }
+
+        // 添加建筑
+        buildings.push(building);
+
+        // 应用效果
+        if (building.effect.population) {
+          population += building.effect.population;
+        }
+
+        updateStats();
+        updateResources();
+        updateBuildings();
+        saveGame();
+        alert(`建造成功！获得 ${building.name}`);
+      }
+    }
+
+    // 购买科技
+    function buyTech(techItem) {
+      if (canAffordCost(techItem.cost)) {
+        // 扣除资源
+        for (const [resource, amount] of Object.entries(techItem.cost)) {
+          resources[resource] -= amount;
+        }
+
+        // 添加科技
+        tech.push(techItem);
+
+        updateStats();
+        updateResources();
+        updateTech();
+        saveGame();
+        alert(`研发成功！获得 ${techItem.name}`);
+      }
+    }
+
+    // 收集资源
+    function collectResources() {
+      // 根据人口分配收集资源
+      resources.food += populationDistribution.farmer * 1;
+      resources.wood += populationDistribution.lumberjack * 1;
+      resources.stone += populationDistribution.miner * 1;
+      resources.metal += populationDistribution.engineer * 1;
+
+      // 建筑加成
+      buildings.forEach(building => {
+        if (building.effect.food) resources.food += building.effect.food;
+        if (building.effect.wood) resources.wood += building.effect.wood;
+        if (building.effect.stone) resources.stone += building.effect.stone;
+        if (building.effect.metal) resources.metal += building.effect.metal;
+      });
+
+      // 科技加成
+      tech.forEach(techItem => {
+        if (techItem.effect.food) resources.food += techItem.effect.food;
+        if (techItem.effect.wood) resources.wood += techItem.effect.wood;
+        if (techItem.effect.stone) resources.stone += techItem.effect.stone;
+        if (techItem.effect.metal) resources.metal += techItem.effect.metal;
+      });
+
+      // 更新时代进度
+      eraProgress += 1;
+
+      // 检查是否可以升级时代
+      const eraData = config.eras.find(e => e.id === era);
+      if (eraProgress >= eraData.requirement) {
+        const nextEra = config.eras.find(e => e.id === eraData.next.toLowerCase());
+        if (nextEra) {
+          era = nextEra.id;
+          eraProgress = 0;
+          updateEra();
+          alert(`恭喜进入 ${nextEra.name}！`);
+        }
+      }
+
+      updateEra();
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('shi-guang-da-bao-zha');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    collectBtn.addEventListener('click', () => {
+      collectResources();
+      updateStats();
+      updateResources();
+      saveGame();
+    });
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
