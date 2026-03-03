@@ -801,7 +801,7 @@
   },
   {
     "name": "看图猜成语",
-    "path": "games/picture-guess-idiom/index.html",
+    "path": "games/看图猜成语/index.html",
     "category": "education",
     "createdAt": "2026-03-03T16:08:36Z"
   }

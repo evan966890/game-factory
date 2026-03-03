@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《数学曲折跑》
-灵感来源：Zigzag Runner + 数学教育
-点击控制球在曲折路径上滚动，每前进100米弹出一道数学题，答对获得加速和护盾，答错减速，难度随距离递进
-▶️ 试玩：https://evan966890.github.io/game-factory/games/math-zigzag-runner/
+《看图猜成语》
+灵感来源：成语小秀才 + 看图猜成语
+根据 emoji 图片提示猜成语，四选一答题，连续答对有连击加分，每题 30 秒限时挑战
+▶️ 试玩：https://evan966890.github.io/game-factory/games/picture-guess-idiom/
 
-📊 游戏工厂累计：133 个游戏
+📊 游戏工厂累计：134 个游戏
