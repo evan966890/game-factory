@@ -1,0 +1,867 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>龙魂旅人</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --character: #fef3c7;
+      --character-dark: #f59e0b;
+      --idle: #dbeafe;
+      --idle-dark: #3b82f6;
+      --upgrade: #d1fae5;
+      --upgrade-dark: #10b981;
+      --explore: #fce7f3;
+      --explore-dark: #ec4899;
+      --story: #e0e7ff;
+      --story-dark: #6366f1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .character {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--character);
+      margin-bottom: 16px;
+    }
+
+    .character-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .character-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .character-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .character-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .character-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .character-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .character-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .character-item .level {
+      font-size: 0.7rem;
+      color: var(--character-dark);
+      font-weight: 700;
+    }
+
+    .idle {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--idle);
+      margin-bottom: 16px;
+    }
+
+    .idle-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .idle-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .idle-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .idle-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .idle-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .idle-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .idle-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .idle-item .reward {
+      font-size: 0.7rem;
+      color: var(--idle-dark);
+      font-weight: 700;
+    }
+
+    .upgrade {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--upgrade);
+      margin-bottom: 16px;
+    }
+
+    .upgrade-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .upgrade-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .upgrade-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .upgrade-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .upgrade-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .upgrade-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .upgrade-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .upgrade-item .cost {
+      font-size: 0.7rem;
+      color: var(--upgrade-dark);
+      font-weight: 700;
+    }
+
+    .explore {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--explore);
+      margin-bottom: 16px;
+    }
+
+    .explore-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .explore-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .explore-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .explore-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .explore-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .explore-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .explore-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .explore-item .reward {
+      font-size: 0.7rem;
+      color: var(--explore-dark);
+      font-weight: 700;
+    }
+
+    .story {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--story);
+      margin-bottom: 16px;
+    }
+
+    .story-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .story-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .story-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .story-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .story-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .story-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .story-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .story-item .reward {
+      font-size: 0.7rem;
+      color: var(--story-dark);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--character-dark);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>龙魂旅人</h1>
+    <p class="subtitle">美少女们集结冒险斗恶龙，放置RPG游戏！</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="gold">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span class="value green" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">角色</span>
+        <span class="value blue" id="characters">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="character">
+          <div class="character-title">角色</div>
+          <div class="character-grid" id="character"></div>
+        </div>
+
+        <div class="idle">
+          <div class="idle-title">放置</div>
+          <div class="idle-grid" id="idle"></div>
+        </div>
+
+        <div class="upgrade">
+          <div class="upgrade-title">养成</div>
+          <div class="upgrade-grid" id="upgrade"></div>
+        </div>
+
+        <div class="explore">
+          <div class="explore-title">探索</div>
+          <div class="explore-grid" id="explore"></div>
+        </div>
+
+        <div class="story">
+          <div class="story-title">剧情</div>
+          <div class="story-grid" id="story"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="startBtn">开始冒险</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      character: [
+        { id: 'warrior', name: '战士', emoji: '⚔️', level: 1 },
+        { id: 'mage', name: '法师', emoji: '🧙', level: 1 },
+        { id: 'archer', name: '弓箭手', emoji: '🏹', level: 1 },
+        { id: 'healer', name: '治疗师', emoji: '💊', level: 1 },
+        { id: 'tank', name: '坦克', emoji: '🛡️', level: 1 },
+        { id: 'assassin', name: '刺客', emoji: '🗡️', level: 1 }
+      ],
+      idle: [
+        { id: 'gold', name: '金币', emoji: '💰', reward: 10 },
+        { id: 'exp', name: '经验', emoji: '⭐', reward: 5 },
+        { id: 'item', name: '道具', emoji: '🎁', reward: 1 },
+        { id: 'gem', name: '宝石', emoji: '💎', reward: 2 },
+        { id: 'ticket', name: '门票', emoji: '🎫', reward: 1 },
+        { id: 'scroll', name: '卷轴', emoji: '📜', reward: 1 }
+      ],
+      upgrade: [
+        { id: 'weapon', name: '武器', emoji: '⚔️', cost: 100 },
+        { id: 'armor', name: '护甲', emoji: '🛡️', cost: 150 },
+        { id: 'skill', name: '技能', emoji: '✨', cost: 200 },
+        { id: 'pet', name: '宠物', emoji: '🐱', cost: 250 },
+        { id: 'mount', name: '坐骑', emoji: '🐎', cost: 300 },
+        { id: 'artifact', name: '神器', emoji: '🏺', cost: 350 }
+      ],
+      explore: [
+        { id: 'forest', name: '森林', emoji: '🌲', reward: 50 },
+        { id: 'cave', name: '洞穴', emoji: '🕳️', reward: 100 },
+        { id: 'mountain', name: '山脉', emoji: '⛰️', reward: 150 },
+        { id: 'castle', name: '城堡', emoji: '🏰', reward: 200 },
+        { id: 'dungeon', name: '地下城', emoji: '🏚️', reward: 250 },
+        { id: 'dragon', name: '龙巢', emoji: '🐉', reward: 300 }
+      ],
+      story: [
+        { id: 'chapter1', name: '第一章', emoji: '📖', reward: 100 },
+        { id: 'chapter2', name: '第二章', emoji: '📖', reward: 150 },
+        { id: 'chapter3', name: '第三章', emoji: '📖', reward: 200 },
+        { id: 'chapter4', name: '第四章', emoji: '📖', reward: 250 },
+        { id: 'chapter5', name: '第五章', emoji: '📖', reward: 300 },
+        { id: 'chapter6', name: '第六章', emoji: '📖', reward: 350 }
+      ]
+    };
+
+    // 游戏状态
+    let gold = 0;
+    let level = 1;
+    let characters = 0;
+    let ownedCharacters = [];
+    let ownedUpgrades = [];
+    let ownedExplores = [];
+    let ownedStories = [];
+    let gameLoop = null;
+
+    // DOM 元素
+    const goldEl = document.getElementById('gold');
+    const levelEl = document.getElementById('level');
+    const charactersEl = document.getElementById('characters');
+    const characterEl = document.getElementById('character');
+    const idleEl = document.getElementById('idle');
+    const upgradeEl = document.getElementById('upgrade');
+    const exploreEl = document.getElementById('explore');
+    const storyEl = document.getElementById('story');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      gold = 0;
+      level = 1;
+      characters = 0;
+      ownedCharacters = [];
+      ownedUpgrades = [];
+      ownedExplores = [];
+      ownedStories = [];
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateCharacter();
+      updateIdle();
+      updateUpgrade();
+      updateExplore();
+      updateStory();
+
+      // 开始游戏循环
+      startGameLoop();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('long-hun-lv-ren');
+      if (saved) {
+        const data = JSON.parse(saved);
+        gold = data.gold || 0;
+        level = data.level || 1;
+        characters = data.characters || 0;
+        ownedCharacters = data.ownedCharacters || [];
+        ownedUpgrades = data.ownedUpgrades || [];
+        ownedExplores = data.ownedExplores || [];
+        ownedStories = data.ownedStories || [];
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        gold,
+        level,
+        characters,
+        ownedCharacters,
+        ownedUpgrades,
+        ownedExplores,
+        ownedStories
+      };
+      localStorage.setItem('long-hun-lv-ren', JSON.stringify(data));
+    }
+
+    // 开始游戏循环
+    function startGameLoop() {
+      if (gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => {
+        // 自动收集资源
+        collectResources();
+        updateStats();
+        saveGame();
+      }, 1000);
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      goldEl.textContent = gold;
+      levelEl.textContent = level;
+      charactersEl.textContent = characters;
+    }
+
+    // 更新角色显示
+    function updateCharacter() {
+      characterEl.innerHTML = '';
+      config.character.forEach(character => {
+        const owned = ownedCharacters.some(c => c.id === character.id);
+        const canAfford = gold >= 50;
+
+        const characterEl = document.createElement('div');
+        characterEl.className = 'character-item';
+        characterEl.innerHTML = `
+          <div class="emoji">${character.emoji}</div>
+          <div class="name">${character.name}</div>
+          <div class="level">Lv.${character.level}</div>
+        `;
+        if (!owned && canAfford) {
+          characterEl.addEventListener('click', () => buyCharacter(character));
+        } else {
+          characterEl.disabled = true;
+        }
+        characterEl.appendChild(characterEl);
+      });
+    }
+
+    // 更新放置显示
+    function updateIdle() {
+      idleEl.innerHTML = '';
+      config.idle.forEach(idle => {
+        const canCollect = ownedCharacters.length > 0;
+
+        const idleEl = document.createElement('div');
+        idleEl.className = 'idle-item';
+        idleEl.innerHTML = `
+          <div class="emoji">${idle.emoji}</div>
+          <div class="name">${idle.name}</div>
+          <div class="reward">+${idle.reward}</div>
+        `;
+        if (canCollect) {
+          idleEl.addEventListener('click', () => collectIdle(idle));
+        } else {
+          idleEl.disabled = true;
+        }
+        idleEl.appendChild(idleEl);
+      });
+    }
+
+    // 更新养成显示
+    function updateUpgrade() {
+      upgradeEl.innerHTML = '';
+      config.upgrade.forEach(upgrade => {
+        const owned = ownedUpgrades.some(u => u.id === upgrade.id);
+        const canAfford = gold >= upgrade.cost;
+
+        const upgradeEl = document.createElement('div');
+        upgradeEl.className = 'upgrade-item';
+        upgradeEl.innerHTML = `
+          <div class="emoji">${upgrade.emoji}</div>
+          <div class="name">${upgrade.name}</div>
+          <div class="cost">${upgrade.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          upgradeEl.addEventListener('click', () => buyUpgrade(upgrade));
+        } else {
+          upgradeEl.disabled = true;
+        }
+        upgradeEl.appendChild(upgradeEl);
+      });
+    }
+
+    // 更新探索显示
+    function updateExplore() {
+      exploreEl.innerHTML = '';
+      config.explore.forEach(explore => {
+        const owned = ownedExplores.some(e => e.id === explore.id);
+        const canAfford = gold >= explore.reward;
+
+        const exploreEl = document.createElement('div');
+        exploreEl.className = 'explore-item';
+        exploreEl.innerHTML = `
+          <div class="emoji">${explore.emoji}</div>
+          <div class="name">${explore.name}</div>
+          <div class="reward">+${explore.reward}</div>
+        `;
+        if (!owned && canAfford) {
+          exploreEl.addEventListener('click', () => buyExplore(explore));
+        } else {
+          exploreEl.disabled = true;
+        }
+        exploreEl.appendChild(exploreEl);
+      });
+    }
+
+    // 更新剧情显示
+    function updateStory() {
+      storyEl.innerHTML = '';
+      config.story.forEach(story => {
+        const owned = ownedStories.some(s => s.id === story.id);
+        const canAfford = gold >= story.reward;
+
+        const storyEl = document.createElement('div');
+        storyEl.className = 'story-item';
+        storyEl.innerHTML = `
+          <div class="emoji">${story.emoji}</div>
+          <div class="name">${story.name}</div>
+          <div class="reward">+${story.reward}</div>
+        `;
+        if (!owned && canAfford) {
+          storyEl.addEventListener('click', () => buyStory(story));
+        } else {
+          storyEl.disabled = true;
+        }
+        storyEl.appendChild(storyEl);
+      });
+    }
+
+    // 购买角色
+    function buyCharacter(character) {
+      if (gold >= 50) {
+        gold -= 50;
+        ownedCharacters.push(character);
+        characters++;
+        updateStats();
+        updateCharacter();
+        updateIdle();
+        saveGame();
+        alert(`购买成功！获得 ${character.name}`);
+      }
+    }
+
+    // 收集放置资源
+    function collectIdle(idle) {
+      if (ownedCharacters.length > 0) {
+        gold += idle.reward;
+        updateStats();
+        saveGame();
+        alert(`收集成功！获得 ${idle.reward} ${idle.name}`);
+      }
+    }
+
+    // 购买养成
+    function buyUpgrade(upgrade) {
+      if (gold >= upgrade.cost) {
+        gold -= upgrade.cost;
+        ownedUpgrades.push(upgrade);
+        updateStats();
+        updateUpgrade();
+        saveGame();
+        alert(`购买成功！获得 ${upgrade.name}`);
+      }
+    }
+
+    // 购买探索
+    function buyExplore(explore) {
+      if (gold >= explore.reward) {
+        gold -= explore.reward;
+        ownedExplores.push(explore);
+        level++;
+        updateStats();
+        updateExplore();
+        saveGame();
+        alert(`探索成功！进入 ${explore.name}，关卡 +1`);
+      }
+    }
+
+    // 购买剧情
+    function buyStory(story) {
+      if (gold >= story.reward) {
+        gold -= story.reward;
+        ownedStories.push(story);
+        updateStats();
+        updateStory();
+        saveGame();
+        alert(`剧情成功！解锁 ${story.name}`);
+      }
+    }
+
+    // 收集资源
+    function collectResources() {
+      // 角色加成
+      ownedCharacters.forEach(character => {
+        gold += 1;
+      });
+
+      // 养成加成
+      ownedUpgrades.forEach(upgrade => {
+        gold += 2;
+      });
+
+      // 关卡加成
+      gold += level * 5;
+    }
+
+    // 开始冒险
+    function startAdventure() {
+      // 随机添加角色
+      const randomCharacter = Math.floor(Math.random() * 3) + 1;
+      for (let i = 0; i < randomCharacter; i++) {
+        const character = config.character[Math.floor(Math.random() * config.character.length)];
+        if (!ownedCharacters.some(c => c.id === character.id)) {
+          ownedCharacters.push(character);
+          characters++;
+        }
+      }
+      updateStats();
+      updateCharacter();
+      updateIdle();
+      saveGame();
+      alert(`冒险开始！添加了 ${randomCharacter} 个角色`);
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('long-hun-lv-ren');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    startBtn.addEventListener('click', startAdventure);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>

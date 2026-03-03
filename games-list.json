@@ -978,5 +978,11 @@
     "path": "games/yuan-meng-zhi-xing/index.html",
     "category": "派对游戏",
     "createdAt": "2026-03-03T23:37:05Z"
+  },
+  {
+    "name": "龙魂旅人",
+    "path": "games/long-hun-lv-ren/index.html",
+    "category": "放置RPG",
+    "createdAt": "2026-03-03T23:50:55Z"
   }
 ]
