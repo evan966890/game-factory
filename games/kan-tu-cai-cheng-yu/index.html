@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>看图猜成语</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>看图猜成语</h1>
+            <div class="score-board">
+                <div class="score-item">
+                    <span class="label">分数</span>
+                    <span class="value" id="score">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="label">连击</span>
+                    <span class="value" id="combo">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="label">最高分</span>
+                    <span class="value" id="high-score">0</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="game-main">
+            <div class="hint-section">
+                <div class="hint-label">图片提示</div>
+                <div class="hint-image" id="hint-image">🤔</div>
+            </div>
+
+            <div class="options-section">
+                <div class="options-grid" id="options-grid">
+                    <!-- 选项将通过JS动态生成 -->
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="timer-container">
+                    <div class="timer-label">剩余时间</div>
+                    <div class="timer-bar">
+                        <div class="timer-fill" id="timer-fill"></div>
+                    </div>
+                    <div class="timer-text" id="timer-text">30秒</div>
+                </div>
+                <div class="result-container" id="result-container">
+                    <div class="result-text" id="result-text"></div>
+                    <div class="result-meaning" id="result-meaning"></div>
+                    <div class="result-source" id="result-source"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="game-footer">
+            <button class="btn btn-primary" id="start-btn">开始游戏</button>
+            <button class="btn btn-secondary" id="next-btn" style="display: none;">下一题</button>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

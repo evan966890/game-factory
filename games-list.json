@@ -804,5 +804,11 @@
     "path": "games/看图猜成语/index.html",
     "category": "education",
     "createdAt": "2026-03-03T16:08:36Z"
+  },
+  {
+    "name": "看图猜成语",
+    "path": "games/kan-tu-cai-cheng-yu/index.html",
+    "category": "语言学习",
+    "createdAt": "2026-03-04T02:46:00Z"
   }
 ]
