@@ -942,5 +942,11 @@
     "path": "games/wu-jin-dong-ri/index.html",
     "category": "生存",
     "createdAt": "2026-03-03T22:55:35Z"
+  },
+  {
+    "name": "羊了个羊：星球",
+    "path": "games/yang-liao-ge-yang-xing-qiu/index.html",
+    "category": "消除",
+    "createdAt": "2026-03-03T23:01:50Z"
   }
 ]

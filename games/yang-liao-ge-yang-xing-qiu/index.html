@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>羊了个羊：星球</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --sheep: #fef3c7;
+      --sheep-dark: #fcd34d;
+      --grass: #dcfce7;
+      --grass-dark: #22c55e;
+      --sky: #dbeafe;
+      --sky-dark: #3b82f6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .board {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--sheep);
+      margin-bottom: 16px;
+      min-height: 200px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .board-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .tile {
+      width: 60px;
+      height: 60px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+      position: relative;
+    }
+
+    .tile:hover {
+      transform: scale(1.05);
+      border-color: var(--primary);
+    }
+
+    .tile.selected {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    .tile.matched {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .tile .layer {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      font-size: 0.6rem;
+      color: var(--muted);
+      background: rgba(255,255,255,0.8);
+      padding: 1px 3px;
+      border-radius: 3px;
+    }
+
+    .slot {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--grass);
+      margin-bottom: 16px;
+    }
+
+    .slot-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .slot-container {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      min-height: 70px;
+      align-items: center;
+    }
+
+    .slot-item {
+      width: 60px;
+      height: 60px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: white;
+      position: relative;
+    }
+
+    .slot-item.empty {
+      border-style: dashed;
+      background: transparent;
+    }
+
+    .slot-item .count {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      font-size: 0.7rem;
+      color: var(--muted);
+      background: rgba(255,255,255,0.8);
+      padding: 1px 3px;
+      border-radius: 3px;
+    }
+
+    .tools {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--sky);
+      margin-bottom: 16px;
+    }
+
+    .tools-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .tool {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .tool:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .tool:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .tool .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .tool .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .tool .count {
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>羊了个羊：星球</h1>
+    <p class="subtitle">点击方块移入槽位，集齐3个相同方块即可消除</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span class="value blue" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">分数</span>
+        <span class="value green" id="score">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高关卡</span>
+        <span class="value gold" id="highLevel">1</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="board">
+          <div class="board-title">方块区域</div>
+          <div id="tiles"></div>
+        </div>
+
+        <div class="slot">
+          <div class="slot-title">槽位区域 (最多7个)</div>
+          <div class="slot-container" id="slot"></div>
+        </div>
+
+        <div class="tools">
+          <div class="tools-title">道具</div>
+          <div class="tools-grid" id="tools"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="nextLevelBtn">下一关</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      tileTypes: ['🐑', '🌿', '🌸', '🍎', '🌻', '🍇', '🍊', '🍋', '🍓', '🍒'],
+      tools: [
+        { id: 'hint', name: '提示', emoji: '💡', count: 3 },
+        { id: 'undo', name: '撤回', emoji: '↩️', count: 3 },
+        { id: 'shuffle', name: '洗牌', emoji: '🔀', count: 2 }
+      ],
+      maxSlot: 7,
+      tilesPerLevel: 30,
+      layersPerLevel: 3
+    };
+
+    // 游戏状态
+    let level = 1;
+    let score = 0;
+    let highLevel = parseInt(localStorage.getItem('yang-liao-ge-yang-xing-qiu-highlevel')) || 1;
+    let tiles = [];
+    let slot = [];
+    let tools = JSON.parse(JSON.stringify(config.tools));
+    let selectedTile = null;
+    let gameLoop = null;
+
+    // DOM 元素
+    const levelEl = document.getElementById('level');
+    const scoreEl = document.getElementById('score');
+    const highLevelEl = document.getElementById('highLevel');
+    const tilesEl = document.getElementById('tiles');
+    const slotEl = document.getElementById('slot');
+    const toolsEl = document.getElementById('tools');
+    const nextLevelBtn = document.getElementById('nextLevelBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      level = 1;
+      score = 0;
+      tiles = [];
+      slot = [];
+      tools = JSON.parse(JSON.stringify(config.tools));
+      selectedTile = null;
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 生成关卡
+      generateLevel();
+
+      // 更新显示
+      updateStats();
+      updateTiles();
+      updateSlot();
+      updateTools();
+
+      // 开始游戏循环
+      startGameLoop();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('yang-liao-ge-yang-xing-qiu');
+      if (saved) {
+        const data = JSON.parse(saved);
+        level = data.level || 1;
+        score = data.score || 0;
+        highLevel = data.highLevel || 1;
+        tiles = data.tiles || [];
+        slot = data.slot || [];
+        tools = data.tools || JSON.parse(JSON.stringify(config.tools));
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        level,
+        score,
+        highLevel,
+        tiles,
+        slot,
+        tools
+      };
+      localStorage.setItem('yang-liao-ge-yang-xing-qiu', JSON.stringify(data));
+    }
+
+    // 开始游戏循环
+    function startGameLoop() {
+      if (gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => {
+        // 检查游戏状态
+        checkGameState();
+        saveGame();
+      }, 1000);
+    }
+
+    // 生成关卡
+    function generateLevel() {
+      tiles = [];
+      const tileCount = config.tilesPerLevel + (level - 1) * 10;
+      const tileTypes = config.tileTypes.slice(0, Math.min(config.tileTypes.length, 3 + level));
+
+      // 生成方块
+      for (let i = 0; i < tileCount; i++) {
+        const type = tileTypes[Math.floor(Math.random() * tileTypes.length)];
+        const layer = Math.floor(Math.random() * config.layersPerLevel) + 1;
+        tiles.push({
+          id: i,
+          type,
+          layer,
+          matched: false,
+          selected: false
+        });
+      }
+
+      // 确保每种类型至少有3个
+      for (const type of tileTypes) {
+        const count = tiles.filter(t => t.type === type).length;
+        if (count < 3) {
+          const needed = 3 - count;
+          for (let i = 0; i < needed; i++) {
+            const layer = Math.floor(Math.random() * config.layersPerLevel) + 1;
+            tiles.push({
+              id: tiles.length,
+              type,
+              layer,
+              matched: false,
+              selected: false
+            });
+          }
+        }
+      }
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      levelEl.textContent = level;
+      scoreEl.textContent = score;
+      highLevelEl.textContent = highLevel;
+
+      // 更新最高关卡
+      if (level > highLevel) {
+        highLevel = level;
+        localStorage.setItem('yang-liao-ge-yang-xing-qiu-highlevel', highLevel);
+      }
+    }
+
+    // 更新方块显示
+    function updateTiles() {
+      tilesEl.innerHTML = '';
+      tiles.forEach(tile => {
+        if (!tile.matched) {
+          const tileEl = document.createElement('div');
+          tileEl.className = 'tile';
+          if (tile.selected) tileEl.classList.add('selected');
+          tileEl.innerHTML = `
+            ${tile.type}
+            <span class="layer">${tile.layer}</span>
+          `;
+          tileEl.addEventListener('click', () => selectTile(tile));
+          tilesEl.appendChild(tileEl);
+        }
+      });
+    }
+
+    // 更新槽位显示
+    function updateSlot() {
+      slotEl.innerHTML = '';
+      for (let i = 0; i < config.maxSlot; i++) {
+        const slotItem = slot[i];
+        const slotItemEl = document.createElement('div');
+        slotItemEl.className = 'slot-item';
+        if (slotItem) {
+          slotItemEl.innerHTML = `
+            ${slotItem.type}
+            <span class="count">${slotItem.count}</span>
+          `;
+        } else {
+          slotItemEl.classList.add('empty');
+        }
+        slotEl.appendChild(slotItemEl);
+      }
+    }
+
+    // 更新道具显示
+    function updateTools() {
+      toolsEl.innerHTML = '';
+      tools.forEach(tool => {
+        const toolEl = document.createElement('div');
+        toolEl.className = 'tool';
+        toolEl.innerHTML = `
+          <div class="emoji">${tool.emoji}</div>
+          <div class="name">${tool.name}</div>
+          <div class="count">${tool.count}</div>
+        `;
+        if (tool.count > 0) {
+          toolEl.addEventListener('click', () => useTool(tool));
+        } else {
+          toolEl.disabled = true;
+        }
+        toolsEl.appendChild(toolEl);
+      });
+    }
+
+    // 选择方块
+    function selectTile(tile) {
+      if (tile.matched) return;
+
+      // 检查是否可以点击（上层没有其他方块）
+      const canClick = !tiles.some(t => 
+        !t.matched && 
+        t.layer > tile.layer && 
+        Math.abs(t.id - tile.id) < 5
+      );
+
+      if (!canClick) {
+        alert('这个方块被其他方块挡住了！');
+        return;
+      }
+
+      // 检查槽位是否已满
+      if (slot.length >= config.maxSlot) {
+        alert('槽位已满！游戏失败');
+        gameOver();
+        return;
+      }
+
+      // 添加到槽位
+      const existingSlot = slot.find(s => s.type === tile.type);
+      if (existingSlot) {
+        existingSlot.count++;
+      } else {
+        slot.push({ type: tile.type, count: 1 });
+      }
+
+      // 标记方块为已匹配
+      tile.matched = true;
+
+      // 检查是否可以消除
+      checkMatch();
+
+      // 更新显示
+      updateTiles();
+      updateSlot();
+      updateStats();
+      saveGame();
+    }
+
+    // 检查匹配
+    function checkMatch() {
+      for (let i = 0; i < slot.length; i++) {
+        if (slot[i].count >= 3) {
+          // 消除
+          score += 10;
+          slot.splice(i, 1);
+          i--;
+        }
+      }
+    }
+
+    // 使用道具
+    function useTool(tool) {
+      if (tool.count <= 0) return;
+
+      tool.count--;
+
+      switch (tool.id) {
+        case 'hint':
+          // 提示：高亮一个可以消除的方块
+          const hintTile = tiles.find(t => !t.matched && 
+            tiles.filter(t2 => !t2.matched && t2.type === t.type).length >= 3
+          );
+          if (hintTile) {
+            hintTile.selected = true;
+            setTimeout(() => {
+              hintTile.selected = false;
+              updateTiles();
+            }, 2000);
+          }
+          break;
+
+        case 'undo':
+          // 撤回：移除最后一个槽位中的方块
+          if (slot.length > 0) {
+            const lastSlot = slot[slot.length - 1];
+            if (lastSlot.count > 1) {
+              lastSlot.count--;
+            } else {
+              slot.pop();
+            }
+            // 恢复最后一个匹配的方块
+            const lastMatched = tiles.filter(t => t.matched).pop();
+            if (lastMatched) {
+              lastMatched.matched = false;
+            }
+          }
+          break;
+
+        case 'shuffle':
+          // 洗牌：重新排列未匹配的方块
+          const unmatchedTiles = tiles.filter(t => !t.matched);
+          for (let i = unmatchedTiles.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [unmatchedTiles[i].type, unmatchedTiles[j].type] = 
+            [unmatchedTiles[j].type, unmatchedTiles[i].type];
+          }
+          break;
+      }
+
+      updateTiles();
+      updateSlot();
+      updateTools();
+      saveGame();
+    }
+
+    // 检查游戏状态
+    function checkGameState() {
+      // 检查是否所有方块都已匹配
+      const unmatchedTiles = tiles.filter(t => !t.matched);
+      if (unmatchedTiles.length === 0) {
+        levelComplete();
+      }
+
+      // 检查槽位是否已满
+      if (slot.length >= config.maxSlot) {
+        gameOver();
+      }
+    }
+
+    // 关卡完成
+    function levelComplete() {
+      level++;
+      score += 100;
+      generateLevel();
+      updateStats();
+      updateTiles();
+      updateSlot();
+      saveGame();
+      alert(`恭喜通过第 ${level - 1} 关！`);
+    }
+
+    // 游戏结束
+    function gameOver() {
+      clearInterval(gameLoop);
+      alert(`游戏结束！你通过了 ${level - 1} 关，得分 ${score}`);
+      saveGame();
+    }
+
+    // 下一关
+    function nextLevel() {
+      level++;
+      score += 50;
+      generateLevel();
+      updateStats();
+      updateTiles();
+      updateSlot();
+      saveGame();
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('yang-liao-ge-yang-xing-qiu');
+        localStorage.removeItem('yang-liao-ge-yang-xing-qiu-highlevel');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    nextLevelBtn.addEventListener('click', nextLevel);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
