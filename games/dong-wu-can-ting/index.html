@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>动物餐厅</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .restaurant {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+      min-height: 200px;
+    }
+
+    .restaurant-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .kitchen {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .food-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .food-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .food-item.cooking {
+      background: #fff3cd;
+      border-color: var(--gold);
+    }
+
+    .food-item.ready {
+      background: #d4edda;
+      border-color: var(--ok);
+    }
+
+    .customers {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .customer {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      font-size: 0.9rem;
+    }
+
+    .customer .emoji {
+      font-size: 1.5rem;
+      margin-bottom: 4px;
+    }
+
+    .customer .order {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .customer .timer {
+      font-size: 0.7rem;
+      color: var(--bad);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .upgrade-panel {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .upgrade-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .upgrade-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .upgrade-item:last-child {
+      border-bottom: none;
+    }
+
+    .upgrade-item .name {
+      font-weight: 600;
+    }
+
+    .upgrade-item .level {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .upgrade-item .cost {
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .upgrade-item .btn {
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      width: auto;
+    }
+
+    .collection {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .collection-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .collection-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+
+    .collection-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      font-size: 1.2rem;
+    }
+
+    .collection-item.locked {
+      opacity: 0.3;
+    }
+
+    .offline-earnings {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .offline-earnings .amount {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>动物餐厅</h1>
+    <p class="subtitle">经营你的餐厅，接待动物顾客</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="coins">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">顾客</span>
+        <span class="value" id="customers">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">菜品</span>
+        <span class="value" id="dishes">0</span>
+      </div>
+    </div>
+
+    <div class="offline-earnings" id="offlineEarnings">
+      <div class="amount" id="offlineAmount">+0</div>
+      <div>离线收益</div>
+      <button class="btn" id="collectOffline">领取</button>
+    </div>
+
+    <div class="restaurant">
+      <div class="restaurant-title">厨房</div>
+      <div class="kitchen" id="kitchen"></div>
+      <div class="restaurant-title">顾客</div>
+      <div class="customers" id="customersArea"></div>
+    </div>
+
+    <div class="upgrade-panel">
+      <div class="upgrade-title">设施升级</div>
+      <div id="upgrades"></div>
+    </div>
+
+    <div class="collection">
+      <div class="collection-title">顾客收集</div>
+      <div class="collection-grid" id="collection"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="serveBtn">服务顾客</button>
+      <button class="btn secondary" id="newCustomerBtn">新顾客</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      foods: [
+        { id: 'salad', name: '沙拉', emoji: '🥗', price: 10, cookTime: 3000 },
+        { id: 'burger', name: '汉堡', emoji: '🍔', price: 20, cookTime: 5000 },
+        { id: 'pizza', name: '披萨', emoji: '🍕', price: 30, cookTime: 8000 },
+        { id: 'sushi', name: '寿司', emoji: '🍣', price: 40, cookTime: 10000 },
+        { id: 'cake', name: '蛋糕', emoji: '🎂', price: 50, cookTime: 12000 },
+        { id: 'icecream', name: '冰淇淋', emoji: '🍦', price: 60, cookTime: 15000 }
+      ],
+      customers: [
+        { id: 'cat', emoji: '🐱', name: '小猫', favorite: 'fish', patience: 30000 },
+        { id: 'dog', emoji: '🐶', name: '小狗', favorite: 'bone', patience: 25000 },
+        { id: 'rabbit', emoji: '🐰', name: '兔子', favorite: 'carrot', patience: 20000 },
+        { id: 'bear', emoji: '🐻', name: '熊', favorite: 'honey', patience: 35000 },
+        { id: 'fox', emoji: '🦊', name: '狐狸', favorite: 'chicken', patience: 28000 },
+        { id: 'panda', emoji: '🐼', name: '熊猫', favorite: 'bamboo', patience: 40000 }
+      ],
+      upgrades: [
+        { id: 'kitchen', name: '厨房', baseCost: 100, effect: 'cookTime' },
+        { id: 'tables', name: '餐桌', baseCost: 150, effect: 'customerCapacity' },
+        { id: 'decoration', name: '装饰', baseCost: 200, effect: 'customerPatience' }
+      ]
+    };
+
+    // 游戏状态
+    let coins = 0;
+    let totalCustomers = 0;
+    let unlockedDishes = 1;
+    let cookingFoods = [];
+    let customers = [];
+    let collectedCustomers = new Set();
+    let upgrades = {
+      kitchen: 1,
+      tables: 1,
+      decoration: 1
+    };
+    let lastSaveTime = Date.now();
+
+    // DOM 元素
+    const coinsEl = document.getElementById('coins');
+    const customersEl = document.getElementById('customers');
+    const dishesEl = document.getElementById('dishes');
+    const kitchenEl = document.getElementById('kitchen');
+    const customersAreaEl = document.getElementById('customersArea');
+    const upgradesEl = document.getElementById('upgrades');
+    const collectionEl = document.getElementById('collection');
+    const offlineEarningsEl = document.getElementById('offlineEarnings');
+    const offlineAmountEl = document.getElementById('offlineAmount');
+    const collectOfflineBtn = document.getElementById('collectOffline');
+    const serveBtn = document.getElementById('serveBtn');
+    const newCustomerBtn = document.getElementById('newCustomerBtn');
+
+    // 加载游戏进度
+    function loadProgress() {
+      const saved = localStorage.getItem('dong-wu-can-ting-progress');
+      if (saved) {
+        const progress = JSON.parse(saved);
+        coins = progress.coins || 0;
+        totalCustomers = progress.totalCustomers || 0;
+        unlockedDishes = progress.unlockedDishes || 1;
+        collectedCustomers = new Set(progress.collectedCustomers || []);
+        upgrades = progress.upgrades || { kitchen: 1, tables: 1, decoration: 1 };
+        lastSaveTime = progress.lastSaveTime || Date.now();
+
+        // 计算离线收益
+        const offlineTime = Date.now() - lastSaveTime;
+        const offlineEarnings = calculateOfflineEarnings(offlineTime);
+        if (offlineEarnings > 0) {
+          offlineAmountEl.textContent = `+${offlineEarnings}`;
+          offlineEarningsEl.classList.remove('hidden');
+        } else {
+          offlineEarningsEl.classList.add('hidden');
+        }
+      }
+      updateStats();
+      renderKitchen();
+      renderUpgrades();
+      renderCollection();
+    }
+
+    // 保存游戏进度
+    function saveProgress() {
+      const progress = {
+        coins,
+        totalCustomers,
+        unlockedDishes,
+        collectedCustomers: Array.from(collectedCustomers),
+        upgrades,
+        lastSaveTime: Date.now()
+      };
+      localStorage.setItem('dong-wu-can-ting-progress', JSON.stringify(progress));
+    }
+
+    // 计算离线收益
+    function calculateOfflineEarnings(time) {
+      const baseEarnings = 1; // 每秒1金币
+      const upgradeBonus = upgrades.kitchen * 0.1;
+      return Math.floor(time / 1000 * baseEarnings * (1 + upgradeBonus));
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      coinsEl.textContent = coins;
+      customersEl.textContent = totalCustomers;
+      dishesEl.textContent = unlockedDishes;
+    }
+
+    // 渲染厨房
+    function renderKitchen() {
+      kitchenEl.innerHTML = '';
+      config.foods.slice(0, unlockedDishes).forEach(food => {
+        const cooking = cookingFoods.find(f => f.id === food.id);
+        const btn = document.createElement('div');
+        btn.className = 'food-item';
+        if (cooking) {
+          btn.classList.add(cooking.ready ? 'ready' : 'cooking');
+        }
+        btn.innerHTML = `
+          <div>${food.emoji}</div>
+          <div>${food.name}</div>
+          <div>${food.price}金币</div>
+        `;
+        btn.addEventListener('click', () => cookFood(food));
+        kitchenEl.appendChild(btn);
+      });
+    }
+
+    // 烹饪食物
+    function cookFood(food) {
+      const cooking = cookingFoods.find(f => f.id === food.id);
+      if (cooking) {
+        if (cooking.ready) {
+          // 服务顾客
+          serveFood(food);
+        }
+        return;
+      }
+
+      // 开始烹饪
+      const cookTime = food.cookTime * (1 - (upgrades.kitchen - 1) * 0.1);
+      cookingFoods.push({
+        id: food.id,
+        ready: false,
+        startTime: Date.now(),
+        cookTime: cookTime
+      });
+
+      renderKitchen();
+
+      // 烹饪完成
+      setTimeout(() => {
+        const cooking = cookingFoods.find(f => f.id === food.id);
+        if (cooking) {
+          cooking.ready = true;
+          renderKitchen();
+        }
+      }, cookTime);
+    }
+
+    // 服务食物
+    function serveFood(food) {
+      // 找到需要这个食物的顾客
+      const customer = customers.find(c => c.order === food.id);
+      if (customer) {
+        // 服务顾客
+        coins += food.price;
+        totalCustomers++;
+        collectedCustomers.add(customer.id);
+
+        // 移除顾客
+        customers = customers.filter(c => c.id !== customer.id);
+
+        // 移除烹饪的食物
+        cookingFoods = cookingFoods.filter(f => f.id !== food.id);
+
+        updateStats();
+        renderCustomers();
+        renderCollection();
+        saveProgress();
+      }
+    }
+
+    // 渲染顾客
+    function renderCustomers() {
+      customersAreaEl.innerHTML = '';
+      customers.forEach(customer => {
+        const customerData = config.customers.find(c => c.id === customer.id);
+        const btn = document.createElement('div');
+        btn.className = 'customer';
+        btn.innerHTML = `
+          <div class="emoji">${customerData.emoji}</div>
+          <div>${customerData.name}</div>
+          <div class="order">想要: ${customer.order}</div>
+          <div class="timer">${Math.ceil(customer.timeLeft / 1000)}秒</div>
+        `;
+        customersAreaEl.appendChild(btn);
+      });
+    }
+
+    // 添加新顾客
+    function addCustomer() {
+      if (customers.length >= upgrades.tables * 3) {
+        return;
+      }
+
+      const customerData = config.customers[Math.floor(Math.random() * config.customers.length)];
+      const order = config.foods[Math.floor(Math.random() * unlockedDishes)].id;
+
+      customers.push({
+        id: customerData.id,
+        order: order,
+        timeLeft: customerData.patience * (1 + (upgrades.decoration - 1) * 0.1)
+      });
+
+      renderCustomers();
+    }
+
+    // 更新顾客计时器
+    function updateCustomers() {
+      for (let i = customers.length - 1; i >= 0; i--) {
+        customers[i].timeLeft -= 1000;
+        if (customers[i].timeLeft <= 0) {
+          customers.splice(i, 1);
+        }
+      }
+      renderCustomers();
+    }
+
+    // 渲染升级面板
+    function renderUpgrades() {
+      upgradesEl.innerHTML = '';
+      config.upgrades.forEach(upgrade => {
+        const level = upgrades[upgrade.id];
+        const cost = Math.floor(upgrade.baseCost * Math.pow(1.5, level - 1));
+
+        const item = document.createElement('div');
+        item.className = 'upgrade-item';
+        item.innerHTML = `
+          <div>
+            <div class="name">${upgrade.name}</div>
+            <div class="level">等级 ${level}</div>
+          </div>
+          <div>
+            <div class="cost">${cost}金币</div>
+            <button class="btn" data-upgrade="${upgrade.id}" ${coins < cost ? 'disabled' : ''}>升级</button>
+          </div>
+        `;
+        upgradesEl.appendChild(item);
+      });
+
+      // 添加升级事件监听
+      upgradesEl.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const upgradeId = btn.dataset.upgrade;
+          const upgrade = config.upgrades.find(u => u.id === upgradeId);
+          const level = upgrades[upgradeId];
+          const cost = Math.floor(upgrade.baseCost * Math.pow(1.5, level - 1));
+
+          if (coins >= cost) {
+            coins -= cost;
+            upgrades[upgradeId]++;
+            updateStats();
+            renderUpgrades();
+            saveProgress();
+          }
+        });
+      });
+    }
+
+    // 渲染顾客收集
+    function renderCollection() {
+      collectionEl.innerHTML = '';
+      config.customers.forEach(customer => {
+        const collected = collectedCustomers.has(customer.id);
+        const item = document.createElement('div');
+        item.className = `collection-item ${collected ? '' : 'locked'}`;
+        item.textContent = customer.emoji;
+        item.title = collected ? customer.name : '未收集';
+        collectionEl.appendChild(item);
+      });
+    }
+
+    // 领取离线收益
+    collectOfflineBtn.addEventListener('click', () => {
+      const offlineTime = Date.now() - lastSaveTime;
+      const offlineEarnings = calculateOfflineEarnings(offlineTime);
+      if (offlineEarnings > 0) {
+        coins += offlineEarnings;
+        offlineEarningsEl.classList.add('hidden');
+        updateStats();
+        saveProgress();
+      }
+    });
+
+    // 服务顾客按钮
+    serveBtn.addEventListener('click', () => {
+      // 自动服务第一个顾客
+      if (customers.length > 0) {
+        const customer = customers[0];
+        const food = config.foods.find(f => f.id === customer.order);
+        if (food) {
+          serveFood(food);
+        }
+      }
+    });
+
+    // 新顾客按钮
+    newCustomerBtn.addEventListener('click', addCustomer);
+
+    // 游戏循环
+    setInterval(() => {
+      updateCustomers();
+      renderKitchen();
+    }, 1000);
+
+    // 自动添加顾客
+    setInterval(() => {
+      if (customers.length < upgrades.tables * 3) {
+        addCustomer();
+      }
+    }, 5000);
+
+    // 开始游戏
+    loadProgress();
+  </script>
+</body>
+</html>

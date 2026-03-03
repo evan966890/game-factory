@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《成语小秀才》
-灵感来源：微信小游戏《成语小秀才》
-成语填字游戏 + 升官养成系统，答对获得金币升级官职，解锁更多关卡
-▶️ 试玩：https://evan966890.github.io/game-factory/games/cheng-yu-xiao-xiu-cai/
+《弹射英雄》
+灵感来源：微信小游戏《新弹弹堂》
+拖动角色调整角度和力度发射炮弹，击中敌人获得分数，多种武器和关卡
+▶️ 试玩：https://evan966890.github.io/game-factory/games/tan-she-ying-xiong/
 
-📊 游戏工厂累计：137 个游戏
+📊 游戏工厂累计：138 个游戏
