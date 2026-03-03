@@ -972,5 +972,11 @@
     "path": "games/bie-qiang-wo-de-zuo/index.html",
     "category": "解谜",
     "createdAt": "2026-03-03T23:28:30Z"
+  },
+  {
+    "name": "元梦之星",
+    "path": "games/yuan-meng-zhi-xing/index.html",
+    "category": "派对游戏",
+    "createdAt": "2026-03-03T23:37:05Z"
   }
 ]

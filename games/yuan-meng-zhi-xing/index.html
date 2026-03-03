@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>元梦之星</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --star: #fef3c7;
+      --star-dark: #f59e0b;
+      --playground: #dbeafe;
+      --playground-dark: #3b82f6;
+      --challenge: #d1fae5;
+      --challenge-dark: #10b981;
+      --cooperation: #fce7f3;
+      --cooperation-dark: #ec4899;
+      --social: #e0e7ff;
+      --social-dark: #6366f1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.star {
+      color: var(--star-dark);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .character {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--star);
+      margin-bottom: 16px;
+    }
+
+    .character-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .character-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .character-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .character-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .character-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .character-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .character-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .character-item .cost {
+      font-size: 0.7rem;
+      color: var(--star-dark);
+      font-weight: 700;
+    }
+
+    .playground {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--playground);
+      margin-bottom: 16px;
+    }
+
+    .playground-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .playground-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .playground-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .playground-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .playground-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .playground-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .playground-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .playground-item .cost {
+      font-size: 0.7rem;
+      color: var(--playground-dark);
+      font-weight: 700;
+    }
+
+    .challenge {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--challenge);
+      margin-bottom: 16px;
+    }
+
+    .challenge-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .challenge-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .challenge-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .challenge-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .challenge-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .challenge-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .challenge-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .challenge-item .reward {
+      font-size: 0.7rem;
+      color: var(--challenge-dark);
+      font-weight: 700;
+    }
+
+    .cooperation {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--cooperation);
+      margin-bottom: 16px;
+    }
+
+    .cooperation-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .cooperation-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .cooperation-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .cooperation-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .cooperation-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .cooperation-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .cooperation-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .cooperation-item .reward {
+      font-size: 0.7rem;
+      color: var(--cooperation-dark);
+      font-weight: 700;
+    }
+
+    .social {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--social);
+      margin-bottom: 16px;
+    }
+
+    .social-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .social-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .social-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .social-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .social-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .social-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .social-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .social-item .reward {
+      font-size: 0.7rem;
+      color: var(--social-dark);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--star-dark);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>元梦之星</h1>
+    <p class="subtitle">化身星宝，在无限大的游乐场中尽情疯狂！</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">星星</span>
+        <span class="value star" id="stars">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">挑战</span>
+        <span class="value green" id="challenges">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">好友</span>
+        <span class="value blue" id="friends">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="character">
+          <div class="character-title">角色</div>
+          <div class="character-grid" id="character"></div>
+        </div>
+
+        <div class="playground">
+          <div class="playground-title">游乐场</div>
+          <div class="playground-grid" id="playground"></div>
+        </div>
+
+        <div class="challenge">
+          <div class="challenge-title">挑战</div>
+          <div class="challenge-grid" id="challenge"></div>
+        </div>
+
+        <div class="cooperation">
+          <div class="cooperation-title">合作</div>
+          <div class="cooperation-grid" id="cooperation"></div>
+        </div>
+
+        <div class="social">
+          <div class="social-title">社交</div>
+          <div class="social-grid" id="social"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="playBtn">开始游戏</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      character: [
+        { id: 'star', name: '星宝', emoji: '⭐', cost: 0 },
+        { id: 'cat', name: '猫咪', emoji: '🐱', cost: 100 },
+        { id: 'dog', name: '狗狗', emoji: '🐕', cost: 150 },
+        { id: 'rabbit', name: '兔子', emoji: '🐰', cost: 200 },
+        { id: 'bear', name: '熊', emoji: '🐻', cost: 250 },
+        { id: 'fox', name: '狐狸', emoji: '🦊', cost: 300 }
+      ],
+      playground: [
+        { id: 'water', name: '水上乐园', emoji: '🌊', cost: 50 },
+        { id: 'land', name: '陆地乐园', emoji: '🎢', cost: 100 },
+        { id: 'air', name: '空中乐园', emoji: '🎈', cost: 150 },
+        { id: 'slide', name: '滑水道', emoji: '🛝', cost: 200 },
+        { id: 'maze', name: '迷宫', emoji: '🌀', cost: 250 },
+        { id: 'pipe', name: '空中管道', emoji: '🚰', cost: 300 }
+      ],
+      challenge: [
+        { id: 'slide', name: '滑水挑战', emoji: '🌊', reward: 50 },
+        { id: 'maze', name: '迷宫挑战', emoji: '🌀', reward: 100 },
+        { id: 'pipe', name: '管道挑战', emoji: '🚰', reward: 150 },
+        { id: 'race', name: '竞速挑战', emoji: '🏎️', reward: 200 },
+        { id: 'puzzle', name: '解谜挑战', emoji: '🧩', reward: 250 },
+        { id: 'escape', name: '逃生挑战', emoji: '🏃', reward: 300 }
+      ],
+      cooperation: [
+        { id: 'team', name: '团队合作', emoji: '🤝', reward: 100 },
+        { id: 'puzzle', name: '合作解谜', emoji: '🧩', reward: 150 },
+        { id: 'escape', name: '合作逃生', emoji: '🏃', reward: 200 },
+        { id: 'rescue', name: '救援任务', emoji: '🚑', reward: 250 },
+        { id: 'treasure', name: '寻宝任务', emoji: '🗺️', reward: 300 },
+        { id: 'battle', name: '团队对战', emoji: '⚔️', reward: 350 }
+      ],
+      social: [
+        { id: 'wave', name: '摇尾巴', emoji: '👋', reward: 10 },
+        { id: 'hug', name: '贴贴抱抱', emoji: '🤗', reward: 20 },
+        { id: 'dance', name: '跳舞', emoji: '💃', reward: 30 },
+        { id: 'hotair', name: '热气球', emoji: '🎈', reward: 40 },
+        { id: 'pool', name: '泳池轰趴', emoji: '🏊', reward: 50 },
+        { id: 'train', name: '开小火车', emoji: '🚂', reward: 60 }
+      ]
+    };
+
+    // 游戏状态
+    let stars = 0;
+    let challenges = 0;
+    let friends = 0;
+    let currentCharacter = 'star';
+    let playgrounds = [];
+    let gameLoop = null;
+
+    // DOM 元素
+    const starsEl = document.getElementById('stars');
+    const challengesEl = document.getElementById('challenges');
+    const friendsEl = document.getElementById('friends');
+    const characterEl = document.getElementById('character');
+    const playgroundEl = document.getElementById('playground');
+    const challengeEl = document.getElementById('challenge');
+    const cooperationEl = document.getElementById('cooperation');
+    const socialEl = document.getElementById('social');
+    const playBtn = document.getElementById('playBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      stars = 0;
+      challenges = 0;
+      friends = 0;
+      currentCharacter = 'star';
+      playgrounds = [];
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateCharacter();
+      updatePlayground();
+      updateChallenge();
+      updateCooperation();
+      updateSocial();
+
+      // 开始游戏循环
+      startGameLoop();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('yuan-meng-zhi-xing');
+      if (saved) {
+        const data = JSON.parse(saved);
+        stars = data.stars || 0;
+        challenges = data.challenges || 0;
+        friends = data.friends || 0;
+        currentCharacter = data.currentCharacter || 'star';
+        playgrounds = data.playgrounds || [];
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        stars,
+        challenges,
+        friends,
+        currentCharacter,
+        playgrounds
+      };
+      localStorage.setItem('yuan-meng-zhi-xing', JSON.stringify(data));
+    }
+
+    // 开始游戏循环
+    function startGameLoop() {
+      if (gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => {
+        // 自动收集资源
+        collectResources();
+        updateStats();
+        saveGame();
+      }, 1000);
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      starsEl.textContent = stars;
+      challengesEl.textContent = challenges;
+      friendsEl.textContent = friends;
+    }
+
+    // 更新角色显示
+    function updateCharacter() {
+      characterEl.innerHTML = '';
+      config.character.forEach(character => {
+        const owned = character.id === currentCharacter;
+        const canAfford = stars >= character.cost;
+
+        const characterEl = document.createElement('div');
+        characterEl.className = 'character-item';
+        characterEl.innerHTML = `
+          <div class="emoji">${character.emoji}</div>
+          <div class="name">${character.name}</div>
+          <div class="cost">${character.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          characterEl.addEventListener('click', () => buyCharacter(character));
+        } else {
+          characterEl.disabled = true;
+        }
+        characterEl.appendChild(characterEl);
+      });
+    }
+
+    // 更新游乐场显示
+    function updatePlayground() {
+      playgroundEl.innerHTML = '';
+      config.playground.forEach(playground => {
+        const owned = playgrounds.some(p => p.id === playground.id);
+        const canAfford = stars >= playground.cost;
+
+        const playgroundEl = document.createElement('div');
+        playgroundEl.className = 'playground-item';
+        playgroundEl.innerHTML = `
+          <div class="emoji">${playground.emoji}</div>
+          <div class="name">${playground.name}</div>
+          <div class="cost">${playground.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          playgroundEl.addEventListener('click', () => buyPlayground(playground));
+        } else {
+          playgroundEl.disabled = true;
+        }
+        playgroundEl.appendChild(playgroundEl);
+      });
+    }
+
+    // 更新挑战显示
+    function updateChallenge() {
+      challengeEl.innerHTML = '';
+      config.challenge.forEach(challenge => {
+        const canPlay = playgrounds.length > 0;
+
+        const challengeEl = document.createElement('div');
+        challengeEl.className = 'challenge-item';
+        challengeEl.innerHTML = `
+          <div class="emoji">${challenge.emoji}</div>
+          <div class="name">${challenge.name}</div>
+          <div class="reward">+${challenge.reward}</div>
+        `;
+        if (canPlay) {
+          challengeEl.addEventListener('click', () => doChallenge(challenge));
+        } else {
+          challengeEl.disabled = true;
+        }
+        challengeEl.appendChild(challengeEl);
+      });
+    }
+
+    // 更新合作显示
+    function updateCooperation() {
+      cooperationEl.innerHTML = '';
+      config.cooperation.forEach(cooperation => {
+        const canPlay = friends >= 1;
+
+        const cooperationEl = document.createElement('div');
+        cooperationEl.className = 'cooperation-item';
+        cooperationEl.innerHTML = `
+          <div class="emoji">${cooperation.emoji}</div>
+          <div class="name">${cooperation.name}</div>
+          <div class="reward">+${cooperation.reward}</div>
+        `;
+        if (canPlay) {
+          cooperationEl.addEventListener('click', () => doCooperation(cooperation));
+        } else {
+          cooperationEl.disabled = true;
+        }
+        cooperationEl.appendChild(cooperationEl);
+      });
+    }
+
+    // 更新社交显示
+    function updateSocial() {
+      socialEl.innerHTML = '';
+      config.social.forEach(social => {
+        const canPlay = friends >= 1;
+
+        const socialEl = document.createElement('div');
+        socialEl.className = 'social-item';
+        socialEl.innerHTML = `
+          <div class="emoji">${social.emoji}</div>
+          <div class="name">${social.name}</div>
+          <div class="reward">+${social.reward}</div>
+        `;
+        if (canPlay) {
+          socialEl.addEventListener('click', () => doSocial(social));
+        } else {
+          socialEl.disabled = true;
+        }
+        socialEl.appendChild(socialEl);
+      });
+    }
+
+    // 购买角色
+    function buyCharacter(character) {
+      if (stars >= character.cost) {
+        stars -= character.cost;
+        currentCharacter = character.id;
+        updateStats();
+        updateCharacter();
+        saveGame();
+        alert(`购买成功！获得 ${character.name}`);
+      }
+    }
+
+    // 购买游乐场
+    function buyPlayground(playground) {
+      if (stars >= playground.cost) {
+        stars -= playground.cost;
+        playgrounds.push(playground);
+        updateStats();
+        updatePlayground();
+        updateChallenge();
+        saveGame();
+        alert(`购买成功！获得 ${playground.name}`);
+      }
+    }
+
+    // 进行挑战
+    function doChallenge(challenge) {
+      if (playgrounds.length > 0) {
+        stars += challenge.reward;
+        challenges++;
+        updateStats();
+        saveGame();
+        alert(`挑战成功！获得 ${challenge.reward} 星星`);
+      }
+    }
+
+    // 进行合作
+    function doCooperation(cooperation) {
+      if (friends >= 1) {
+        stars += cooperation.reward;
+        updateStats();
+        saveGame();
+        alert(`合作成功！获得 ${cooperation.reward} 星星`);
+      }
+    }
+
+    // 进行社交
+    function doSocial(social) {
+      if (friends >= 1) {
+        stars += social.reward;
+        friends++;
+        updateStats();
+        saveGame();
+        alert(`社交成功！获得 ${social.reward} 星星，好友 +1`);
+      }
+    }
+
+    // 收集资源
+    function collectResources() {
+      // 游乐场加成
+      playgrounds.forEach(playground => {
+        stars += 1;
+      });
+
+      // 好友加成
+      stars += friends * 2;
+    }
+
+    // 开始游戏
+    function startGame() {
+      // 随机添加好友
+      const randomFriend = Math.floor(Math.random() * 3) + 1;
+      friends += randomFriend;
+      updateStats();
+      updateCooperation();
+      updateSocial();
+      saveGame();
+      alert(`游戏开始！添加了 ${randomFriend} 个好友`);
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('yuan-meng-zhi-xing');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    playBtn.addEventListener('click', startGame);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
