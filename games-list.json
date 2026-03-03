@@ -762,5 +762,11 @@
     "path": "games/math-merge-tower/index.html",
     "category": "education",
     "createdAt": "2026-03-03T16:48:00+08:00"
+  },
+  {
+    "name": "数学增量工厂",
+    "path": "games/math-incremental-factory/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T19:20:00+08:00"
   }
 ]

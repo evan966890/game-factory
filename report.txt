@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《数学曲折跑》
-灵感来源：Zigzag Runner + 数学教育
-点击控制球在曲折路径上滚动，每前进100米回答数学题，答对获得加速和护盾，答错减速
-▶️ 试玩：https://evan966890.github.io/game-factory/games/math-zigzag-runner/
+《数学合成塔》
+灵感来源：Suika Game（合成大西瓜）+ 数学教育
+点击放置数字，相同数字合并成更大的数字，合并时显示数学运算过程（如 2+2=4），物理碰撞，难度递进
+▶️ 试玩：https://evan966890.github.io/game-factory/games/math-merge-tower/
 
-📊 游戏工厂累计：126 个游戏
+📊 游戏工厂累计：127 个游戏

@@ -1,184 +1,164 @@
 ---
 title: '数学曲折跑'
 slug: 'math-zigzag-runner'
-created: '2026-03-03T15:47:00+08:00'
+created: '2026-03-03T18:08:00+08:00'
 status: 'ready-for-dev'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['HTML5', 'CSS3', 'JavaScript']
 files_to_modify: ['game-factory/games/math-zigzag-runner/index.html']
-code_patterns: ['单文件HTML游戏', 'Canvas 2D渲染', 'requestAnimationFrame动画循环', 'localStorage本地存储', '触摸事件处理']
-test_patterns: []
+code_patterns: ['单文件HTML游戏', 'Canvas绘图', 'requestAnimationFrame动画循环', '触摸/点击事件处理', 'localStorage本地存储', '响应式设计']
+test_patterns: ['手动测试', '移动端响应式测试']
 ---
 
-# 技术规格说明书：数学曲折跑
+# Tech-Spec: 数学曲折跑
 
-## 概述
+**Created:** 2026-03-03T18:08:00+08:00
 
-### 问题陈述
-需要开发一款融合教育元素的休闲游戏，既要有趣味性，又要包含数学学习内容。游戏需要基于 Zigzag Runner 的曲折跑酷玩法，通过自然融入数学题目来提升教育价值。
+## Overview
 
-### 解决方案
-开发一款 HTML5 浏览器游戏，玩家通过点击控制球体在曲折路径上滚动，避开障碍物。每前进 100 米弹出一道数学题，答对获得奖励，答错受到惩罚。游戏难度随距离递进，涵盖加减乘除运算。
+### Problem Statement
 
-### 范围
-**包含：**
-- 核心跑酷玩法：点击控制球体在曲折路径上滚动
-- 障碍物系统：随机生成的障碍物需要避开
-- 数学题目系统：每 100 米弹出一道数学题
-- 难度递进：加法 → 减法 → 乘法 → 除法
-- 视觉反馈：球体颜色变化、路径渐变、得分特效
-- 成就系统：前进距离、答对题目数等成就
+基于Zigzag Runner的曲折跑酷玩法，融合数学教育内容，创建一款既能锻炼反应速度又能练习数学技能的HTML5游戏。玩家需要控制球在曲折路径上滚动，同时每前进100米回答一道数学题，答对获得加速和护盾，答错减速。
+
+### Solution
+
+使用HTML5 Canvas实现曲折路径生成和球体物理运动，通过点击/触摸控制球体在路径上的移动方向。每前进100米暂停游戏，弹出数学题目（加法、减法、乘法、除法），根据答题结果给予奖励或惩罚。游戏包含分数系统、最高分记录、成就系统和本地存储功能。
+
+### Scope
+
+**In Scope:**
+- 核心跑酷玩法：点击控制球在曲折路径上滚动
+- 数学题目系统：每100米弹出一道数学题
+- 难度递进：加法 → 减法 → 乘法 → 除法，随距离解锁
+- 视觉反馈：球体颜色变化，路径颜色渐变，得分特效
+- 成就系统：前进1000米、答对50题等成就
 - 本地存储：保存最高分和进度
-- 响应式设计：移动端优先，支持触摸操作
+- 移动端优先，响应式设计
+- 纯HTML/CSS/JS，无框架依赖
 
-**不包含：**
-- 多人游戏功能
-- 复杂的 3D 图形
-- 音效系统（可选，但非必需）
-- 用户账户系统
-- 在线排行榜
+**Out of Scope:**
+- 复杂3D图形或精灵图集
+- 多人游戏或在线排行榜
+- 音效（可后续添加）
+- 复杂的物理引擎
+- 关卡编辑器或自定义路径
 
-## 开发背景
+## Context for Development
 
-### 技术偏好
-- 纯 HTML/CSS/JS，无框架依赖
-- 移动端优先的响应式设计
-- 离线可用，无外部资源依赖
-- 60fps 流畅动画
-- 单指操作，适合移动端
+### Codebase Patterns
 
-### 约束条件
-- 一天内可完成（4-6 小时）
-- 纯浏览器游戏，无需后端
-- 教育内容自然融入，不突兀
-- 上瘾机制明确：追求更高分数，挑战自我
+基于对现有游戏工厂代码的深入分析，发现以下模式：
+1. **单文件HTML结构**：每个游戏都是独立的index.html文件，包含所有HTML、CSS和JavaScript
+2. **内联CSS和JavaScript**：所有样式和脚本都在同一个文件中，无外部依赖
+3. **移动端优先**：使用viewport meta标签和响应式设计，支持触摸操作
+4. **本地存储**：使用localStorage保存游戏状态（最高分、成就、进度）
+5. **Canvas绘图**：使用HTML5 Canvas进行游戏渲染，支持复杂动画
+6. **事件处理**：同时支持触摸和鼠标事件，确保跨设备兼容性
+7. **游戏循环**：使用requestAnimationFrame实现60fps动画循环
+8. **状态管理**：使用全局变量管理游戏状态（分数、时间、游戏状态等）
+9. **UI组件**：使用DOM元素创建UI（按钮、分数显示、题目等）
+10. **响应式布局**：使用CSS Grid和Flexbox实现响应式布局
 
-## 开发背景
+### Files to Reference
 
-### 代码库模式
-- **单文件HTML游戏**：每个游戏都是一个独立的 `index.html` 文件，包含所有HTML、CSS和JavaScript
-- **Canvas 2D渲染**：使用HTML5 Canvas进行游戏渲染
-- **requestAnimationFrame动画循环**：使用标准的60fps动画循环
-- **localStorage本地存储**：保存最高分和游戏进度
-- **触摸事件处理**：支持移动端触摸操作，同时兼容鼠标点击
-- **响应式设计**：使用CSS媒体查询和视口单位适配不同屏幕尺寸
+| File | Purpose |
+| ---- | ------- |
+| game-factory/games/angle-runner/index.html | 参考游戏结构、样式和交互模式 |
+| game-factory/games/math-slope-run/index.html | 参考跑酷游戏实现、Canvas绘图、物理模拟 |
+| game-factory/games/math-space-run/index.html | 参考太空跑酷游戏、障碍物生成、碰撞检测 |
+| game-factory/games/math-stack-tower/index.html | 参考数学题目生成和答题逻辑 |
+| game-factory/games/time-conversion-station/index.html | 参考计时器和分数系统实现 |
 
-### 参考文件
-| 文件 | 用途 | 参考点 |
-|------|------|--------|
-| `game-factory/games/addition-practice/index.html` | 教育游戏示例 | 数学题目生成、本地存储、响应式布局 |
-| `game-factory/games/angle-archer/index.html` | 物理游戏示例 | Canvas渲染、动画循环、触摸控制 |
-| `game-factory/games-list.json` | 游戏注册表 | 游戏元数据格式、分类信息 |
+### Technical Decisions
 
-### 技术决策
-1. **渲染技术**：选择Canvas 2D而非DOM操作，确保60fps流畅动画
-2. **游戏循环**：使用requestAnimationFrame而非setInterval，避免性能问题
-3. **状态管理**：使用简单的JavaScript对象管理游戏状态，无需复杂的状态管理库
-4. **数学题目生成**：在JavaScript中动态生成题目，避免硬编码
-5. **难度递进**：基于前进距离动态调整题目难度和障碍物密度
-6. **本地存储**：使用localStorage保存最高分，使用JSON格式存储数据
-7. **触摸优化**：使用touchstart事件而非click事件，减少移动端延迟
+1. **Canvas vs DOM**: 选择Canvas进行游戏渲染，因为需要复杂的路径绘制和动画效果，参考math-slope-run的实现
+2. **物理模拟**: 使用简单的速度向量和重力模拟，避免复杂物理引擎，参考math-slope-run的球体运动
+3. **题目生成**: 使用随机数生成器创建数学题目，确保题目多样性，参考math-stack-tower的题目生成逻辑
+4. **难度曲线**: 根据前进距离动态调整题目难度和游戏速度，参考math-slope-run的难度递进系统
+5. **性能优化**: 使用requestAnimationFrame确保60fps动画流畅度，参考现有游戏的实现
+6. **模态框设计**: 使用CSS模态框显示数学题目和游戏结束界面，参考math-slope-run的模态框实现
+7. **成就系统**: 使用localStorage保存成就进度，参考math-slope-run的成就系统
+8. **视觉反馈**: 使用CSS动画提供得分反馈和成就弹出效果，参考math-slope-run的动画实现
+9. **路径生成**: 使用算法生成曲折路径，确保路径连续且可玩，参考Zigzag Runner的核心玩法
+10. **碰撞检测**: 使用简单的边界检测，确保球体在路径内运动，参考math-slope-run的碰撞检测
 
-## 实现计划
+## Implementation Plan
 
-### 任务分解
+### Tasks
 
-- [ ] 任务1：创建游戏目录和基础HTML结构
-  - 文件：`game-factory/games/math-zigzag-runner/index.html`
-  - 动作：创建HTML文件，包含Canvas元素、游戏UI容器、样式表
-  - 注意：使用响应式设计，确保移动端适配
+- [ ] Task 1: 创建基础HTML结构
+  - File: `game-factory/games/math-zigzag-runner/index.html`
+  - Action: 创建完整的HTML文档结构，包含viewport meta标签、基础CSS样式、Canvas元素和UI容器
+  - Notes: 参考math-slope-run的HTML结构，确保移动端优先设计
 
-- [ ] 任务2：实现游戏核心引擎
-  - 文件：`game-factory/games/math-zigzag-runner/index.html`
-  - 动作：实现游戏循环、Canvas渲染、基础游戏状态管理
-  - 注意：使用requestAnimationFrame确保60fps流畅动画
+- [ ] Task 2: 实现路径生成系统
+  - File: `game-factory/games/math-zigzag-runner/index.html`
+  - Action: 实现曲折路径生成算法，使用Canvas绘制路径，添加颜色渐变效果和滚动动画
+  - Notes: 路径需要连续且可玩，参考Zigzag Runner的核心玩法
 
-- [ ] 任务3：实现球体控制和物理系统
-  - 文件：`game-factory/games/math-zigzag-runner/index.html`
-  - 动作：实现球体位置、速度、加速度，点击控制转向逻辑
-  - 注意：支持触摸和鼠标事件，确保操作响应灵敏
+- [ ] Task 3: 实现球体物理和控制
+  - File: `game-factory/games/math-zigzag-runner/index.html`
+  - Action: 实现球体位置和速度计算，添加点击/触摸事件处理，实现碰撞检测和重力模拟
+  - Notes: 参考math-slope-run的球体运动实现，确保操作响应灵敏
 
-- [ ] 任务4：实现路径生成和障碍物系统
-  - 文件：`game-factory/games/math-zigzag-runner/index.html`
-  - 动作：实现曲折路径生成算法，随机障碍物生成和碰撞检测
-  - 注意：路径需要平滑，障碍物密度随难度递增
+- [ ] Task 4: 实现数学题目系统
+  - File: `game-factory/games/math-zigzag-runner/index.html`
+  - Action: 实现题目生成器（加减乘除），添加难度递进逻辑，创建答题界面和反馈
+  - Notes: 参考math-stack-tower的题目生成逻辑，确保题目多样性
 
-- [ ] 任务5：实现数学题目系统
-  - 文件：`game-factory/games/math-zigzag-runner/index.html`
-  - 动作：实现题目生成逻辑、弹出界面、答案验证、奖励/惩罚机制
-  - 注意：题目难度随前进距离递进，界面需要清晰易读
+- [ ] Task 5: 实现游戏逻辑和状态管理
+  - File: `game-factory/games/math-zigzag-runner/index.html`
+  - Action: 实现分数计算系统，添加距离追踪，实现成就系统，集成localStorage本地存储
+  - Notes: 参考math-slope-run的状态管理，确保游戏状态正确保存
 
-- [ ] 任务6：实现得分和成就系统
-  - 文件：`game-factory/games/math-zigzag-runner/index.html`
-  - 动作：实现得分计算、最高分记录、成就解锁逻辑
-  - 注意：使用localStorage保存数据，提供视觉反馈
+- [ ] Task 6: 实现视觉反馈和特效
+  - File: `game-factory/games/math-zigzag-runner/index.html`
+  - Action: 实现球体颜色变化，添加得分特效，创建答题反馈动画，设计游戏结束界面
+  - Notes: 参考math-slope-run的动画实现，确保视觉反馈清晰
 
-- [ ] 任务7：实现游戏UI和视觉反馈
-  - 文件：`game-factory/games/math-zigzag-runner/index.html`
-  - 动作：实现开始界面、游戏界面、结束界面、得分显示、特效动画
-  - 注意：配色协调，UI干净，提供明确的视觉反馈
+- [ ] Task 7: 测试和优化
+  - File: `game-factory/games/math-zigzag-runner/index.html`
+  - Action: 进行移动端响应式测试，优化性能，修复Bug
+  - Notes: 确保游戏在手机和平板上正常运行，动画流畅
 
-- [ ] 任务8：测试和优化
-  - 文件：`game-factory/games/math-zigzag-runner/index.html`
-  - 动作：测试游戏功能，优化性能，修复bug
-  - 注意：确保移动端和桌面端都能正常运行
+### Acceptance Criteria
 
-## 验收标准
+- [ ] AC 1: Given 游戏已启动，when 玩家点击/触摸屏幕，then 球体应该改变移动方向
+- [ ] AC 2: Given 球体前进100米，when 到达距离阈值，then 应该弹出数学题目模态框
+- [ ] AC 3: Given 数学题目已显示，when 玩家选择正确答案，then 球体应该获得加速和护盾效果
+- [ ] AC 4: Given 数学题目已显示，when 玩家选择错误答案，then 球体应该减速
+- [ ] AC 5: Given 游戏进行中，when 球体前进距离增加，then 题目难度应该从加法逐步升级到除法
+- [ ] AC 6: Given 球体状态变化，when 状态改变，then 球体颜色应该相应变化
+- [ ] AC 7: Given 玩家获得分数，when 分数增加，then 应该显示得分特效
+- [ ] AC 8: Given 玩家完成特定目标（如前进1000米），when 目标达成，then 应该显示成就弹出
+- [ ] AC 9: Given 游戏结束，when 玩家查看分数，then 最高分应该保存在localStorage中
+- [ ] AC 10: Given 游戏在移动设备上运行，when 玩家操作，then 游戏应该响应触摸操作且布局适配屏幕
 
-- [ ] AC1：给定游戏加载完成，当玩家点击屏幕时，球体开始向点击方向转向
-- [ ] AC2：给定球体在路径上滚动，当遇到障碍物时，游戏结束并显示得分
-- [ ] AC3：给定前进距离达到100米，当弹出数学题目时，玩家可以输入答案
-- [ ] AC4：给定玩家输入正确答案，当验证通过时，获得加速和护盾奖励
-- [ ] AC5：给定玩家输入错误答案，当验证失败时，球体减速并失去护盾
-- [ ] AC6：给定游戏结束，当显示得分时，最高分被保存到本地存储
-- [ ] AC7：给定游戏重新开始，当加载时，从本地存储读取最高分并显示
-- [ ] AC8：给定移动端设备，当触摸屏幕时，游戏响应灵敏，无延迟
-- [ ] AC9：给定不同屏幕尺寸，当加载游戏时，界面自适应显示
-- [ ] AC10：给定前进距离增加，当难度递进时，数学题目从加法变为减法、乘法、除法
+## Additional Context
 
-## 依赖项
+### Dependencies
 
-### 外部依赖
-- 无外部库或服务依赖
-- 纯HTML/CSS/JavaScript实现
+- 无外部依赖，纯HTML/CSS/JS实现
+- 需要现代浏览器支持HTML5 Canvas和localStorage
+- 参考现有游戏工厂的游戏结构和模式
+- 依赖math-slope-run的物理模拟和模态框实现
+- 依赖math-stack-tower的题目生成逻辑
 
-### 内部依赖
-- 参考现有游戏的代码结构和模式
-- 遵循游戏工厂的目录结构和命名规范
+### Testing Strategy
 
-## 测试策略
+1. **功能测试**: 手动测试所有游戏功能，包括路径生成、球体控制、数学题目、分数系统、成就系统
+2. **移动端测试**: 在手机和平板上测试触摸操作和响应式布局，确保游戏在不同屏幕尺寸上正常运行
+3. **性能测试**: 检查动画流畅度和内存使用，确保60fps动画流畅度
+4. **兼容性测试**: 在不同浏览器上测试（Chrome、Safari、Firefox），确保跨浏览器兼容性
+5. **用户体验测试**: 测试游戏手感、反馈、节奏、重玩性，确保符合游戏工厂的质量标准
 
-### 单元测试
-- 数学题目生成函数测试
-- 碰撞检测算法测试
-- 得分计算逻辑测试
+### Notes
 
-### 集成测试
-- 游戏循环和渲染测试
-- 本地存储读写测试
-- 事件处理系统测试
-
-### 手动测试步骤
-1. 在桌面浏览器中打开游戏，测试鼠标控制
-2. 在移动设备中打开游戏，测试触摸控制
-3. 测试数学题目弹出和答案验证
-4. 测试得分保存和最高分记录
-5. 测试不同屏幕尺寸的响应式布局
-
-## 注意事项
-
-### 高风险项
-1. **性能优化**：Canvas渲染和动画循环需要优化，确保60fps流畅度
-2. **移动端适配**：触摸事件处理需要特别注意，避免延迟和误触
-3. **数学题目难度平衡**：题目难度需要合理递进，避免太简单或太难
-
-### 已知限制
-1. 无音效系统（可选功能）
-2. 无在线排行榜
-3. 无用户账户系统
-
-### 未来考虑
-1. 添加音效和背景音乐
-2. 实现在线排行榜
-3. 添加更多游戏模式（计时模式、无尽模式）
-4. 添加更多教育内容（英语单词、科学知识）
+- 游戏体量控制在一天内可完成（4-6小时）
+- 遵循游戏工厂的质量标准：手感、反馈、节奏、重玩性、美观
+- 参考Zigzag Runner的核心玩法，但融入数学教育内容
+- 确保游戏有上瘾机制，让玩家想玩第二局
+- 高风险项：路径生成算法需要确保路径连续且可玩
+- 高风险项：球体物理模拟需要确保操作响应灵敏
+- 高风险项：数学题目难度递进需要平衡挑战性和可玩性
+- 未来考虑：添加音效、更多成就、在线排行榜（当前版本不包含）

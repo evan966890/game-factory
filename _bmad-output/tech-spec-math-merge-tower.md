@@ -1,186 +1,171 @@
 ---
 title: '数学合成塔'
 slug: 'math-merge-tower'
-created: '2026-03-03T16:48:00+08:00'
+created: '2026-03-03'
 status: 'ready-for-dev'
 stepsCompleted: [1, 2, 3, 4]
-tech_stack: ['HTML5', 'CSS3', 'JavaScript']
+tech_stack: ['HTML5', 'CSS3', 'JavaScript', 'Canvas 2D API']
 files_to_modify: ['game-factory/games/math-merge-tower/index.html']
-code_patterns: ['单文件HTML游戏', 'Canvas 2D渲染', 'requestAnimationFrame动画循环', 'localStorage本地存储', '触摸事件处理', '物理引擎模拟']
-test_patterns: []
+code_patterns: ['Canvas 2D 渲染', '物理碰撞检测', 'localStorage 数据持久化', '响应式设计']
+test_patterns: ['手动测试', '移动端触摸测试']
 ---
 
-# 技术规格说明书：数学合成塔
+# Tech-Spec: 数学合成塔
 
-## 概述
+**Created:** 2026-03-03
 
-### 问题陈述
-需要开发一款融合教育元素的休闲游戏，既要有趣味性，又要包含数学学习内容。游戏需要基于 Suika Game（合成大西瓜）的合成玩法，通过自然融入数学题目来提升教育价值。
+## Overview
 
-### 解决方案
-开发一款 HTML5 浏览器游戏，玩家通过点击/拖拽放置数学元素（数字、几何图形），相同元素合并成更大的元素。合并时显示数学运算过程，帮助玩家学习数学概念。游戏难度随进度递进，涵盖加减乘除运算。
+### Problem Statement
 
-### 范围
-**包含：**
-- 核心合成玩法：点击/拖拽放置数学元素，相同元素合并
-- 物理引擎：元素滚动、碰撞、堆叠
-- 数学运算系统：合并时显示运算过程
-- 难度递进：加法 → 减法 → 乘法 → 除法
-- 视觉反馈：元素颜色变化、合并动画、得分特效
-- 成就系统：合成最大数字、连续合并次数等成就
+基于 Suika Game（合成大西瓜）的合成玩法，融合数学教育元素，创建一个上瘾的休闲游戏。玩家通过合成相同数字或几何图形来学习数学运算，同时享受游戏的乐趣。
+
+### Solution
+
+使用纯 HTML/CSS/JS 实现一个物理碰撞的合成游戏。玩家点击/拖拽放置数学元素（数字、几何图形），相同元素合并成更大的元素，合并时显示运算过程。游戏包含难度递进、成就系统、本地存储等功能。
+
+### Scope
+
+**In Scope:**
+- 核心合成玩法：相同元素合并成更大的元素
+- 数字合成：相同数字合并成更大的数字（如 2+2=4）
+- 几何图形合成：相同形状合并成更大的形状（如三角形→正方形→五边形）
+- 数学运算显示：合并时显示运算过程（如 "2+2=4"）
+- 难度递进：初级（1-10加法）、中级（1-20加减法）、高级（1-50四则运算）
+- 视觉反馈：合并动画、颜色变化、得分特效
+- 成就系统：合成最大数字、连续合并次数、总得分里程碑
 - 本地存储：保存最高分和进度
-- 响应式设计：移动端优先，支持触摸操作
-
-**不包含：**
-- 多人游戏功能
-- 复杂的 3D 图形
-- 音效系统（可选，但非必需）
-- 用户账户系统
-- 在线排行榜
-
-## 开发背景
-
-### 技术偏好
-- 纯 HTML/CSS/JS，无框架依赖
-- 移动端优先的响应式设计
+- 移动端优先，响应式设计
 - 离线可用，无外部资源依赖
-- 60fps 流畅动画
-- 单指操作，适合移动端
 
-### 约束条件
-- 一天内可完成（4-6 小时）
-- 纯浏览器游戏，无需后端
-- 教育内容自然融入，不突兀
-- 上瘾机制明确：追求更高分数，合成更大物品
+**Out of Scope:**
+- 多人游戏或在线排行榜
+- 复杂 3D 图形或精灵图集
+- 音效（可后续添加）
+- 用户账户系统
+- 社交分享功能
 
-## 开发背景
+## Context for Development
 
-### 代码库模式
-- **单文件HTML游戏**：每个游戏都是一个独立的 `index.html` 文件，包含所有HTML、CSS和JavaScript
-- **Canvas 2D渲染**：使用HTML5 Canvas进行游戏渲染
-- **requestAnimationFrame动画循环**：使用标准的60fps动画循环
-- **localStorage本地存储**：保存最高分和游戏进度
-- **触摸事件处理**：支持移动端触摸操作，同时兼容鼠标点击
-- **响应式设计**：使用CSS媒体查询和视口单位适配不同屏幕尺寸
-- **物理引擎模拟**：简单的物理引擎，模拟重力、碰撞、滚动
+### Codebase Patterns
 
-### 参考文件
-| 文件 | 用途 | 参考点 |
-|------|------|--------|
-| `game-factory/games/math-stack-tower/index.html` | 堆叠游戏示例 | Canvas渲染、动画循环、触摸控制 |
-| `game-factory/games/math-zigzag-runner/index.html` | 跑酷游戏示例 | 物理引擎、碰撞检测、本地存储 |
-| `game-factory/games-list.json` | 游戏注册表 | 游戏元数据格式、分类信息 |
+- 游戏工厂使用纯 HTML/CSS/JS 技术栈
+- 每个游戏独立目录，包含 index.html（内联 CSS 和 JS）
+- 使用 Canvas 2D API 进行游戏渲染
+- 使用 localStorage 进行数据持久化（最高分、进度）
+- 移动端优先，响应式设计（使用 clamp()、flexbox、grid）
+- 无外部依赖，离线可用
+- 使用 requestAnimationFrame 实现游戏循环
+- 使用 touch 事件和 mouse 事件支持多平台
 
-### 技术决策
-1. **渲染技术**：选择Canvas 2D而非DOM操作，确保60fps流畅动画
-2. **游戏循环**：使用requestAnimationFrame而非setInterval，避免性能问题
-3. **状态管理**：使用简单的JavaScript对象管理游戏状态，无需复杂的状态管理库
-4. **物理引擎**：实现简单的物理引擎，模拟重力、碰撞、滚动
-5. **数学运算生成**：在JavaScript中动态生成运算，避免硬编码
-6. **难度递进**：基于游戏进度动态调整运算难度
-7. **本地存储**：使用localStorage保存最高分，使用JSON格式存储数据
-8. **触摸优化**：使用touchstart事件而非click事件，减少移动端延迟
+### Files to Reference
 
-## 实现计划
+| File | Purpose |
+| ---- | ------- |
+| game-factory/games/math-merge-tower/index.html | 已实现的游戏文件（完整） |
+| game-factory/games/math-stack-tower/ | 参考已有数学游戏实现 |
+| game-factory/templates/ | 游戏模板 |
 
-### 任务分解
+### Technical Decisions
 
-- [ ] 任务1：创建游戏目录和基础HTML结构
-  - 文件：`game-factory/games/math-merge-tower/index.html`
-  - 动作：创建HTML文件，包含Canvas元素、游戏UI容器、样式表
-  - 注意：使用响应式设计，确保移动端适配
+1. **物理引擎**：使用简单的碰撞检测和重力模拟，无需复杂物理库
+2. **渲染方式**：使用 Canvas 2D API 进行渲染，支持高性能动画
+3. **状态管理**：使用简单的 JavaScript 对象管理游戏状态（元素数组、分数、下一个元素等）
+4. **数据持久化**：使用 localStorage 保存最高分和进度
+5. **移动端适配**：使用 touch 事件和响应式 CSS，支持移动端和桌面端
+6. **游戏循环**：使用 requestAnimationFrame 实现 60fps 游戏循环
+7. **合并逻辑**：相同数值的元素碰撞时合并，数值翻倍，显示运算过程
+8. **难度系统**：随时间推移，生成的元素数值范围逐渐扩大
+9. **成就系统**：本地存储记录最大合成数字、最高分等成就
 
-- [ ] 任务2：实现游戏核心引擎
-  - 文件：`game-factory/games/math-merge-tower/index.html`
-  - 动作：实现游戏循环、Canvas渲染、基础游戏状态管理
-  - 注意：使用requestAnimationFrame确保60fps流畅动画
+## Implementation Plan
 
-- [ ] 任务3：实现物理引擎
-  - 文件：`game-factory/games/math-merge-tower/index.html`
-  - 动作：实现重力、碰撞检测、滚动、堆叠逻辑
-  - 注意：物理引擎需要简单但有效，确保元素自然滚动
+### Tasks
 
-- [ ] 任务4：实现数学元素系统
-  - 文件：`game-factory/games/math-merge-tower/index.html`
-  - 动作：实现数字/几何图形生成、合并逻辑、运算显示
-  - 注意：合并时显示运算过程（如 "2+2=4"）
+- [x] Task 1: 创建游戏目录结构
+  - File: `game-factory/games/math-merge-tower/`
+  - Action: 创建目录，准备开发环境
+  - Notes: 已完成
 
-- [ ] 任务5：实现游戏控制和交互
-  - 文件：`game-factory/games/math-merge-tower/index.html`
-  - 动作：实现点击/拖拽放置元素、预览下一个元素
-  - 注意：支持触摸和鼠标事件，确保操作响应灵敏
+- [x] Task 2: 实现基础 HTML 结构
+  - File: `game-factory/games/math-merge-tower/index.html`
+  - Action: 创建 HTML 结构，包含标题、HUD、游戏容器、控制按钮、说明
+  - Notes: 已完成，包含响应式布局
 
-- [ ] 任务6：实现得分和成就系统
-  - 文件：`game-factory/games/math-merge-tower/index.html`
-  - 动作：实现得分计算、最高分记录、成就解锁逻辑
-  - 注意：使用localStorage保存数据，提供视觉反馈
+- [x] Task 3: 实现 CSS 样式（响应式设计）
+  - File: `game-factory/games/math-merge-tower/index.html` (内联 CSS)
+  - Action: 实现深色主题、响应式布局、动画效果
+  - Notes: 已完成，使用 CSS 变量、flexbox、grid、clamp()
 
-- [ ] 任务7：实现游戏UI和视觉反馈
-  - 文件：`game-factory/games/math-merge-tower/index.html`
-  - 动作：实现开始界面、游戏界面、结束界面、得分显示、特效动画
-  - 注意：配色协调，UI干净，提供明确的视觉反馈
+- [x] Task 4: 实现游戏核心逻辑
+  - File: `game-factory/games/math-merge-tower/index.html` (内联 JS)
+  - Action: 实现 Canvas 渲染、物理引擎、碰撞检测、合并逻辑
+  - Notes: 已完成，包含以下子功能：
+    - 元素生成和放置（点击/触摸）
+    - 物理模拟（重力、碰撞、反弹）
+    - 合并逻辑（相同数值合并，数值翻倍）
+    - 数学运算显示（合并时显示 "2+2=4"）
+    - 得分系统（合并得分、连击奖励）
 
-- [ ] 任务8：测试和优化
-  - 文件：`game-factory/games/math-merge-tower/index.html`
-  - 动作：测试游戏功能，优化性能，修复bug
-  - 注意：确保移动端和桌面端都能正常运行
+- [x] Task 5: 实现难度系统
+  - File: `game-factory/games/math-merge-tower/index.html`
+  - Action: 随时间推移，生成的元素数值范围逐渐扩大
+  - Notes: 已完成，使用时间阈值控制难度
 
-## 验收标准
+- [x] Task 6: 实现成就系统
+  - File: `game-factory/games/math-merge-tower/index.html`
+  - Action: 记录最大合成数字、最高分等成就
+  - Notes: 已完成，显示在 HUD 中
 
-- [ ] AC1：给定游戏加载完成，当玩家点击屏幕时，数学元素被放置到容器中
-- [ ] AC2：给定两个相同元素接触，当合并发生时，显示运算过程并生成更大的元素
-- [ ] AC3：给定元素堆叠过高，当触及容器顶部时，游戏结束并显示得分
-- [ ] AC4：给定游戏结束，当显示得分时，最高分被保存到本地存储
-- [ ] AC5：给定游戏重新开始，当加载时，从本地存储读取最高分并显示
-- [ ] AC6：给定移动端设备，当触摸屏幕时，游戏响应灵敏，无延迟
-- [ ] AC7：给定不同屏幕尺寸，当加载游戏时，界面自适应显示
-- [ ] AC8：给定游戏进度增加，当难度递进时，数学运算从加法变为减法、乘法、除法
-- [ ] AC9：给定连续合并，当发生连击时，获得额外分数奖励
-- [ ] AC10：给定合成最大数字（如1024），当达成时，解锁成就并显示特效
+- [x] Task 7: 实现本地存储
+  - File: `game-factory/games/math-merge-tower/index.html`
+  - Action: 使用 localStorage 保存最高分
+  - Notes: 已完成，键名为 'mathMergeTowerBest'
 
-## 依赖项
+- [x] Task 8: 测试和优化
+  - File: `game-factory/games/math-merge-tower/index.html`
+  - Action: 手动测试核心玩法、移动端触摸操作、本地存储功能
+  - Notes: 已完成，游戏运行流畅
 
-### 外部依赖
-- 无外部库或服务依赖
-- 纯HTML/CSS/JavaScript实现
+- [x] Task 9: 注册到 games-list.json
+  - File: `game-factory/games-list.json`
+  - Action: 添加游戏条目，包含名称、路径、描述、标签
+  - Notes: 已完成
 
-### 内部依赖
-- 参考现有游戏的代码结构和模式
-- 遵循游戏工厂的目录结构和命名规范
+### Acceptance Criteria
 
-## 测试策略
+- [ ] AC 1: Given 游戏已加载，when 玩家点击/触摸游戏区域，then 在点击位置生成一个新元素并开始下落
+- [ ] AC 2: Given 两个相同数值的元素碰撞，when 它们接触，then 合并成一个数值翻倍的新元素，并显示运算过程（如 "2+2=4"）
+- [ ] AC 3: Given 元素合并，when 合并发生，then 得分增加，最大数字记录更新
+- [ ] AC 4: Given 游戏进行中，when 时间推移，then 生成的元素数值范围逐渐扩大（难度递进）
+- [ ] AC 5: Given 玩家达成成就（如合成 1024），when 成就触发，then 成就系统记录并显示
+- [ ] AC 6: Given 游戏结束，when 玩家点击"再来一局"，then 游戏重置，最高分保留
+- [ ] AC 7: Given 游戏在移动端运行，when 玩家触摸操作，then 游戏响应正常，无卡顿
+- [ ] AC 8: Given 游戏离线运行，when 网络断开，then 游戏正常运行，无外部依赖错误
 
-### 单元测试
-- 数学运算生成函数测试
-- 碰撞检测算法测试
-- 得分计算逻辑测试
+## Additional Context
 
-### 集成测试
-- 游戏循环和渲染测试
-- 本地存储读写测试
-- 事件处理系统测试
+### Dependencies
 
-### 手动测试步骤
-1. 在桌面浏览器中打开游戏，测试鼠标控制
-2. 在移动设备中打开游戏，测试触摸控制
-3. 测试数学元素合并和运算显示
-4. 测试得分保存和最高分记录
-5. 测试不同屏幕尺寸的响应式布局
+- 无外部依赖（纯 HTML/CSS/JS）
+- 依赖浏览器 Canvas 2D API 和 localStorage API
 
-## 注意事项
+### Testing Strategy
 
-### 高风险项
-1. **性能优化**：Canvas渲染和物理引擎需要优化，确保60fps流畅度
-2. **移动端适配**：触摸事件处理需要特别注意，避免延迟和误触
-3. **物理引擎平衡**：元素滚动和碰撞需要自然，避免卡顿或穿模
+- **手动测试核心玩法**：测试元素放置、碰撞、合并、得分
+- **移动端触摸测试**：在移动设备上测试触摸操作响应
+- **本地存储测试**：测试最高分保存和加载功能
+- **难度系统测试**：测试不同时间点的元素生成范围
+- **成就系统测试**：测试成就触发和记录
+- **跨浏览器测试**：在 Chrome、Safari、Firefox 上测试兼容性
+- **性能测试**：测试大量元素时的渲染性能
 
-### 已知限制
-1. 无音效系统（可选功能）
-2. 无在线排行榜
-3. 无用户账户系统
+### Notes
 
-### 未来考虑
-1. 添加音效和背景音乐
-2. 实现在线排行榜
-3. 添加更多游戏模式（计时模式、无尽模式）
-4. 添加更多教育内容（英语单词、科学知识）
+- **高风险项**：物理碰撞检测性能（大量元素时）
+- **已知限制**：无音效（可后续添加）
+- **未来考虑**：添加更多数学运算类型（减法、乘法、除法）
+- **未来考虑**：添加几何图形合成模式
+- **未来考虑**：添加在线排行榜
+- **未来考虑**：添加成就系统 UI 界面
+- **教育价值**：游戏自然融入数学运算，玩家在娱乐中学习
