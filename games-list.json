@@ -1,9 +1,9 @@
 [
   {
-    "name": "数学曲折跑",
-    "path": "games/math-zigzag-runner/index.html",
+    "name": "数学堆叠塔",
+    "path": "games/math-stack-tower/index.html",
     "category": "education",
-    "createdAt": "2026-03-03T07:57:00Z"
+    "createdAt": "2026-03-03T10:40:00+08:00"
   },
   {
     "name": "数学方块塔",
@@ -774,11 +774,5 @@
     "path": "games/math-zigzag-run/index.html",
     "category": "education",
     "createdAt": "2026-03-03T06:56:00Z"
-  },
-  {
-    "name": "数学曲折跑",
-    "path": "games/math-zigzag-runner/index.html",
-    "category": "education",
-    "createdAt": "2026-03-02T23:20:46Z"
   }
 ]

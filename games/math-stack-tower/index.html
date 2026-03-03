@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>数学堆叠塔</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #22d3ee;
+      --ok: #22c55e;
+      --bad: #ef4444;
+      --text: #e5e7eb;
+      --block: #3b82f6;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #0b1024, #111827);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      overflow: hidden;
+    }
+    
+    .app {
+      width: min(500px, 100%);
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+    }
+    
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(24px, 5vw, 34px);
+      text-align: center;
+    }
+    
+    .sub {
+      opacity: 0.85;
+      margin: 0 0 12px;
+      font-size: 14px;
+      text-align: center;
+    }
+    
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .box {
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+    
+    .k {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+    
+    .v {
+      font-size: 22px;
+      font-weight: 700;
+    }
+    
+    .game-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1/1.5;
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    
+    .overlay.hidden {
+      display: none;
+    }
+    
+    .overlay h2 {
+      font-size: clamp(20px, 4vw, 28px);
+      margin-bottom: 16px;
+      color: var(--accent);
+    }
+    
+    .overlay p {
+      margin-bottom: 20px;
+      text-align: center;
+      max-width: 80%;
+    }
+    
+    .question-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(17, 24, 39, 0.95);
+      border: 2px solid var(--accent);
+      border-radius: 16px;
+      padding: 20px;
+      z-index: 20;
+      text-align: center;
+      min-width: 280px;
+    }
+    
+    .question-overlay.hidden {
+      display: none;
+    }
+    
+    .question-text {
+      font-size: clamp(24px, 6vw, 36px);
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: var(--accent);
+    }
+    
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    
+    .option-btn {
+      appearance: none;
+      border: 2px solid #334155;
+      background: #111827;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      min-height: 56px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .option-btn:hover {
+      border-color: var(--accent);
+      background: rgba(34, 211, 238, 0.1);
+    }
+    
+    .option-btn.correct {
+      background: rgba(34, 197, 94, 0.2);
+      border-color: var(--ok);
+    }
+    
+    .option-btn.wrong {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: var(--bad);
+    }
+    
+    .ctl {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+    
+    button {
+      appearance: none;
+      border: 1px solid #334155;
+      background: #111827;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    button:active {
+      transform: scale(0.98);
+    }
+    
+    .primary {
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      border: none;
+    }
+    
+    .msg {
+      min-height: 24px;
+      text-align: center;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+    
+    .achievement {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 700;
+      z-index: 100;
+      animation: slideDown 0.5s ease-out;
+    }
+    
+    @keyframes slideDown {
+      from {
+        transform: translateX(-50%) translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    .perfect-bonus {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--ok);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 15;
+    }
+    
+    .perfect-bonus.show {
+      animation: perfectPop 0.5s ease-out;
+    }
+    
+    @keyframes perfectPop {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+      }
+      50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>数学堆叠塔</h1>
+    <p class="sub">点击屏幕堆叠方块，每5层回答数学题获得奖励！</p>
+    
+    <section class="hud">
+      <div class="box">
+        <div class="k">层数</div>
+        <div id="layers" class="v">0</div>
+      </div>
+      <div class="box">
+        <div class="k">得分</div>
+        <div id="score" class="v">0</div>
+      </div>
+      <div class="box">
+        <div class="k">最高分</div>
+        <div id="highscore" class="v">0</div>
+      </div>
+    </section>
+    
+    <div class="game-container">
+      <canvas id="gameCanvas"></canvas>
+      
+      <div id="startOverlay" class="overlay">
+        <h2>准备好了吗？</h2>
+        <p>点击屏幕堆叠方块，时机判断是关键！<br>每堆叠5层会弹出数学题，答对获得奖励！</p>
+        <button id="startBtn" class="primary">开始游戏</button>
+      </div>
+      
+      <div id="gameOverOverlay" class="overlay hidden">
+        <h2>游戏结束</h2>
+        <p id="finalStats">你堆叠了 0 层，得分 0</p>
+        <button id="restartBtn" class="primary">再来一局</button>
+      </div>
+      
+      <div id="questionOverlay" class="question-overlay hidden">
+        <div class="question-text" id="questionText">2 + 3 = ?</div>
+        <div class="options" id="optionsContainer"></div>
+      </div>
+      
+      <div id="perfectBonus" class="perfect-bonus">完美！</div>
+    </div>
+    
+    <div id="msg" class="msg"></div>
+    
+    <div class="ctl">
+      <button id="resetBtn">重置最高分</button>
+    </div>
+  </div>
+  
+  <script>
+    // 游戏状态
+    const state = {
+      running: false,
+      paused: false,
+      layers: 0,
+      score: 0,
+      highScore: 0,
+      perfectStacks: 0,
+      totalQuestions: 0,
+      correctAnswers: 0,
+      lastQuestionLayer: 0,
+      gameSpeed: 1,
+      achievements: []
+    };
+    
+    // 方块对象
+    const block = {
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 30,
+      color: '#3b82f6',
+      speed: 3,
+      direction: 1, // 1: 右, -1: 左
+      moving: true
+    };
+    
+    // 堆叠的方块
+    const stack = [];
+    
+    // Canvas 上下文
+    let canvas, ctx;
+    let animationId;
+    let lastTime = 0;
+    
+    // DOM 元素
+    const layersEl = document.getElementById('layers');
+    const scoreEl = document.getElementById('score');
+    const highscoreEl = document.getElementById('highscore');
+    const startOverlay = document.getElementById('startOverlay');
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const questionOverlay = document.getElementById('questionOverlay');
+    const questionText = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const finalStats = document.getElementById('finalStats');
+    const msgEl = document.getElementById('msg');
+    const perfectBonus = document.getElementById('perfectBonus');
+    
+    // 初始化
+    function init() {
+      canvas = document.getElementById('gameCanvas');
+      ctx = canvas.getContext('2d');
+      
+      // 设置 Canvas 尺寸
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      
+      // 加载最高分
+      loadHighScore();
+      
+      // 事件监听
+      document.getElementById('startBtn').addEventListener('click', startGame);
+      document.getElementById('restartBtn').addEventListener('click', restartGame);
+      document.getElementById('resetBtn').addEventListener('click', resetHighScore);
+      
+      // 点击/触摸控制
+      canvas.addEventListener('click', handleInput);
+      canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleInput(e);
+      });
+      
+      // 键盘控制
+      document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+          e.preventDefault();
+          handleInput(e);
+        }
+      });
+      
+      // 初始渲染
+      render();
+    }
+    
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+      
+      // 重置方块位置
+      block.width = canvas.width * 0.6;
+      block.x = (canvas.width - block.width) / 2;
+      block.y = canvas.height - block.height - 20;
+    }
+    
+    function loadHighScore() {
+      const saved = localStorage.getItem('mathStackHighScore');
+      if (saved) {
+        state.highScore = parseInt(saved);
+        highscoreEl.textContent = state.highScore;
+      }
+    }
+    
+    function saveHighScore() {
+      if (state.score > state.highScore) {
+        state.highScore = state.score;
+        localStorage.setItem('mathStackHighScore', state.highScore);
+        highscoreEl.textContent = state.highScore;
+      }
+    }
+    
+    function resetHighScore() {
+      state.highScore = 0;
+      localStorage.removeItem('mathStackHighScore');
+      highscoreEl.textContent = '0';
+      msgEl.textContent = '最高分已重置';
+      setTimeout(() => msgEl.textContent = '', 2000);
+    }
+    
+    function startGame() {
+      // 重置状态
+      state.running = true;
+      state.paused = false;
+      state.layers = 0;
+      state.score = 0;
+      state.perfectStacks = 0;
+      state.totalQuestions = 0;
+      state.correctAnswers = 0;
+      state.lastQuestionLayer = 0;
+      state.gameSpeed = 1;
+      
+      // 重置方块
+      block.width = canvas.width * 0.6;
+      block.x = (canvas.width - block.width) / 2;
+      block.y = canvas.height - block.height - 20;
+      block.moving = true;
+      block.speed = 3;
+      block.direction = 1;
+      
+      // 清空堆叠
+      stack.length = 0;
+      
+      // 添加第一个方块
+      stack.push({
+        x: block.x,
+        y: block.y,
+        width: block.width,
+        height: block.height,
+        color: block.color
+      });
+      
+      // 隐藏开始界面
+      startOverlay.classList.add('hidden');
+      gameOverOverlay.classList.add('hidden');
+      
+      // 开始游戏循环
+      lastTime = performance.now();
+      gameLoop();
+    }
+    
+    function restartGame() {
+      startGame();
+    }
+    
+    function handleInput(e) {
+      if (!state.running || state.paused) return;
+      
+      if (block.moving) {
+        // 停止方块移动
+        block.moving = false;
+        
+        // 计算重叠部分
+        const lastBlock = stack[stack.length - 1];
+        const overlap = calculateOverlap(lastBlock, block);
+        
+        if (overlap > 0) {
+          // 成功堆叠
+          const overlapRatio = overlap / block.width;
+          
+          // 计算得分
+          let points = 10;
+          if (overlapRatio > 0.9) {
+            // 完美堆叠
+            points = 20;
+            state.perfectStacks++;
+            showPerfectBonus();
+          } else if (overlapRatio > 0.7) {
+            points = 15;
+          }
+          
+          state.score += points;
+          state.layers++;
+          
+          // 更新方块宽度
+          block.width = overlap;
+          
+          // 添加到堆叠
+          stack.push({
+            x: block.x,
+            y: block.y,
+            width: block.width,
+            height: block.height,
+            color: block.color
+          });
+          
+          // 移动到下一层
+          block.y -= block.height;
+          block.moving = true;
+          
+          // 增加速度
+          block.speed += 0.1;
+          
+          // 检查是否需要弹出数学题
+          if (state.layers - state.lastQuestionLayer >= 5) {
+            showMathQuestion();
+            return;
+          }
+          
+          // 更新UI
+          updateUI();
+          
+          // 检查成就
+          checkAchievements();
+        } else {
+          // 游戏结束
+          gameOver();
+        }
+      }
+    }
+    
+    function calculateOverlap(lastBlock, currentBlock) {
+      const left = Math.max(lastBlock.x, currentBlock.x);
+      const right = Math.min(lastBlock.x + lastBlock.width, currentBlock.x + currentBlock.width);
+      return Math.max(0, right - left);
+    }
+    
+    function showPerfectBonus() {
+      perfectBonus.classList.add('show');
+      setTimeout(() => perfectBonus.classList.remove('show'), 500);
+    }
+    
+    function showMathQuestion() {
+      state.paused = true;
+      state.lastQuestionLayer = state.layers;
+      state.totalQuestions++;
+      
+      // 根据层数确定难度
+      let difficulty = 1;
+      if (state.layers > 20) difficulty = 2;
+      if (state.layers > 40) difficulty = 3;
+      if (state.layers > 60) difficulty = 4;
+      
+      // 生成题目
+      const question = generateQuestion(difficulty);
+      questionText.textContent = question.text;
+      
+      // 生成选项
+      optionsContainer.innerHTML = '';
+      question.options.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = option;
+        btn.addEventListener('click', () => handleAnswer(option, question.correct, btn));
+        optionsContainer.appendChild(btn);
+      });
+      
+      questionOverlay.classList.remove('hidden');
+    }
+    
+    function generateQuestion(difficulty) {
+      let a, b, operator, correct;
+      
+      switch (difficulty) {
+        case 1: // 加法
+          a = Math.floor(Math.random() * 10) + 1;
+          b = Math.floor(Math.random() * 10) + 1;
+          operator = '+';
+          correct = a + b;
+          break;
+        case 2: // 减法
+          a = Math.floor(Math.random() * 20) + 10;
+          b = Math.floor(Math.random() * 10) + 1;
+          operator = '-';
+          correct = a - b;
+          break;
+        case 3: // 乘法
+          a = Math.floor(Math.random() * 10) + 1;
+          b = Math.floor(Math.random() * 10) + 1;
+          operator = '×';
+          correct = a * b;
+          break;
+        case 4: // 除法
+          b = Math.floor(Math.random() * 5) + 2;
+          correct = Math.floor(Math.random() * 5) + 1;
+          a = b * correct;
+          operator = '÷';
+          break;
+      }
+      
+      // 生成错误选项
+      const options = [correct];
+      while (options.length < 4) {
+        const wrong = correct + Math.floor(Math.random() * 10) - 5;
+        if (wrong !== correct && wrong > 0 && !options.includes(wrong)) {
+          options.push(wrong);
+        }
+      }
+      
+      // 打乱选项
+      options.sort(() => Math.random() - 0.5);
+      
+      return {
+        text: `${a} ${operator} ${b} = ?`,
+        correct,
+        options
+      };
+    }
+    
+    function handleAnswer(selected, correct, btn) {
+      // 禁用所有按钮
+      const buttons = optionsContainer.querySelectorAll('.option-btn');
+      buttons.forEach(b => b.disabled = true);
+      
+      if (selected === correct) {
+        // 正确答案
+        btn.classList.add('correct');
+        state.correctAnswers++;
+        state.score += 50;
+        
+        // 奖励：增加方块宽度
+        block.width = Math.min(block.width + 20, canvas.width * 0.8);
+        
+        msgEl.textContent = '回答正确！方块变宽了！';
+        
+        // 显示成就
+        if (state.correctAnswers === 10) {
+          showAchievement('数学小能手', '答对10道题');
+        }
+        if (state.correctAnswers === 30) {
+          showAchievement('数学大师', '答对30道题');
+        }
+      } else {
+        // 错误答案
+        btn.classList.add('wrong');
+        // 显示正确答案
+        buttons.forEach(b => {
+          if (parseInt(b.textContent) === correct) {
+            b.classList.add('correct');
+          }
+        });
+        
+        // 惩罚：减少方块宽度
+        block.width = Math.max(block.width - 10, canvas.width * 0.3);
+        
+        msgEl.textContent = `回答错误！正确答案是 ${correct}`;
+      }
+      
+      // 更新UI
+      updateUI();
+      
+      // 延迟后继续游戏
+      setTimeout(() => {
+        questionOverlay.classList.add('hidden');
+        state.paused = false;
+        msgEl.textContent = '';
+      }, 1500);
+    }
+    
+    function checkAchievements() {
+      if (state.layers === 50) {
+        showAchievement('堆叠高手', '堆叠50层');
+      }
+      if (state.layers === 100) {
+        showAchievement('堆叠大师', '堆叠100层');
+      }
+      if (state.perfectStacks === 10) {
+        showAchievement('完美主义者', '10次完美堆叠');
+      }
+    }
+    
+    function showAchievement(title, description) {
+      const achievement = document.createElement('div');
+      achievement.className = 'achievement';
+      achievement.innerHTML = `<strong>${title}</strong><br>${description}`;
+      document.body.appendChild(achievement);
+      
+      setTimeout(() => {
+        achievement.remove();
+      }, 3000);
+    }
+    
+    function updateUI() {
+      layersEl.textContent = state.layers;
+      scoreEl.textContent = state.score;
+    }
+    
+    function gameOver() {
+      state.running = false;
+      cancelAnimationFrame(animationId);
+      
+      // 保存最高分
+      saveHighScore();
+      
+      // 显示结束界面
+      finalStats.textContent = `你堆叠了 ${state.layers} 层，得分 ${state.score}`;
+      gameOverOverlay.classList.remove('hidden');
+    }
+    
+    function gameLoop(currentTime) {
+      if (!state.running) return;
+      
+      const deltaTime = currentTime - lastTime;
+      lastTime = currentTime;
+      
+      // 更新游戏状态
+      update(deltaTime);
+      
+      // 渲染
+      render();
+      
+      // 继续循环
+      animationId = requestAnimationFrame(gameLoop);
+    }
+    
+    function update(deltaTime) {
+      if (state.paused) return;
+      
+      // 更新移动方块
+      if (block.moving) {
+        block.x += block.speed * block.direction;
+        
+        // 边界检测
+        if (block.x + block.width > canvas.width) {
+          block.x = canvas.width - block.width;
+          block.direction = -1;
+        } else if (block.x < 0) {
+          block.x = 0;
+          block.direction = 1;
+        }
+      }
+    }
+    
+    function render() {
+      // 清空画布
+      ctx.fillStyle = '#0b1220';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // 绘制堆叠的方块
+      stack.forEach((b, index) => {
+        // 计算颜色渐变
+        const hue = (index * 10) % 360;
+        ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+        
+        // 边框
+        ctx.strokeStyle = '#1e40af';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(b.x, b.y, b.width, b.height);
+      });
+      
+      // 绘制移动的方块
+      if (block.moving) {
+        ctx.fillStyle = block.color;
+        ctx.fillRect(block.x, block.y, block.width, block.height);
+        
+        // 边框
+        ctx.strokeStyle = '#1e40af';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(block.x, block.y, block.width, block.height);
+        
+        // 高光效果
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.fillRect(block.x, block.y, block.width, block.height / 3);
+      }
+      
+      // 绘制层数标记
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.font = '14px sans-serif';
+      ctx.textAlign = 'center';
+      
+      // 绘制目标线
+      const targetY = canvas.height - block.height * 6 - 20;
+      ctx.strokeStyle = 'rgba(34, 211, 238, 0.5)';
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(0, targetY);
+      ctx.lineTo(canvas.width, targetY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      ctx.fillText('目标线', canvas.width / 2, targetY - 10);
+    }
+    
+    // 启动初始化
+    init();
+  </script>
+</body>
+</html>
