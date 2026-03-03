@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>我的花园世界</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --pink: #ec4899;
+      --purple: #8b5cf6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .garden {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+      min-height: 200px;
+    }
+
+    .garden-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .land-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .land {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .land:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .land.planted {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .land.blooming {
+      background: #fce7f3;
+      border-color: var(--pink);
+    }
+
+    .land .emoji {
+      font-size: 1.5rem;
+      margin-bottom: 4px;
+    }
+
+    .land .timer {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .decorations {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .decorations-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .decorations-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .decoration-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .decoration-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .decoration-item.owned {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .decoration-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .decoration-item .price {
+      font-size: 0.8rem;
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .visitors {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .visitors-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .visitors-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .visitor-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      font-size: 0.9rem;
+    }
+
+    .visitor-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .visitor-item .reward {
+      font-size: 0.8rem;
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .offline-earnings {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .offline-earnings .amount {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>我的花园世界</h1>
+    <p class="subtitle">经营你的花园，种植花卉吸引游客</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="coins">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">吸引力</span>
+        <span class="value" id="attraction">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">好评</span>
+        <span class="value" id="rating">0</span>
+      </div>
+    </div>
+
+    <div class="offline-earnings" id="offlineEarnings">
+      <div class="amount" id="offlineAmount">+0</div>
+      <div>离线收益</div>
+      <button class="btn" id="collectOffline">领取</button>
+    </div>
+
+    <div class="garden">
+      <div class="garden-title">花园土地</div>
+      <div class="land-grid" id="landGrid"></div>
+    </div>
+
+    <div class="decorations">
+      <div class="decorations-title">装饰品</div>
+      <div class="decorations-grid" id="decorations"></div>
+    </div>
+
+    <div class="visitors">
+      <div class="visitors-title">游客</div>
+      <div class="visitors-grid" id="visitors"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="harvestBtn">收获花卉</button>
+      <button class="btn secondary" id="attractBtn">吸引游客</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      flowers: [
+        { id: 'rose', name: '玫瑰', emoji: '🌹', growTime: 10000, value: 10, attraction: 5 },
+        { id: 'tulip', name: '郁金香', emoji: '🌷', growTime: 15000, value: 15, attraction: 8 },
+        { id: 'sunflower', name: '向日葵', emoji: '🌻', growTime: 20000, value: 20, attraction: 12 },
+        { id: 'cherry', name: '樱花', emoji: '🌸', growTime: 25000, value: 25, attraction: 15 },
+        { id: 'hibiscus', name: '木槿', emoji: '🌺', growTime: 30000, value: 30, attraction: 20 },
+        { id: 'lotus', name: '莲花', emoji: '🪷', growTime: 35000, value: 35, attraction: 25 }
+      ],
+      decorations: [
+        { id: 'fountain', name: '喷泉', emoji: '⛲', price: 100, attraction: 20 },
+        { id: 'bench', name: '长椅', emoji: '🪑', price: 50, attraction: 10 },
+        { id: 'lamp', name: '路灯', emoji: '🏮', price: 80, attraction: 15 },
+        { id: 'tree', name: '大树', emoji: '🌳', price: 120, attraction: 25 },
+        { id: 'birdhouse', name: '鸟屋', emoji: '🏠', price: 60, attraction: 12 },
+        { id: 'pond', name: '池塘', emoji: '🏞️', price: 150, attraction: 30 }
+      ],
+      visitors: [
+        { id: 'couple', emoji: '👫', reward: 5, attractionRequired: 10 },
+        { id: 'family', emoji: '👨‍👩‍👧', reward: 8, attractionRequired: 20 },
+        { id: 'tourist', emoji: '🧳', reward: 12, attractionRequired: 30 },
+        { id: 'photographer', emoji: '📸', reward: 15, attractionRequired: 40 }
+      ]
+    };
+
+    // 游戏状态
+    let coins = 0;
+    let attraction = 0;
+    let rating = 0;
+    let landCount = 4;
+    let lands = [];
+    let ownedDecorations = new Set();
+    let currentVisitors = [];
+    let lastSaveTime = Date.now();
+
+    // DOM 元素
+    const coinsEl = document.getElementById('coins');
+    const attractionEl = document.getElementById('attraction');
+    const ratingEl = document.getElementById('rating');
+    const landGridEl = document.getElementById('landGrid');
+    const decorationsEl = document.getElementById('decorations');
+    const visitorsEl = document.getElementById('visitors');
+    const offlineEarningsEl = document.getElementById('offlineEarnings');
+    const offlineAmountEl = document.getElementById('offlineAmount');
+    const collectOfflineBtn = document.getElementById('collectOffline');
+    const harvestBtn = document.getElementById('harvestBtn');
+    const attractBtn = document.getElementById('attractBtn');
+
+    // 加载游戏进度
+    function loadProgress() {
+      const saved = localStorage.getItem('wo-de-hua-yuan-shi-jie-progress');
+      if (saved) {
+        const progress = JSON.parse(saved);
+        coins = progress.coins || 0;
+        attraction = progress.attraction || 0;
+        rating = progress.rating || 0;
+        landCount = progress.landCount || 4;
+        lands = progress.lands || [];
+        ownedDecorations = new Set(progress.ownedDecorations || []);
+        currentVisitors = progress.currentVisitors || [];
+        lastSaveTime = progress.lastSaveTime || Date.now();
+
+        // 计算离线收益
+        const offlineTime = Date.now() - lastSaveTime;
+        const offlineEarnings = calculateOfflineEarnings(offlineTime);
+        if (offlineEarnings > 0) {
+          offlineAmountEl.textContent = `+${offlineEarnings}`;
+          offlineEarningsEl.classList.remove('hidden');
+        } else {
+          offlineEarningsEl.classList.add('hidden');
+        }
+      }
+      updateStats();
+      renderLand();
+      renderDecorations();
+      renderVisitors();
+    }
+
+    // 保存游戏进度
+    function saveProgress() {
+      const progress = {
+        coins,
+        attraction,
+        rating,
+        landCount,
+        lands,
+        ownedDecorations: Array.from(ownedDecorations),
+        currentVisitors,
+        lastSaveTime: Date.now()
+      };
+      localStorage.setItem('wo-de-hua-yuan-shi-jie-progress', JSON.stringify(progress));
+    }
+
+    // 计算离线收益
+    function calculateOfflineEarnings(time) {
+      const baseEarnings = 1; // 每秒1金币
+      const attractionBonus = attraction * 0.1;
+      return Math.floor(time / 1000 * baseEarnings * (1 + attractionBonus));
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      coinsEl.textContent = coins;
+      attractionEl.textContent = attraction;
+      ratingEl.textContent = rating;
+    }
+
+    // 渲染土地
+    function renderLand() {
+      landGridEl.innerHTML = '';
+      for (let i = 0; i < landCount; i++) {
+        const land = lands[i] || { flower: null, plantedAt: null, blooming: false };
+        const btn = document.createElement('div');
+        btn.className = 'land';
+        if (land.flower) {
+          if (land.blooming) {
+            btn.classList.add('blooming');
+          } else {
+            btn.classList.add('planted');
+          }
+        }
+        btn.innerHTML = `
+          <div class="emoji">${land.flower ? getFlowerEmoji(land.flower) : '🌱'}</div>
+          <div class="timer">${land.flower ? (land.blooming ? '盛开' : getRemainingTime(land)) : '空闲'}</div>
+        `;
+        btn.addEventListener('click', () => handleLandClick(i));
+        landGridEl.appendChild(btn);
+      }
+    }
+
+    // 获取花卉表情
+    function getFlowerEmoji(flowerId) {
+      const flower = config.flowers.find(f => f.id === flowerId);
+      return flower ? flower.emoji : '🌱';
+    }
+
+    // 获取剩余时间
+    function getRemainingTime(land) {
+      if (!land.flower || land.blooming) return '';
+      const flower = config.flowers.find(f => f.id === land.flower);
+      const elapsed = Date.now() - land.plantedAt;
+      const remaining = Math.max(0, flower.growTime - elapsed);
+      return `${Math.ceil(remaining / 1000)}秒`;
+    }
+
+    // 处理土地点击
+    function handleLandClick(index) {
+      const land = lands[index];
+      if (!land.flower) {
+        // 种植花卉
+        const flower = config.flowers[Math.floor(Math.random() * config.flowers.length)];
+        lands[index] = {
+          flower: flower.id,
+          plantedAt: Date.now(),
+          blooming: false
+        };
+        renderLand();
+        saveProgress();
+      } else if (land.blooming) {
+        // 收获花卉
+        harvestFlower(index);
+      }
+    }
+
+    // 收获花卉
+    function harvestFlower(index) {
+      const land = lands[index];
+      if (!land.flower || !land.blooming) return;
+
+      const flower = config.flowers.find(f => f.id === land.flower);
+
+      // 增加吸引力和好评
+      attraction += flower.attraction;
+      rating += 1;
+
+      // 清空土地
+      lands[index] = { flower: null, plantedAt: null, blooming: false };
+
+      renderLand();
+      updateStats();
+      saveProgress();
+    }
+
+    // 渲染装饰品
+    function renderDecorations() {
+      decorationsEl.innerHTML = '';
+      config.decorations.forEach(decoration => {
+        const owned = ownedDecorations.has(decoration.id);
+        const item = document.createElement('div');
+        item.className = `decoration-item ${owned ? 'owned' : ''}`;
+        item.innerHTML = `
+          <div class="emoji">${decoration.emoji}</div>
+          <div class="price">${owned ? '已拥有' : `${decoration.price}金币`}</div>
+        `;
+        if (!owned) {
+          item.addEventListener('click', () => buyDecoration(decoration));
+        }
+        decorationsEl.appendChild(item);
+      });
+    }
+
+    // 购买装饰品
+    function buyDecoration(decoration) {
+      if (coins >= decoration.price) {
+        coins -= decoration.price;
+        ownedDecorations.add(decoration.id);
+        attraction += decoration.attraction;
+        updateStats();
+        renderDecorations();
+        saveProgress();
+      }
+    }
+
+    // 渲染游客
+    function renderVisitors() {
+      visitorsEl.innerHTML = '';
+      currentVisitors.forEach(visitor => {
+        const visitorData = config.visitors.find(v => v.id === visitor.id);
+        const item = document.createElement('div');
+        item.className = 'visitor-item';
+        item.innerHTML = `
+          <div class="emoji">${visitorData.emoji}</div>
+          <div class="reward">+${visitorData.reward}金币</div>
+        `;
+        visitorsEl.appendChild(item);
+      });
+    }
+
+    // 吸引游客
+    function attractVisitors() {
+      // 根据吸引力吸引游客
+      const availableVisitors = config.visitors.filter(v => attraction >= v.attractionRequired);
+      if (availableVisitors.length > 0) {
+        const visitor = availableVisitors[Math.floor(Math.random() * availableVisitors.length)];
+        currentVisitors.push({ id: visitor.id, arrivedAt: Date.now() });
+
+        // 获得金币
+        coins += visitor.reward;
+
+        updateStats();
+        renderVisitors();
+        saveProgress();
+      }
+    }
+
+    // 领取离线收益
+    collectOfflineBtn.addEventListener('click', () => {
+      const offlineTime = Date.now() - lastSaveTime;
+      const offlineEarnings = calculateOfflineEarnings(offlineTime);
+      if (offlineEarnings > 0) {
+        coins += offlineEarnings;
+        offlineEarningsEl.classList.add('hidden');
+        updateStats();
+        saveProgress();
+      }
+    });
+
+    // 收获花卉按钮
+    harvestBtn.addEventListener('click', () => {
+      // 收获所有盛开的花卉
+      lands.forEach((land, index) => {
+        if (land.flower && land.blooming) {
+          harvestFlower(index);
+        }
+      });
+    });
+
+    // 吸引游客按钮
+    attractBtn.addEventListener('click', attractVisitors);
+
+    // 游戏循环
+    setInterval(() => {
+      // 检查花卉是否盛开
+      lands.forEach((land, index) => {
+        if (land.flower && !land.blooming) {
+          const flower = config.flowers.find(f => f.id === land.flower);
+          const elapsed = Date.now() - land.plantedAt;
+          if (elapsed >= flower.growTime) {
+            land.blooming = true;
+          }
+        }
+      });
+      renderLand();
+    }, 1000);
+
+    // 开始游戏
+    loadProgress();
+  </script>
+</body>
+</html>
