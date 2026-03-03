@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>羊了个羊：星球</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .level-display {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .time-display {
+      text-align: center;
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      padding: 8px;
+      background: #f0f9ff;
+      border-radius: 8px;
+    }
+
+    .blocks-container {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .block {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1.5rem;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .block:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .block.selected {
+      background: #d4edda;
+      border-color: var(--green);
+      transform: scale(1.1);
+    }
+
+    .block.matched {
+      background: #fce7f3;
+      border-color: var(--pink);
+      animation: match 0.3s ease;
+    }
+
+    @keyframes match {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(0); opacity: 0; }
+    }
+
+    .block.hidden {
+      visibility: hidden;
+    }
+
+    .powerups {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .powerups-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .powerups-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .powerup-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .powerup-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .powerup-item.used {
+      background: #d4edda;
+      border-color: var(--green);
+    }
+
+    .powerup-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .powerup-item .count {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .game-over {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .game-over h2 {
+      margin-bottom: 16px;
+    }
+
+    .final-score {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .high-score {
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>羊了个羊：星球</h1>
+    <p class="subtitle">消除相同图案，挑战高分</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">分数</span>
+        <span class="value" id="score">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span class="value" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高分</span>
+        <span class="value" id="highScore">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="level-display" id="levelDisplay">第 1 关</div>
+        <div class="time-display" id="timeDisplay">⏱️ 60秒</div>
+
+        <div class="blocks-container" id="blocks"></div>
+
+        <div class="powerups">
+          <div class="powerups-title">道具</div>
+          <div class="powerups-grid" id="powerups"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="startBtn">开始游戏</button>
+      <button class="btn secondary" id="restartBtn">重新开始</button>
+    </div>
+
+    <div class="game-over hidden" id="gameOver">
+      <h2>游戏结束</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <div class="high-score" id="finalHighScore">最高分: 0</div>
+      <button class="btn" id="playAgainBtn">再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      emojis: ['🐑', '🌟', '🌙', '☀️', '🌈', '🌸', '🍀', '🍎', '🍊', '🍋', '🍇', '🍓'],
+      gridSize: 6,
+      initialTime: 60,
+      timePerLevel: 10,
+      scorePerMatch: 10,
+      comboBonus: 5,
+      powerups: [
+        { id: 'shuffle', name: '洗牌', emoji: '🔀', count: 3 },
+        { id: 'hint', name: '提示', emoji: '💡', count: 2 },
+        { id: 'time', name: '加时', emoji: '⏰', count: 1 }
+      ]
+    };
+
+    // 游戏状态
+    let score = 0;
+    let level = 1;
+    let highScore = parseInt(localStorage.getItem('yang-le-ge-yang-xing-qiu-highscore')) || 0;
+    let timeLeft = config.initialTime;
+    let blocks = [];
+    let selectedBlock = null;
+    let combo = 0;
+    let powerups = [];
+    let gameRunning = false;
+    let gameOver = false;
+    let timerInterval = null;
+
+    // DOM 元素
+    const scoreEl = document.getElementById('score');
+    const levelEl = document.getElementById('level');
+    const highScoreEl = document.getElementById('highScore');
+    const levelDisplayEl = document.getElementById('levelDisplay');
+    const timeDisplayEl = document.getElementById('timeDisplay');
+    const blocksEl = document.getElementById('blocks');
+    const powerupsEl = document.getElementById('powerups');
+    const gameOverEl = document.getElementById('gameOver');
+    const finalScore = document.getElementById('finalScore');
+    const finalHighScore = document.getElementById('finalHighScore');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+
+    // 初始化游戏
+    function initGame() {
+      score = 0;
+      level = 1;
+      timeLeft = config.initialTime;
+      selectedBlock = null;
+      combo = 0;
+      gameOver = false;
+      gameRunning = false;
+
+      // 初始化道具
+      powerups = config.powerups.map(p => ({ ...p }));
+
+      // 生成方块
+      generateBlocks();
+
+      // 更新显示
+      updateStats();
+      updatePowerups();
+      updateTime();
+
+      // 隐藏游戏结束界面
+      gameOverEl.classList.add('hidden');
+    }
+
+    // 生成方块
+    function generateBlocks() {
+      blocks = [];
+      const totalBlocks = config.gridSize * config.gridSize;
+      const emojiCount = Math.min(config.emojis.length, Math.floor(totalBlocks / 2));
+
+      // 创建配对
+      for (let i = 0; i < totalBlocks / 2; i++) {
+        const emoji = config.emojis[i % emojiCount];
+        blocks.push({ id: i * 2, emoji, matched: false });
+        blocks.push({ id: i * 2 + 1, emoji, matched: false });
+      }
+
+      // 随机打乱
+      shuffleArray(blocks);
+
+      // 渲染方块
+      renderBlocks();
+    }
+
+    // 随机打乱数组
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    // 渲染方块
+    function renderBlocks() {
+      blocksEl.innerHTML = '';
+      blocks.forEach((block, index) => {
+        const btn = document.createElement('div');
+        btn.className = `block ${block.matched ? 'hidden' : ''}`;
+        btn.textContent = block.emoji;
+        btn.addEventListener('click', () => handleBlockClick(index));
+        blocksEl.appendChild(btn);
+      });
+    }
+
+    // 处理方块点击
+    function handleBlockClick(index) {
+      if (!gameRunning || gameOver) return;
+
+      const block = blocks[index];
+      if (block.matched) return;
+
+      // 如果已经选中了一个方块
+      if (selectedBlock !== null) {
+        const selected = blocks[selectedBlock];
+
+        // 检查是否匹配
+        if (selected.emoji === block.emoji && selectedBlock !== index) {
+          // 匹配成功
+          block.matched = true;
+          selected.matched = true;
+
+          // 增加分数
+          combo++;
+          const points = config.scorePerMatch + (combo - 1) * config.comboBonus;
+          score += points;
+
+          // 检查是否完成关卡
+          checkLevelComplete();
+
+          // 更新显示
+          updateStats();
+          renderBlocks();
+        } else {
+          // 匹配失败，重置连击
+          combo = 0;
+        }
+
+        // 清除选中状态
+        selectedBlock = null;
+        updateBlockSelection();
+      } else {
+        // 选中方块
+        selectedBlock = index;
+        updateBlockSelection();
+      }
+    }
+
+    // 更新方块选中状态
+    function updateBlockSelection() {
+      const blockElements = blocksEl.querySelectorAll('.block');
+      blockElements.forEach((el, index) => {
+        if (index === selectedBlock) {
+          el.classList.add('selected');
+        } else {
+          el.classList.remove('selected');
+        }
+      });
+    }
+
+    // 检查是否完成关卡
+    function checkLevelComplete() {
+      const unmatched = blocks.filter(b => !b.matched);
+      if (unmatched.length === 0) {
+        // 关卡完成
+        level++;
+        timeLeft += config.timePerLevel;
+        generateBlocks();
+        updateStats();
+        updateTime();
+      }
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      scoreEl.textContent = score;
+      levelEl.textContent = level;
+      highScoreEl.textContent = highScore;
+      levelDisplayEl.textContent = `第 ${level} 关`;
+    }
+
+    // 更新时间显示
+    function updateTime() {
+      timeDisplayEl.textContent = `⏱️ ${timeLeft}秒`;
+    }
+
+    // 更新道具显示
+    function updatePowerups() {
+      powerupsEl.innerHTML = '';
+      powerups.forEach(powerup => {
+        const item = document.createElement('div');
+        item.className = `powerup-item ${powerup.count > 0 ? '' : 'used'}`;
+        item.innerHTML = `
+          <div class="emoji">${powerup.emoji}</div>
+          <div class="count">${powerup.count}次</div>
+        `;
+        if (powerup.count > 0) {
+          item.addEventListener('click', () => usePowerup(powerup));
+        }
+        powerupsEl.appendChild(item);
+      });
+    }
+
+    // 使用道具
+    function usePowerup(powerup) {
+      if (!gameRunning || gameOver || powerup.count <= 0) return;
+
+      switch (powerup.id) {
+        case 'shuffle':
+          // 洗牌
+          const unmatched = blocks.filter(b => !b.matched);
+          shuffleArray(unmatched);
+          let index = 0;
+          blocks.forEach((b, i) => {
+            if (!b.matched) {
+              blocks[i] = unmatched[index++];
+            }
+          });
+          renderBlocks();
+          break;
+
+        case 'hint':
+          // 提示
+          const unmatchedBlocks = blocks.filter(b => !b.matched);
+          if (unmatchedBlocks.length >= 2) {
+            const first = unmatchedBlocks[0];
+            const second = unmatchedBlocks.find(b => b.emoji === first.emoji && b.id !== first.id);
+            if (second) {
+              // 高亮显示
+              const firstIndex = blocks.findIndex(b => b.id === first.id);
+              const secondIndex = blocks.findIndex(b => b.id === second.id);
+              const blockElements = blocksEl.querySelectorAll('.block');
+              blockElements[firstIndex].classList.add('selected');
+              blockElements[secondIndex].classList.add('selected');
+              setTimeout(() => {
+                blockElements[firstIndex].classList.remove('selected');
+                blockElements[secondIndex].classList.remove('selected');
+              }, 1000);
+            }
+          }
+          break;
+
+        case 'time':
+          // 加时
+          timeLeft += 10;
+          updateTime();
+          break;
+      }
+
+      // 减少道具数量
+      powerup.count--;
+      updatePowerups();
+    }
+
+    // 开始游戏
+    function startGame() {
+      if (gameRunning) return;
+      gameRunning = true;
+      gameOver = false;
+      gameOverEl.classList.add('hidden');
+
+      // 开始计时
+      timerInterval = setInterval(() => {
+        if (!gameRunning || gameOver) return;
+
+        timeLeft--;
+        updateTime();
+
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    // 结束游戏
+    function endGame() {
+      gameOver = true;
+      gameRunning = false;
+
+      // 停止计时
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+
+      // 更新最高分
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('yang-le-ge-yang-xing-qiu-highscore', highScore);
+      }
+
+      // 显示游戏结束界面
+      finalScore.textContent = score;
+      finalHighScore.textContent = `最高分: ${highScore}`;
+      gameOverEl.classList.remove('hidden');
+    }
+
+    // 事件监听
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', initGame);
+    playAgainBtn.addEventListener('click', initGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>

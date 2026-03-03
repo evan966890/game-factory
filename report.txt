@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《向僵尸开炮》
-灵感来源：微信小游戏《向僵尸开炮》
-控制炮台角度和力度，发射炮弹消灭僵尸，物理弹道系统，关卡挑战
-▶️ 试玩：https://evan966890.github.io/game-factory/games/xiang-jiang-shi-kai-pao/
+《生存33天》
+灵感来源：微信小游戏《生存33天》
+管理食物、水、材料，建造设施抵御敌人，33天生存挑战，天气系统，随机事件
+▶️ 试玩：https://evan966890.github.io/game-factory/games/sheng-cun-33-tian/
 
-📊 游戏工厂累计：143 个游戏
+📊 游戏工厂累计：144 个游戏
