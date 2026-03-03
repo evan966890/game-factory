@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>无尽冬日</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --snow: #e0f2fe;
+      --snow-dark: #7dd3fc;
+      --ice: #dbeafe;
+      --ice-dark: #3b82f6;
+      --cold: #93c5fd;
+      --cold-dark: #1d4ed8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .stat .value.red {
+      color: var(--red);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .survival {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--snow);
+      margin-bottom: 16px;
+    }
+
+    .survival-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .survival-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .survival-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      font-size: 0.9rem;
+    }
+
+    .survival-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .survival-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .survival-item .value {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .survival-item .value.good {
+      color: var(--green);
+    }
+
+    .survival-item .value.warning {
+      color: var(--gold);
+    }
+
+    .survival-item .value.danger {
+      color: var(--red);
+    }
+
+    .resources {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .resources-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .resources-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .resource {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      font-size: 0.9rem;
+    }
+
+    .resource .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .resource .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .resource .amount {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .buildings {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .buildings-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .buildings-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .building {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .building:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .building:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .building .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .building .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .building .cost {
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .exploration {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .exploration-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .exploration-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .exploration-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .exploration-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .exploration-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .exploration-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .exploration-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .exploration-item .cost {
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .combat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .combat-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .combat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .combat-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .combat-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .combat-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .combat-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .combat-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .combat-item .cost {
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>无尽冬日</h1>
+    <p class="subtitle">在冰雪覆盖的世界里挣扎求生，收集资源，建造庇护所，抵御严寒和野兽的侵袭</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">天数</span>
+        <span class="value blue" id="days">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">体温</span>
+        <span class="value green" id="temperature">37</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高天数</span>
+        <span class="value gold" id="highDays">1</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="survival">
+          <div class="survival-title">生存状态</div>
+          <div class="survival-grid" id="survival"></div>
+        </div>
+
+        <div class="resources">
+          <div class="resources-title">资源</div>
+          <div class="resources-grid" id="resources"></div>
+        </div>
+
+        <div class="buildings">
+          <div class="buildings-title">建造</div>
+          <div class="buildings-grid" id="buildings"></div>
+        </div>
+
+        <div class="exploration">
+          <div class="exploration-title">探索</div>
+          <div class="exploration-grid" id="exploration"></div>
+        </div>
+
+        <div class="combat">
+          <div class="combat-title">战斗</div>
+          <div class="combat-grid" id="combat"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="nextDayBtn">下一天</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      survival: [
+        { id: 'temperature', name: '体温', emoji: '🌡️', min: 30, max: 40, warning: 35, danger: 32 },
+        { id: 'hunger', name: '饥饿', emoji: '🍖', min: 0, max: 100, warning: 30, danger: 10 },
+        { id: 'health', name: '健康', emoji: '❤️', min: 0, max: 100, warning: 30, danger: 10 }
+      ],
+      resources: [
+        { id: 'wood', name: '木材', emoji: '🪵' },
+        { id: 'food', name: '食物', emoji: '🍖' },
+        { id: 'metal', name: '金属', emoji: '⚙️' },
+        { id: 'cloth', name: '布料', emoji: '🧵' }
+      ],
+      buildings: [
+        { id: 'shelter', name: '庇护所', emoji: '🏠', cost: { wood: 20, cloth: 10 }, effect: { temperature: 5 } },
+        { id: 'fire', name: '篝火', emoji: '🔥', cost: { wood: 10 }, effect: { temperature: 3 } },
+        { id: 'trap', name: '陷阱', emoji: '🪤', cost: { wood: 15, metal: 5 }, effect: { food: 2 } },
+        { id: 'workbench', name: '工作台', emoji: '🔨', cost: { wood: 30, metal: 10 }, effect: { building: 1 } },
+        { id: 'storage', name: '储藏室', emoji: '📦', cost: { wood: 25, metal: 5 }, effect: { storage: 1 } },
+        { id: 'fence', name: '栅栏', emoji: '🚧', cost: { wood: 40, metal: 15 }, effect: { defense: 1 } }
+      ],
+      exploration: [
+        { id: 'forest', name: '森林', emoji: '🌲', cost: { hunger: 10 }, reward: { wood: 5, food: 2 } },
+        { id: 'cave', name: '洞穴', emoji: '🕳️', cost: { hunger: 15 }, reward: { metal: 3, cloth: 1 } },
+        { id: 'lake', name: '湖泊', emoji: '🏞️', cost: { hunger: 8 }, reward: { food: 3 } },
+        { id: 'ruins', name: '废墟', emoji: '🏚️', cost: { hunger: 20 }, reward: { metal: 5, cloth: 2 } },
+        { id: 'mountain', name: '山脉', emoji: '⛰️', cost: { hunger: 25 }, reward: { metal: 8, wood: 3 } },
+        { id: 'village', name: '村庄', emoji: '🏘️', cost: { hunger: 30 }, reward: { food: 10, cloth: 5 } }
+      ],
+      combat: [
+        { id: 'wolf', name: '野狼', emoji: '🐺', cost: { health: 10 }, reward: { food: 5, cloth: 2 } },
+        { id: 'bear', name: '熊', emoji: '🐻', cost: { health: 20 }, reward: { food: 15, cloth: 5 } },
+        { id: 'bandit', name: '强盗', emoji: '🦹', cost: { health: 15 }, reward: { metal: 5, cloth: 3 } },
+        { id: 'yeti', name: '雪人', emoji: '⛄', cost: { health: 25 }, reward: { food: 20, cloth: 8 } },
+        { id: 'ice_golem', name: '冰傀儡', emoji: '🧊', cost: { health: 30 }, reward: { metal: 10, cloth: 5 } },
+        { id: 'frost_dragon', name: '霜龙', emoji: '🐉', cost: { health: 40 }, reward: { food: 30, metal: 15, cloth: 10 } }
+      ]
+    };
+
+    // 游戏状态
+    let days = 1;
+    let highDays = parseInt(localStorage.getItem('wu-jin-dong-ri-highdays')) || 1;
+    let survival = { temperature: 37, hunger: 100, health: 100 };
+    let resources = { wood: 0, food: 0, metal: 0, cloth: 0 };
+    let buildings = [];
+    let gameLoop = null;
+
+    // DOM 元素
+    const daysEl = document.getElementById('days');
+    const temperatureEl = document.getElementById('temperature');
+    const highDaysEl = document.getElementById('highDays');
+    const survivalEl = document.getElementById('survival');
+    const resourcesEl = document.getElementById('resources');
+    const buildingsEl = document.getElementById('buildings');
+    const explorationEl = document.getElementById('exploration');
+    const combatEl = document.getElementById('combat');
+    const nextDayBtn = document.getElementById('nextDayBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      days = 1;
+      survival = { temperature: 37, hunger: 100, health: 100 };
+      resources = { wood: 0, food: 0, metal: 0, cloth: 0 };
+      buildings = [];
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateSurvival();
+      updateResources();
+      updateBuildings();
+      updateExploration();
+      updateCombat();
+
+      // 开始游戏循环
+      startGameLoop();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('wu-jin-dong-ri');
+      if (saved) {
+        const data = JSON.parse(saved);
+        days = data.days || 1;
+        highDays = data.highDays || 1;
+        survival = data.survival || { temperature: 37, hunger: 100, health: 100 };
+        resources = data.resources || { wood: 0, food: 0, metal: 0, cloth: 0 };
+        buildings = data.buildings || [];
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        days,
+        highDays,
+        survival,
+        resources,
+        buildings
+      };
+      localStorage.setItem('wu-jin-dong-ri', JSON.stringify(data));
+    }
+
+    // 开始游戏循环
+    function startGameLoop() {
+      if (gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => {
+        // 自动消耗
+        survival.hunger -= 1;
+        survival.temperature -= 0.5;
+
+        // 建筑效果
+        buildings.forEach(building => {
+          if (building.effect.temperature) survival.temperature += building.effect.temperature;
+        });
+
+        // 检查生存状态
+        checkSurvival();
+
+        updateStats();
+        updateSurvival();
+        saveGame();
+      }, 1000);
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      daysEl.textContent = days;
+      temperatureEl.textContent = Math.round(survival.temperature);
+      highDaysEl.textContent = highDays;
+
+      // 更新最高天数
+      if (days > highDays) {
+        highDays = days;
+        localStorage.setItem('wu-jin-dong-ri-highdays', highDays);
+      }
+    }
+
+    // 更新生存状态显示
+    function updateSurvival() {
+      survivalEl.innerHTML = '';
+      config.survival.forEach(item => {
+        const value = survival[item.id];
+        let valueClass = 'good';
+        if (value <= item.danger) valueClass = 'danger';
+        else if (value <= item.warning) valueClass = 'warning';
+
+        const itemEl = document.createElement('div');
+        itemEl.className = 'survival-item';
+        itemEl.innerHTML = `
+          <div class="emoji">${item.emoji}</div>
+          <div class="name">${item.name}</div>
+          <div class="value ${valueClass}">${Math.round(value)}</div>
+        `;
+        survivalEl.appendChild(itemEl);
+      });
+    }
+
+    // 更新资源显示
+    function updateResources() {
+      resourcesEl.innerHTML = '';
+      config.resources.forEach(resource => {
+        const resourceEl = document.createElement('div');
+        resourceEl.className = 'resource';
+        resourceEl.innerHTML = `
+          <div class="emoji">${resource.emoji}</div>
+          <div class="name">${resource.name}</div>
+          <div class="amount">${resources[resource.id]}</div>
+        `;
+        resourcesEl.appendChild(resourceEl);
+      });
+    }
+
+    // 更新建筑显示
+    function updateBuildings() {
+      buildingsEl.innerHTML = '';
+      config.buildings.forEach(building => {
+        const owned = buildings.some(b => b.id === building.id);
+        const canAfford = canAffordCost(building.cost);
+
+        const buildingEl = document.createElement('div');
+        buildingEl.className = 'building';
+        buildingEl.innerHTML = `
+          <div class="emoji">${building.emoji}</div>
+          <div class="name">${building.name}</div>
+          <div class="cost">${formatCost(building.cost)}</div>
+        `;
+        if (!owned && canAfford) {
+          buildingEl.addEventListener('click', () => buyBuilding(building));
+        } else {
+          buildingEl.disabled = true;
+        }
+        buildingsEl.appendChild(buildingEl);
+      });
+    }
+
+    // 更新探索显示
+    function updateExploration() {
+      explorationEl.innerHTML = '';
+      config.exploration.forEach(item => {
+        const canAfford = canAffordCost(item.cost);
+
+        const itemEl = document.createElement('div');
+        itemEl.className = 'exploration-item';
+        itemEl.innerHTML = `
+          <div class="emoji">${item.emoji}</div>
+          <div class="name">${item.name}</div>
+          <div class="cost">${formatCost(item.cost)}</div>
+        `;
+        if (canAfford) {
+          itemEl.addEventListener('click', () => explore(item));
+        } else {
+          itemEl.disabled = true;
+        }
+        explorationEl.appendChild(itemEl);
+      });
+    }
+
+    // 更新战斗显示
+    function updateCombat() {
+      combatEl.innerHTML = '';
+      config.combat.forEach(item => {
+        const canAfford = canAffordCost(item.cost);
+
+        const itemEl = document.createElement('div');
+        itemEl.className = 'combat-item';
+        itemEl.innerHTML = `
+          <div class="emoji">${item.emoji}</div>
+          <div class="name">${item.name}</div>
+          <div class="cost">${formatCost(item.cost)}</div>
+        `;
+        if (canAfford) {
+          itemEl.addEventListener('click', () => fight(item));
+        } else {
+          itemEl.disabled = true;
+        }
+        combatEl.appendChild(itemEl);
+      });
+    }
+
+    // 检查是否可以支付成本
+    function canAffordCost(cost) {
+      for (const [resource, amount] of Object.entries(cost)) {
+        if (resource === 'hunger' && survival.hunger < amount) {
+          return false;
+        } else if (resource === 'health' && survival.health < amount) {
+          return false;
+        } else if (resources[resource] !== undefined && resources[resource] < amount) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // 格式化成本显示
+    function formatCost(cost) {
+      return Object.entries(cost).map(([resource, amount]) => {
+        if (resource === 'hunger') return '🍖' + amount;
+        if (resource === 'health') return '❤️' + amount;
+        const resourceData = config.resources.find(r => r.id === resource);
+        return resourceData ? `${resourceData.emoji}${amount}` : '';
+      }).join(' ');
+    }
+
+    // 购买建筑
+    function buyBuilding(building) {
+      if (canAffordCost(building.cost)) {
+        // 扣除资源
+        for (const [resource, amount] of Object.entries(building.cost)) {
+          resources[resource] -= amount;
+        }
+
+        // 添加建筑
+        buildings.push(building);
+
+        updateStats();
+        updateResources();
+        updateBuildings();
+        saveGame();
+        alert(`建造成功！获得 ${building.name}`);
+      }
+    }
+
+    // 探索
+    function explore(item) {
+      if (canAffordCost(item.cost)) {
+        // 扣除成本
+        for (const [resource, amount] of Object.entries(item.cost)) {
+          if (resource === 'hunger') survival.hunger -= amount;
+        }
+
+        // 获得奖励
+        for (const [resource, amount] of Object.entries(item.reward)) {
+          resources[resource] += amount;
+        }
+
+        updateStats();
+        updateSurvival();
+        updateResources();
+        updateExploration();
+        updateCombat();
+        saveGame();
+        alert(`探索成功！获得 ${Object.entries(item.reward).map(([r, a]) => {
+          const resourceData = config.resources.find(res => res.id === r);
+          return resourceData ? `${resourceData.emoji}${a}` : '';
+        }).join(' ')}`);
+      }
+    }
+
+    // 战斗
+    function fight(item) {
+      if (canAffordCost(item.cost)) {
+        // 扣除成本
+        for (const [resource, amount] of Object.entries(item.cost)) {
+          if (resource === 'health') survival.health -= amount;
+        }
+
+        // 获得奖励
+        for (const [resource, amount] of Object.entries(item.reward)) {
+          resources[resource] += amount;
+        }
+
+        updateStats();
+        updateSurvival();
+        updateResources();
+        updateExploration();
+        updateCombat();
+        saveGame();
+        alert(`战斗胜利！获得 ${Object.entries(item.reward).map(([r, a]) => {
+          const resourceData = config.resources.find(res => res.id === r);
+          return resourceData ? `${resourceData.emoji}${a}` : '';
+        }).join(' ')}`);
+      }
+    }
+
+    // 检查生存状态
+    function checkSurvival() {
+      // 检查体温
+      if (survival.temperature <= 30) {
+        survival.health -= 5;
+      }
+
+      // 检查饥饿
+      if (survival.hunger <= 0) {
+        survival.health -= 10;
+        survival.hunger = 0;
+      }
+
+      // 检查健康
+      if (survival.health <= 0) {
+        gameOver();
+      }
+    }
+
+    // 游戏结束
+    function gameOver() {
+      clearInterval(gameLoop);
+      alert(`游戏结束！你生存了 ${days} 天`);
+      saveGame();
+    }
+
+    // 下一天
+    function nextDay() {
+      days++;
+      survival.hunger = Math.min(100, survival.hunger + 20);
+      survival.temperature = Math.min(40, survival.temperature + 2);
+
+      updateStats();
+      updateSurvival();
+      updateExploration();
+      updateCombat();
+      saveGame();
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('wu-jin-dong-ri');
+        localStorage.removeItem('wu-jin-dong-ri-highdays');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    nextDayBtn.addEventListener('click', nextDay);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
