@@ -924,5 +924,11 @@
     "path": "games/tang-mu-mao-pao-ku/index.html",
     "category": "跑酷",
     "createdAt": "2026-03-03T22:44:35Z"
+  },
+  {
+    "name": "躺平发育",
+    "path": "games/tang-ping-fa-yu/index.html",
+    "category": "塔防",
+    "createdAt": "2026-03-03T22:48:20Z"
   }
 ]

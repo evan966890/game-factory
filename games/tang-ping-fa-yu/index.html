@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>躺平发育</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --room: #fef3c7;
+      --room-dark: #fcd34d;
+      --door: #8b4513;
+      --door-dark: #654321;
+      --ghost: #8b5cf6;
+      --ghost-dark: #7c3aed;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .room {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--room);
+      margin-bottom: 16px;
+      position: relative;
+      height: 200px;
+    }
+
+    .room-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .bed {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      width: 80px;
+      height: 40px;
+      background: var(--room-dark);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .bed.sleeping {
+      background: var(--green);
+    }
+
+    .door {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 80px;
+      background: var(--door);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .door:hover {
+      background: var(--door-dark);
+    }
+
+    .door.broken {
+      background: var(--red);
+    }
+
+    .door-level {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: var(--gold);
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .ghost {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .ghost.attacking {
+      opacity: 1;
+      animation: shake 0.5s infinite;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+      25% { transform: translate(-50%, -50%) rotate(5deg); }
+      75% { transform: translate(-50%, -50%) rotate(-5deg); }
+    }
+
+    .defenses {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .defenses-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .defenses-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .defense {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .defense:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .defense:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .defense .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .defense .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .defense .cost {
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .tools {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fcfeff;
+      margin-bottom: 16px;
+    }
+
+    .tools-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .tool {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: #f8fcff;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .tool:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .tool:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .tool .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .tool .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--gold);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>躺平发育</h1>
+    <p class="subtitle">在房间里睡觉，通过发育获取金币，升级大门和建立防御设施，击败猎梦者</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="coins">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span class="value blue" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高关卡</span>
+        <span class="value green" id="highLevel">1</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="room" id="room">
+          <div class="room-title">房间</div>
+          <div class="bed" id="bed">🛏️</div>
+          <div class="door" id="door">
+            🚪
+            <div class="door-level" id="doorLevel">1</div>
+          </div>
+          <div class="ghost" id="ghost">👻</div>
+        </div>
+
+        <div class="defenses">
+          <div class="defenses-title">防御设施</div>
+          <div class="defenses-grid" id="defenses"></div>
+        </div>
+
+        <div class="tools">
+          <div class="tools-title">道具</div>
+          <div class="tools-grid" id="tools"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="sleepBtn">睡觉发育</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      defenses: [
+        { id: 'turret', name: '炮塔', emoji: '🔫', cost: 50, damage: 10 },
+        { id: 'mine', name: '地雷', emoji: '💣', cost: 30, damage: 20 },
+        { id: 'fence', name: '栅栏', emoji: '🚧', cost: 20, damage: 5 },
+        { id: 'laser', name: '激光', emoji: '⚡', cost: 100, damage: 30 },
+        { id: 'freeze', name: '冰冻', emoji: '❄️', cost: 80, damage: 15 },
+        { id: 'fire', name: '火焰', emoji: '🔥', cost: 60, damage: 25 }
+      ],
+      tools: [
+        { id: 'repair', name: '修理', emoji: '🔧', cost: 40 },
+        { id: 'boost', name: '加速', emoji: '⚡', cost: 60 },
+        { id: 'shield', name: '护盾', emoji: '🛡️', cost: 80 }
+      ],
+      ghostEmoji: '👻'
+    };
+
+    // 游戏状态
+    let coins = 0;
+    let level = 1;
+    let highLevel = parseInt(localStorage.getItem('tang-ping-fa-yu-highlevel')) || 1;
+    let doorLevel = 1;
+    let doorHealth = 100;
+    let isSleeping = false;
+    let isGhostAttacking = false;
+    let defenses = [];
+    let tools = [];
+    let gameLoop = null;
+    let ghostAttackTimer = null;
+
+    // DOM 元素
+    const coinsEl = document.getElementById('coins');
+    const levelEl = document.getElementById('level');
+    const highLevelEl = document.getElementById('highLevel');
+    const doorLevelEl = document.getElementById('doorLevel');
+    const bed = document.getElementById('bed');
+    const door = document.getElementById('door');
+    const ghost = document.getElementById('ghost');
+    const defensesEl = document.getElementById('defenses');
+    const toolsEl = document.getElementById('tools');
+    const sleepBtn = document.getElementById('sleepBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      coins = 0;
+      level = 1;
+      doorLevel = 1;
+      doorHealth = 100;
+      isSleeping = false;
+      isGhostAttacking = false;
+      defenses = [];
+      tools = JSON.parse(JSON.stringify(config.tools));
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateDoor();
+      updateDefenses();
+      updateTools();
+      updateBed();
+      updateGhost();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('tang-ping-fa-yu');
+      if (saved) {
+        const data = JSON.parse(saved);
+        coins = data.coins || 0;
+        level = data.level || 1;
+        doorLevel = data.doorLevel || 1;
+        doorHealth = data.doorHealth || 100;
+        defenses = data.defenses || [];
+        tools = data.tools || JSON.parse(JSON.stringify(config.tools));
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        coins,
+        level,
+        doorLevel,
+        doorHealth,
+        defenses,
+        tools
+      };
+      localStorage.setItem('tang-ping-fa-yu', JSON.stringify(data));
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      coinsEl.textContent = coins;
+      levelEl.textContent = level;
+      highLevelEl.textContent = highLevel;
+
+      // 更新最高关卡
+      if (level > highLevel) {
+        highLevel = level;
+        localStorage.setItem('tang-ping-fa-yu-highlevel', highLevel);
+      }
+    }
+
+    // 更新大门显示
+    function updateDoor() {
+      doorLevelEl.textContent = doorLevel;
+      door.className = `door ${doorHealth <= 0 ? 'broken' : ''}`;
+    }
+
+    // 更新防御设施显示
+    function updateDefenses() {
+      defensesEl.innerHTML = '';
+      config.defenses.forEach(defense => {
+        const owned = defenses.some(d => d.id === defense.id);
+        const canAfford = coins >= defense.cost;
+
+        const defenseEl = document.createElement('div');
+        defenseEl.className = 'defense';
+        defenseEl.innerHTML = `
+          <div class="emoji">${defense.emoji}</div>
+          <div class="name">${defense.name}</div>
+          <div class="cost">${defense.cost} 金币</div>
+        `;
+        if (!owned && canAfford) {
+          defenseEl.addEventListener('click', () => buyDefense(defense));
+        } else {
+          defenseEl.disabled = true;
+        }
+        defensesEl.appendChild(defenseEl);
+      });
+    }
+
+    // 更新道具显示
+    function updateTools() {
+      toolsEl.innerHTML = '';
+      tools.forEach(tool => {
+        const canAfford = coins >= tool.cost;
+
+        const toolEl = document.createElement('div');
+        toolEl.className = 'tool';
+        toolEl.innerHTML = `
+          <div class="emoji">${tool.emoji}</div>
+          <div class="name">${tool.name}</div>
+          <div class="cost">${tool.cost} 金币</div>
+        `;
+        if (canAfford) {
+          toolEl.addEventListener('click', () => useTool(tool));
+        } else {
+          toolEl.disabled = true;
+        }
+        toolsEl.appendChild(toolEl);
+      });
+    }
+
+    // 更新床显示
+    function updateBed() {
+      bed.className = `bed ${isSleeping ? 'sleeping' : ''}`;
+    }
+
+    // 更新猎梦者显示
+    function updateGhost() {
+      ghost.className = `ghost ${isGhostAttacking ? 'attacking' : ''}`;
+    }
+
+    // 购买防御设施
+    function buyDefense(defense) {
+      if (coins >= defense.cost) {
+        coins -= defense.cost;
+        defenses.push(defense);
+        updateStats();
+        updateDefenses();
+        saveGame();
+        alert(`购买成功！获得 ${defense.name}`);
+      }
+    }
+
+    // 使用道具
+    function useTool(tool) {
+      if (coins >= tool.cost) {
+        coins -= tool.cost;
+
+        switch (tool.id) {
+          case 'repair':
+            doorHealth = Math.min(100, doorHealth + 50);
+            break;
+          case 'boost':
+            // 临时增加金币获取速度
+            coins += 20;
+            break;
+          case 'shield':
+            // 临时增加大门防御
+            doorHealth = Math.min(150, doorHealth + 30);
+            break;
+        }
+
+        updateStats();
+        updateDoor();
+        updateTools();
+        saveGame();
+        alert(`使用成功！${tool.name} 效果已生效`);
+      }
+    }
+
+    // 睡觉发育
+    function sleep() {
+      if (isSleeping) return;
+
+      isSleeping = true;
+      sleepBtn.textContent = '发育中...';
+      sleepBtn.disabled = true;
+      updateBed();
+
+      // 开始发育
+      gameLoop = setInterval(() => {
+        coins += 1;
+        updateStats();
+        updateTools();
+      }, 1000);
+
+      // 猎梦者攻击
+      ghostAttackTimer = setTimeout(() => {
+        startGhostAttack();
+      }, 5000);
+    }
+
+    // 开始猎梦者攻击
+    function startGhostAttack() {
+      isGhostAttacking = true;
+      updateGhost();
+
+      // 计算伤害
+      let damage = 10 * level;
+      defenses.forEach(defense => {
+        damage -= defense.damage;
+      });
+      damage = Math.max(1, damage);
+
+      // 应用伤害
+      doorHealth -= damage;
+      updateDoor();
+
+      // 检查游戏结束
+      if (doorHealth <= 0) {
+        gameOver();
+        return;
+      }
+
+      // 检查是否通关
+      if (doorHealth > 0 && !isGhostAttacking) {
+        levelUp();
+      }
+
+      // 结束攻击
+      setTimeout(() => {
+        isGhostAttacking = false;
+        updateGhost();
+
+        // 继续发育
+        if (isSleeping) {
+          ghostAttackTimer = setTimeout(() => {
+            startGhostAttack();
+          }, 5000);
+        }
+      }, 2000);
+    }
+
+    // 升级
+    function levelUp() {
+      level++;
+      doorLevel++;
+      doorHealth = 100;
+      updateStats();
+      updateDoor();
+      saveGame();
+      alert(`恭喜通过第 ${level - 1} 关！进入第 ${level} 关`);
+    }
+
+    // 游戏结束
+    function gameOver() {
+      isSleeping = false;
+      clearInterval(gameLoop);
+      clearTimeout(ghostAttackTimer);
+      sleepBtn.textContent = '睡觉发育';
+      sleepBtn.disabled = false;
+      updateBed();
+
+      alert(`游戏结束！大门被攻破，你到达了第 ${level} 关`);
+      saveGame();
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('tang-ping-fa-yu');
+        localStorage.removeItem('tang-ping-fa-yu-highlevel');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    sleepBtn.addEventListener('click', sleep);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
