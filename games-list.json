@@ -1038,5 +1038,11 @@
     "path": "games/ling-hua-shi/index.html",
     "category": "开箱RPG",
     "createdAt": "2026-03-04T01:32:22Z"
+  },
+  {
+    "name": "不服来通关",
+    "path": "games/bu-fu-lai-tong-guan/index.html",
+    "category": "Roguelike射击",
+    "createdAt": "2026-03-04T01:35:08Z"
   }
 ]
