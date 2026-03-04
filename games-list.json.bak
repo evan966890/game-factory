@@ -1,40 +1,183 @@
 [
   {
-    "name": "数学曲折跑",
-    "path": "games/math-zigzag-runner/index.html",
-    "category": "education",
-    "createdAt": "2026-03-03T03:03:53Z"
-  },
-  {
-    "name": "数学堆叠塔",
-    "path": "games/math-stack-tower/index.html",
-    "category": "education",
-    "createdAt": "2026-03-03T10:40:00+08:00"
-  },
-  {
-    "name": "数学方块塔",
-    "path": "games/math-block-tower/index.html",
-    "category": "education",
-    "createdAt": "2026-03-03T04:16:00Z"
-  },
-  {
     "name": "加法练习",
     "path": "games/addition-practice/index.html",
     "category": "education",
     "createdAt": "2026-02-28T17:24:30Z"
   },
   {
-    "name": "减法练习",
-    "path": "games/subtraction-practice/index.html",
-    "category": "education",
-    "createdAt": "2026-02-28T18:23:21Z"
+    "name": "异星开炮：合成防线",
+    "path": "games/alien-fireline/index.html",
+    "category": "策略生存",
+    "createdAt": "2026-03-01T18:09:11.611473Z"
   },
   {
-    "name": "乘法练习",
-    "path": "games/multiplication-practice/index.html",
+    "name": "角度神射手",
+    "path": "games/angle-archer/index.html",
     "category": "education",
-    "createdAt": "2026-02-28T18:25:53Z",
-    "updatedAt": "2026-03-01T03:37:00Z"
+    "createdAt": "2026-03-02T15:44:28Z"
+  },
+  {
+    "name": "角度分类冲刺",
+    "path": "games/angle-classifier-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T06:39:09.630436+08:00"
+  },
+  {
+    "name": "角度分类训练营",
+    "path": "games/angle-classifier/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T04:37:00Z"
+  },
+  {
+    "name": "角度估算挑战",
+    "path": "games/angle-estimator-challenge/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T06:59:36.632664Z"
+  },
+  {
+    "name": "角度快判王",
+    "path": "games/angle-hunter/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T11:31:18.001Z"
+  },
+  {
+    "name": "角度速配挑战",
+    "path": "games/angle-match-challenge/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T09:59:36.000003Z"
+  },
+  {
+    "name": "角度快跑",
+    "path": "games/angle-runner/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T11:39:32.894832Z"
+  },
+  {
+    "name": "角度狙击手",
+    "path": "games/angle-sniper/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T06:19:40.649911Z"
+  },
+  {
+    "name": "反义词挑战",
+    "path": "games/antonym-challenge/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T06:25:13Z"
+  },
+  {
+    "name": "面积估算挑战",
+    "path": "games/area-estimator/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T19:11:24.896198+08:00"
+  },
+  {
+    "name": "面积单位换算冲刺",
+    "path": "games/area-unit-conversion-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T08:59:12.636899+08:00"
+  },
+  {
+    "name": "四则运算接龙",
+    "path": "games/arithmetic-chain-relay/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T04:59:14.646648+08:00"
+  },
+  {
+    "name": "四则速算风暴",
+    "path": "games/arithmetic-speedstorm-grade3/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T05:39:12.298836+08:00"
+  },
+  {
+    "name": "二进制灯泡工坊",
+    "path": "games/binary-lights/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T04:51:35Z"
+  },
+  {
+    "name": "布尔电路冲刺",
+    "path": "games/boolean-circuit-sprint/index.html",
+    "category": "逻辑推理",
+    "createdAt": "2026-03-01T15:53:15Z"
+  },
+  {
+    "name": "找零小掌柜",
+    "path": "games/change-maker/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T04:59:22.753Z"
+  },
+  {
+    "name": "时钟读数大冒险",
+    "path": "games/clock-reading-adventure/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T08:58:32Z"
+  },
+  {
+    "name": "时钟读时冲刺",
+    "path": "games/clock-reading-race/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T07:19:33Z"
+  },
+  {
+    "name": "条件判断挑战",
+    "path": "games/conditional-judge/index.html",
+    "category": "编程入门",
+    "createdAt": "2026-03-03T01:16:00+08:00"
+  },
+  {
+    "name": "坐标捕手",
+    "path": "games/coordinate-catcher/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T02:19:10Z"
+  },
+  {
+    "name": "坐标象限快跑",
+    "path": "games/coordinate-quadrant-race/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T12:51:10.956Z"
+  },
+  {
+    "name": "坐标镜像实验室",
+    "path": "games/coordinate-reflection-lab/index.html",
+    "category": "数学+空间",
+    "createdAt": "2026-03-02T13:59:37.311371+08:00"
+  },
+  {
+    "name": "坐标寻宝",
+    "path": "games/coordinate-treasure-hunt/index.html",
+    "category": "数学+空间",
+    "createdAt": "2026-03-02T16:39:54.533159+08:00"
+  },
+  {
+    "name": "坐标寻宝冲刺",
+    "path": "games/coordinate-treasure-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T08:39:12.541137+08:00"
+  },
+  {
+    "name": "小数闯关小队",
+    "path": "games/decimal-adventure-grade3/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T20:39:22Z"
+  },
+  {
+    "name": "小数冲刺",
+    "path": "games/decimal-dash/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T10:59:43Z"
+  },
+  {
+    "name": "小数百分数转换冲刺",
+    "path": "games/decimal-percent-converter/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T12:39:09.223148+08:00"
+  },
+  {
+    "name": "小数位冲刺",
+    "path": "games/decimal-place-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T17:51:13.502599+08:00"
   },
   {
     "name": "除法练习",
@@ -44,712 +187,10 @@
     "updatedAt": "2026-03-01T03:37:00Z"
   },
   {
-    "name": "分数大小比一比",
-    "path": "games/fraction-compare/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T03:40:00Z"
-  },
-  {
-    "name": "图形配对大师",
-    "path": "games/shape-match/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T03:59:02Z"
-  },
-  {
-    "name": "单词拼写挑战",
-    "path": "games/word-spell/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T03:59:40Z"
-  },
-  {
-    "name": "数学闯关岛",
-    "path": "games/math-quest/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T04:21:00Z"
-  },
-  {
-    "name": "数字迷宫探险",
-    "path": "games/number-maze/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T04:24:00Z"
-  },
-  {
-    "name": "角度分类训练营",
-    "path": "games/angle-classifier/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T04:37:00Z"
-  },
-  {
-    "name": "行星排序实验室",
-    "path": "games/planet-order/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T04:39:00Z"
-  },
-  {
-    "name": "二进制灯泡工坊",
-    "path": "games/binary-lights/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T04:51:35Z"
-  },
-  {
-    "name": "读钟小达人",
-    "path": "games/time-telling/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T04:59:22.752Z"
-  },
-  {
-    "name": "找零小掌柜",
-    "path": "games/change-maker/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T04:59:22.753Z"
-  },
-  {
-    "name": "重力落体实验室",
-    "path": "games/gravity-drop/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T05:06:03Z"
-  },
-  {
-    "name": "词语分类挑战",
-    "path": "games/word-category-sort/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T05:11:05Z"
-  },
-  {
-    "name": "周长小工匠",
-    "path": "games/perimeter-builder/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T05:16:15.363Z"
-  },
-  {
-    "name": "反义词挑战",
-    "path": "games/antonym-challenge/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T06:25:13Z"
-  },
-  {
-    "name": "物态分类实验室",
-    "path": "games/matter-classifier/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T06:27:33Z"
-  },
-  {
-    "name": "分数闯关比大小",
-    "path": "games/fraction-level-compare/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T07:19:28Z"
-  },
-  {
-    "name": "单位换算冲刺",
-    "path": "games/unit-conversion-rush/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T08:44:38Z"
-  },
-  {
-    "name": "时钟读数大冒险",
-    "path": "games/clock-reading-adventure/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T08:58:32Z"
-  },
-  {
-    "name": "角度猎人",
-    "path": "games/shape-angle-hunt/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T08:59:15Z"
-  },
-  {
-    "name": "质数猎手",
-    "path": "games/prime-hunter/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T09:20:17Z"
-  },
-  {
-    "name": "分解因数挑战",
-    "path": "games/factorization-quiz/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T09:21:02Z"
-  },
-  {
-    "name": "近义词冲刺",
-    "path": "games/synonym-sprint/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T09:31:22Z"
-  },
-  {
-    "name": "小数位冲刺",
-    "path": "games/decimal-place-sprint/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-01T17:51:13.502599+08:00"
-  },
-  {
-    "name": "分数对决训练场",
-    "path": "games/fraction-duel-grade3/index.html",
-    "category": "教育",
-    "createdAt": "2026-03-01T18:11:27.362037+08:00"
-  },
-  {
-    "name": "奇偶快分挑战",
-    "path": "games/odd-even-rush/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-01T18:31:21.588837+08:00"
-  },
-  {
-    "name": "乘法天梯",
-    "path": "games/multiplication-ladder/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-01T18:51:16.725699+08:00"
-  },
-  {
-    "name": "面积估算挑战",
-    "path": "games/area-estimator/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-01T19:11:24.896198+08:00"
-  },
-  {
-    "name": "角度快判王",
-    "path": "games/angle-hunter/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T11:31:18.001Z"
-  },
-  {
-    "name": "分数化小数冲刺",
-    "path": "games/fraction-decimal-sprint/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-01T19:51:18.134291+08:00"
-  },
-  {
-    "name": "循环路径编程",
-    "path": "games/loop-path-coder/index.html",
-    "category": "编程入门",
-    "createdAt": "2026-03-01T20:11:20.295473+08:00"
-  },
-  {
-    "name": "规律侦探队",
-    "path": "games/pattern-detective/index.html",
-    "category": "逻辑推理",
-    "createdAt": "2026-03-01T20:31:16.155830+08:00"
-  },
-  {
-    "name": "坐标象限快跑",
-    "path": "games/coordinate-quadrant-race/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-01T12:51:10.956Z"
-  },
-  {
-    "name": "分数快答闯关",
-    "path": "games/fraction-fast-answer/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-01T13:11:35.187Z"
-  },
-  {
-    "name": "向量密室：Vector Vault",
-    "path": "games/vector-vault/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T13:31:36Z"
-  },
-  {
-    "name": "分数旋转迷阵",
-    "path": "games/fraction-rotation-lab/index.html",
-    "category": "数学+空间逻辑",
-    "createdAt": "2026-03-01T13:51:33.160543Z"
-  },
-  {
-    "name": "倍数冲刺",
-    "path": "games/multiple-sprint/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-01T14:11:16.910Z"
-  },
-  {
-    "name": "空间方程迷宫",
-    "path": "games/spatial-equation-maze/index.html",
-    "category": "数学+逻辑/空间",
-    "createdAt": "2026-03-01T14:31:47.795Z"
-  },
-  {
-    "name": "词语分类冲刺",
-    "path": "games/word-sorter/index.html",
-    "category": "语言学习",
-    "createdAt": "2026-03-01T22:52:57.303416+08:00"
-  },
-  {
-    "name": "方程平衡实验室",
-    "path": "games/equation-balance-lab/index.html",
-    "category": "数学+逻辑",
-    "createdAt": "2026-03-01T15:12:45.691Z"
-  },
-  {
-    "name": "真假话侦探局",
-    "path": "games/truth-lie-detective/index.html",
-    "category": "逻辑推理",
-    "createdAt": "2026-03-01T23:33:21.751332+08:00"
-  },
-  {
-    "name": "布尔电路冲刺",
-    "path": "games/boolean-circuit-sprint/index.html",
-    "category": "逻辑推理",
-    "createdAt": "2026-03-01T15:53:15Z"
-  },
-  {
-    "name": "模运算逻辑擂台",
-    "path": "games/modulo-logic-arena/index.html",
-    "category": "数学+逻辑",
-    "createdAt": "2026-03-01T16:13:20.263562Z"
-  },
-  {
-    "name": "概率决策实验室",
-    "path": "games/probability-decision-lab/index.html",
-    "category": "数学+逻辑",
-    "createdAt": "2026-03-01T16:36:43.669Z"
-  },
-  {
-    "name": "逻辑门竞技场",
-    "path": "games/logic-gate-arena/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T16:56:19Z"
-  },
-  {
-    "name": "分数运算对决",
-    "path": "games/fraction-operations-duel/index.html",
-    "category": "数学+逻辑",
-    "createdAt": "2026-03-02T01:16:30.216545+08:00"
-  },
-  {
-    "name": "命题逻辑真值擂台",
-    "path": "games/proposition-truth-arena/index.html",
-    "category": "数学+逻辑",
-    "createdAt": "2026-03-01T17:35:09.165882Z"
-  },
-  {
-    "name": "心算接力赛",
-    "path": "games/mental-math-relay/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T01:38:33.873571+08:00"
-  },
-  {
-    "name": "函数映射竞技场",
-    "path": "games/function-mapper-arena/index.html",
-    "category": "数学+逻辑",
-    "createdAt": "2026-03-02T01:58:53.728108+08:00"
-  },
-  {
-    "name": "异星开炮：合成防线",
-    "path": "games/alien-fireline/index.html",
-    "category": "策略生存",
-    "createdAt": "2026-03-01T18:09:11.611473Z"
-  },
-  {
-    "name": "集合速判：Venn 挑战",
-    "path": "games/set-theory-venn-challenge/index.html",
-    "category": "数学+逻辑",
-    "createdAt": "2026-03-01T18:18:47Z"
-  },
-  {
-    "name": "霓虹幸存者：夜城突围",
-    "path": "games/neon-survivor/index.html",
-    "category": "动作生存",
-    "createdAt": "2026-03-01T18:19:07.345361Z"
-  },
-  {
-    "name": "荒原车队：补给线",
-    "path": "games/wasteland-convoy/index.html",
-    "category": "策略经营",
-    "createdAt": "2026-03-01T18:27:07.601513Z"
-  },
-  {
-    "name": "数列推理冲刺",
-    "path": "games/sequence-reasoning-sprint/index.html",
-    "category": "数学+逻辑",
-    "createdAt": "2026-03-01T18:39:18.739830Z"
-  },
-  {
-    "name": "分数平衡实验室",
-    "path": "games/fraction-balance-lab/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-01T18:59:06Z"
-  },
-  {
-    "name": "百分数折扣挑战",
-    "path": "games/percent-discount-challenge/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-01T19:19:03.281198+00:00"
-  },
-  {
-    "name": "矩阵规律猎手",
-    "path": "games/matrix-rule-hunt/index.html",
-    "category": "数学+逻辑",
-    "createdAt": "2026-03-02T03:39:22.164409+08:00"
-  },
-  {
-    "name": "余数快闪战",
-    "path": "games/remainder-flash-battle/index.html",
-    "category": "数学+逻辑",
-    "createdAt": "2026-03-02T03:59:13.650100+08:00"
-  },
-  {
-    "name": "分数平衡实验室",
-    "path": "games/fraction-balance-lab/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T04:19:07.820446+08:00"
-  },
-  {
-    "name": "小数闯关小队",
-    "path": "games/decimal-adventure-grade3/index.html",
-    "category": "education",
-    "createdAt": "2026-03-01T20:39:22Z"
-  },
-  {
-    "name": "电网调度官：峰谷挑战",
-    "path": "games/grid-dispatcher/index.html",
-    "category": "科学+策略",
-    "createdAt": "2026-03-01T20:48:59.107142Z"
-  },
-  {
-    "name": "四则运算接龙",
-    "path": "games/arithmetic-chain-relay/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T04:59:14.646648+08:00"
-  },
-  {
-    "name": "分数天平",
-    "path": "games/fraction-balance/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-01T21:18:58.397454Z"
-  },
-  {
-    "name": "四则速算风暴",
-    "path": "games/arithmetic-speedstorm-grade3/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T05:39:12.298836+08:00"
-  },
-  {
-    "name": "分数数轴冲刺",
-    "path": "games/fraction-number-line-dash/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-01T21:59:03Z"
-  },
-  {
-    "name": "通分比大小闯关",
-    "path": "games/fraction-common-denominator-quest/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T06:19:25.493239+08:00"
-  },
-  {
-    "name": "角度分类冲刺",
-    "path": "games/angle-classifier-sprint/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T06:39:09.630436+08:00"
-  },
-  {
-    "name": "倍数快打擂台",
-    "path": "games/multiple-hunter-arena/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-01T22:59:21Z"
-  },
-  {
-    "name": "比值调配实验室",
-    "path": "games/ratio-mixer-lab/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T07:19:19.291268+08:00"
-  },
-  {
-    "name": "整数正负号竞技场",
-    "path": "games/integer-sign-arena/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-01T23:39:02.231879Z"
-  },
-  {
-    "name": "百分比折扣冲刺",
-    "path": "games/percent-discount-sprint/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-01T23:59:03Z"
-  },
-  {
-    "name": "分数平衡实验室",
-    "path": "games/fraction-balance-lab/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T00:19:16Z"
-  },
-  {
-    "name": "坐标寻宝冲刺",
-    "path": "games/coordinate-treasure-sprint/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T08:39:12.541137+08:00"
-  },
-  {
-    "name": "面积单位换算冲刺",
-    "path": "games/area-unit-conversion-sprint/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T08:59:12.636899+08:00"
-  },
-  {
-    "name": "均值中位数众数冲刺",
-    "path": "games/mean-median-mode-rush/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T01:19:13.361328Z"
-  },
-  {
-    "name": "三角角和闯关",
-    "path": "games/geometry-angle-sum-quest/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T09:39:03.507390+08:00"
-  },
-  {
-    "name": "分数小厨师",
-    "path": "games/fraction-chef/index.html",
-    "category": "education",
-    "createdAt": "2026-03-02T01:59:10Z"
-  },
-  {
-    "name": "坐标捕手",
-    "path": "games/coordinate-catcher/index.html",
-    "category": "education",
-    "createdAt": "2026-03-02T02:19:10Z"
-  },
-  {
-    "name": "等值分数快判",
-    "path": "games/fraction-equivalence-swipe/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T02:39:10Z"
-  },
-  {
-    "name": "成语填空冲刺",
-    "path": "games/idiom-fill-blank/index.html",
-    "category": "语言学习",
-    "createdAt": "2026-03-02T10:59:13.942766+08:00"
-  },
-  {
-    "name": "体积单位换算冲刺",
-    "path": "games/volume-unit-conversion-sprint/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T11:19:14.165911+08:00"
-  },
-  {
-    "name": "重量单位换算实验室",
-    "path": "games/weight-conversion-lab/index.html",
-    "category": "education",
-    "createdAt": "2026-03-02T03:39:15Z"
-  },
-  {
     "name": "生态平衡实验室",
     "path": "games/ecosystem-balance-lab/index.html",
     "category": "科学",
     "createdAt": "2026-03-02T11:59:14.969943+08:00"
-  },
-  {
-    "name": "角度追击者",
-    "path": "games/angle-hunter/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T04:19:06.142578+00:00"
-  },
-  {
-    "name": "小数百分数转换冲刺",
-    "path": "games/decimal-percent-converter/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T12:39:09.223148+08:00"
-  },
-  {
-    "name": "周长搭建师",
-    "path": "games/perimeter-builder/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T04:59:17Z"
-  },
-  {
-    "name": "分数平衡冲刺",
-    "path": "games/fraction-balance-blitz/index.html",
-    "category": "education",
-    "createdAt": "2026-03-02T05:19:08Z"
-  },
-  {
-    "name": "镜面对称快判",
-    "path": "games/symmetry-judge/index.html",
-    "category": "数学+空间",
-    "createdAt": "2026-03-02T05:39:32.255Z"
-  },
-  {
-    "name": "坐标镜像实验室",
-    "path": "games/coordinate-reflection-lab/index.html",
-    "category": "数学+空间",
-    "createdAt": "2026-03-02T13:59:37.311371+08:00"
-  },
-  {
-    "name": "角度狙击手",
-    "path": "games/angle-sniper/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T06:19:40.649911Z"
-  },
-  {
-    "name": "等值分数建造师",
-    "path": "games/fraction-equivalent-builder/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T06:39:33Z"
-  },
-  {
-    "name": "角度估算挑战",
-    "path": "games/angle-estimator-challenge/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T06:59:36.632664Z"
-  },
-  {
-    "name": "时钟读时冲刺",
-    "path": "games/clock-reading-race/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T07:19:33Z"
-  },
-  {
-    "name": "罗马数字快译",
-    "path": "games/roman-numeral-rush/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T15:39:37.025341+08:00"
-  },
-  {
-    "name": "分数比较冲刺",
-    "path": "games/fraction-compare-sprint/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T07:59:23.201731+00:00"
-  },
-  {
-    "name": "角度猎手",
-    "path": "games/angle-hunter/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T08:19:40.754689+00:00"
-  },
-  {
-    "name": "坐标寻宝",
-    "path": "games/coordinate-treasure-hunt/index.html",
-    "category": "数学+空间",
-    "createdAt": "2026-03-02T16:39:54.533159+08:00"
-  },
-  {
-    "name": "三角形面积冲刺",
-    "path": "games/triangle-area-rush/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T08:59:34.699Z"
-  },
-  {
-    "name": "等比速判冲刺",
-    "path": "games/equivalent-ratio-rush/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T09:19:28.259Z"
-  },
-  {
-    "name": "概率转盘实验室",
-    "path": "games/probability-spinner-lab/index.html",
-    "category": "education",
-    "createdAt": "2026-03-02T09:39:39.376Z"
-  },
-  {
-    "name": "角度速配挑战",
-    "path": "games/angle-match-challenge/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T09:59:36.000003Z"
-  },
-  {
-    "name": "速度路程时间冲刺",
-    "path": "games/speed-distance-time-race/index.html",
-    "category": "education",
-    "createdAt": "2026-03-02T10:19:39Z"
-  },
-  {
-    "name": "分数大小对决",
-    "path": "games/fraction-compare-duel/index.html",
-    "category": "education",
-    "createdAt": "2026-03-02T10:39:32Z"
-  },
-  {
-    "name": "小数冲刺",
-    "path": "games/decimal-dash/index.html",
-    "category": "education",
-    "createdAt": "2026-03-02T10:59:43Z"
-  },
-  {
-    "name": "一元一次方程冲刺",
-    "path": "games/linear-equation-sprint/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T11:19:32Z"
-  },
-  {
-    "name": "角度快跑",
-    "path": "games/angle-runner/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T11:39:32.894832Z"
-  },
-  {
-    "name": "分数百分数连线桥",
-    "path": "games/fraction-percent-bridge/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T20:20:05.942364+08:00"
-  },
-  {
-    "name": "分数快排挑战",
-    "path": "games/fraction-order-sprint/index.html",
-    "category": "education",
-    "createdAt": "2026-03-02T12:40:03Z"
-  },
-  {
-    "name": "比例平衡实验室",
-    "path": "games/ratio-balance-lab/index.html",
-    "category": "education",
-    "createdAt": "2026-03-02T13:00:04Z"
-  },
-  {
-    "name": "秒分时换算站",
-    "path": "games/time-conversion-station/index.html",
-    "category": "education",
-    "createdAt": "2026-03-02T13:20:32Z"
-  },
-  {
-    "name": "食物网平衡守护者",
-    "path": "games/food-web-balance/index.html",
-    "category": "科学",
-    "createdAt": "2026-03-02T21:42:12.279201+08:00"
-  },
-  {
-    "name": "分数约分冲刺",
-    "path": "games/fraction-simplify-sprint/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T22:02:06.464312+08:00"
-  },
-  {
-    "name": "分数加减接龙",
-    "path": "games/fraction-add-sub-relay/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T22:22:15.244845+08:00"
-  },
-  {
-    "name": "折扣闪算冲刺",
-    "path": "games/percent-discount-dash/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T22:43:07.571235+08:00"
-  },
-  {
-    "name": "周长搭建实验室",
-    "path": "games/perimeter-builder-lab/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T15:03:16.580708+00:00"
-  },
-  {
-    "name": "分数平衡实验室",
-    "path": "games/fraction-balance-lab/index.html",
-    "category": "数学",
-    "createdAt": "2026-03-02T15:23:03.050648+00:00"
-  },
-  {
-    "name": "角度神射手",
-    "path": "games/angle-archer/index.html",
-    "category": "education",
-    "createdAt": "2026-03-02T15:44:28Z"
-  },
-  {
-    "name": "成语接龙挑战",
-    "path": "games/idiom-chain-challenge/index.html",
-    "category": "语言学习",
-    "createdAt": "2026-03-02T15:52:35Z"
-  },
-  {
-    "name": "数独挑战",
-    "path": "games/sudoku-puzzle/index.html",
-    "category": "逻辑推理",
-    "createdAt": "2026-03-03T00:17:00+08:00"
   },
   {
     "name": "英语单词拼写挑战",
@@ -758,10 +199,208 @@
     "createdAt": "2026-03-02T16:48:24Z"
   },
   {
-    "name": "条件判断挑战",
-    "path": "games/conditional-judge/index.html",
-    "category": "编程入门",
-    "createdAt": "2026-03-03T01:16:00+08:00"
+    "name": "方程平衡实验室",
+    "path": "games/equation-balance-lab/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-01T15:12:45.691Z"
+  },
+  {
+    "name": "等比速判冲刺",
+    "path": "games/equivalent-ratio-rush/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T09:19:28.259Z"
+  },
+  {
+    "name": "分解因数挑战",
+    "path": "games/factorization-quiz/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T09:21:02Z"
+  },
+  {
+    "name": "食物网平衡守护者",
+    "path": "games/food-web-balance/index.html",
+    "category": "科学",
+    "createdAt": "2026-03-02T21:42:12.279201+08:00"
+  },
+  {
+    "name": "分数加减接龙",
+    "path": "games/fraction-add-sub-relay/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T22:22:15.244845+08:00"
+  },
+  {
+    "name": "分数平衡冲刺",
+    "path": "games/fraction-balance-blitz/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T05:19:08Z"
+  },
+  {
+    "name": "分数平衡实验室",
+    "path": "games/fraction-balance-lab/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T18:59:06Z"
+  },
+  {
+    "name": "分数天平",
+    "path": "games/fraction-balance/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T21:18:58.397454Z"
+  },
+  {
+    "name": "分数小厨师",
+    "path": "games/fraction-chef/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T01:59:10Z"
+  },
+  {
+    "name": "通分比大小闯关",
+    "path": "games/fraction-common-denominator-quest/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T06:19:25.493239+08:00"
+  },
+  {
+    "name": "分数大小对决",
+    "path": "games/fraction-compare-duel/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T10:39:32Z"
+  },
+  {
+    "name": "分数比较冲刺",
+    "path": "games/fraction-compare-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T07:59:23.201731+00:00"
+  },
+  {
+    "name": "分数大小比一比",
+    "path": "games/fraction-compare/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T03:40:00Z"
+  },
+  {
+    "name": "分数化小数冲刺",
+    "path": "games/fraction-decimal-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T19:51:18.134291+08:00"
+  },
+  {
+    "name": "分数对决训练场",
+    "path": "games/fraction-duel-grade3/index.html",
+    "category": "教育",
+    "createdAt": "2026-03-01T18:11:27.362037+08:00"
+  },
+  {
+    "name": "等值分数快判",
+    "path": "games/fraction-equivalence-swipe/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T02:39:10Z"
+  },
+  {
+    "name": "等值分数建造师",
+    "path": "games/fraction-equivalent-builder/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T06:39:33Z"
+  },
+  {
+    "name": "分数快答闯关",
+    "path": "games/fraction-fast-answer/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T13:11:35.187Z"
+  },
+  {
+    "name": "分数闯关比大小",
+    "path": "games/fraction-level-compare/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T07:19:28Z"
+  },
+  {
+    "name": "分数数轴冲刺",
+    "path": "games/fraction-number-line-dash/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T21:59:03Z"
+  },
+  {
+    "name": "分数运算对决",
+    "path": "games/fraction-operations-duel/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-02T01:16:30.216545+08:00"
+  },
+  {
+    "name": "分数快排挑战",
+    "path": "games/fraction-order-sprint/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T12:40:03Z"
+  },
+  {
+    "name": "分数百分数连线桥",
+    "path": "games/fraction-percent-bridge/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T20:20:05.942364+08:00"
+  },
+  {
+    "name": "分数旋转迷阵",
+    "path": "games/fraction-rotation-lab/index.html",
+    "category": "数学+空间逻辑",
+    "createdAt": "2026-03-01T13:51:33.160543Z"
+  },
+  {
+    "name": "分数约分冲刺",
+    "path": "games/fraction-simplify-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T22:02:06.464312+08:00"
+  },
+  {
+    "name": "函数映射竞技场",
+    "path": "games/function-mapper-arena/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-02T01:58:53.728108+08:00"
+  },
+  {
+    "name": "三角角和闯关",
+    "path": "games/geometry-angle-sum-quest/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T09:39:03.507390+08:00"
+  },
+  {
+    "name": "重力落体实验室",
+    "path": "games/gravity-drop/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T05:06:03Z"
+  },
+  {
+    "name": "电网调度官：峰谷挑战",
+    "path": "games/grid-dispatcher/index.html",
+    "category": "科学+策略",
+    "createdAt": "2026-03-01T20:48:59.107142Z"
+  },
+  {
+    "name": "成语接龙挑战",
+    "path": "games/idiom-chain-challenge/index.html",
+    "category": "语言学习",
+    "createdAt": "2026-03-02T15:52:35Z"
+  },
+  {
+    "name": "成语填空冲刺",
+    "path": "games/idiom-fill-blank/index.html",
+    "category": "语言学习",
+    "createdAt": "2026-03-02T10:59:13.942766+08:00"
+  },
+  {
+    "name": "整数正负号竞技场",
+    "path": "games/integer-sign-arena/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T23:39:02.231879Z"
+  },
+  {
+    "name": "一元一次方程冲刺",
+    "path": "games/linear-equation-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T11:19:32Z"
+  },
+  {
+    "name": "逻辑门竞技场",
+    "path": "games/logic-gate-arena/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T16:56:19Z"
   },
   {
     "name": "循环挑战",
@@ -770,21 +409,712 @@
     "createdAt": "2026-03-03T01:36:00+08:00"
   },
   {
+    "name": "循环路径编程",
+    "path": "games/loop-path-coder/index.html",
+    "category": "编程入门",
+    "createdAt": "2026-03-01T20:11:20.295473+08:00"
+  },
+  {
+    "name": "数学方块塔",
+    "path": "games/math-block-tower/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T04:16:00Z"
+  },
+  {
     "name": "数学矿工大亨",
     "path": "games/math-miner-tycoon/index.html",
     "category": "教育idle",
     "createdAt": "2026-03-03T01:56:00+08:00"
   },
   {
-    "name": "数学曲折跑",
-    "path": "games/math-zigzag-runner/index.html",
+    "name": "数学闯关岛",
+    "path": "games/math-quest/index.html",
     "category": "education",
-    "createdAt": "2026-03-03T06:56:00Z"
+    "createdAt": "2026-03-01T04:21:00Z"
+  },
+  {
+    "name": "数学弹射英雄",
+    "path": "games/math-slingshot-hero/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T14:25:00+08:00"
+  },
+  {
+    "name": "数学斜坡跑",
+    "path": "games/math-slope-run/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T05:06:06Z"
   },
   {
     "name": "数学太空跑",
     "path": "games/math-space-run/index.html",
     "category": "education",
     "createdAt": "2026-03-03T12:21:00+08:00"
+  },
+  {
+    "name": "数学堆叠塔",
+    "path": "games/math-stack-tower/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T10:40:00+08:00"
+  },
+  {
+    "name": "数学曲折跑",
+    "path": "games/math-zigzag-runner/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T03:03:53Z"
+  },
+  {
+    "name": "矩阵规律猎手",
+    "path": "games/matrix-rule-hunt/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-02T03:39:22.164409+08:00"
+  },
+  {
+    "name": "物态分类实验室",
+    "path": "games/matter-classifier/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T06:27:33Z"
+  },
+  {
+    "name": "均值中位数众数冲刺",
+    "path": "games/mean-median-mode-rush/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T01:19:13.361328Z"
+  },
+  {
+    "name": "心算接力赛",
+    "path": "games/mental-math-relay/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T01:38:33.873571+08:00"
+  },
+  {
+    "name": "模运算逻辑擂台",
+    "path": "games/modulo-logic-arena/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-01T16:13:20.263562Z"
+  },
+  {
+    "name": "倍数快打擂台",
+    "path": "games/multiple-hunter-arena/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T22:59:21Z"
+  },
+  {
+    "name": "倍数冲刺",
+    "path": "games/multiple-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T14:11:16.910Z"
+  },
+  {
+    "name": "乘法天梯",
+    "path": "games/multiplication-ladder/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T18:51:16.725699+08:00"
+  },
+  {
+    "name": "乘法练习",
+    "path": "games/multiplication-practice/index.html",
+    "category": "education",
+    "createdAt": "2026-02-28T18:25:53Z",
+    "updatedAt": "2026-03-01T03:37:00Z"
+  },
+  {
+    "name": "霓虹幸存者：夜城突围",
+    "path": "games/neon-survivor/index.html",
+    "category": "动作生存",
+    "createdAt": "2026-03-01T18:19:07.345361Z"
+  },
+  {
+    "name": "数字迷宫探险",
+    "path": "games/number-maze/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T04:24:00Z"
+  },
+  {
+    "name": "奇偶快分挑战",
+    "path": "games/odd-even-rush/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T18:31:21.588837+08:00"
+  },
+  {
+    "name": "规律侦探队",
+    "path": "games/pattern-detective/index.html",
+    "category": "逻辑推理",
+    "createdAt": "2026-03-01T20:31:16.155830+08:00"
+  },
+  {
+    "name": "百分数折扣挑战",
+    "path": "games/percent-discount-challenge/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T19:19:03.281198+00:00"
+  },
+  {
+    "name": "折扣闪算冲刺",
+    "path": "games/percent-discount-dash/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T22:43:07.571235+08:00"
+  },
+  {
+    "name": "百分比折扣冲刺",
+    "path": "games/percent-discount-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-01T23:59:03Z"
+  },
+  {
+    "name": "周长搭建实验室",
+    "path": "games/perimeter-builder-lab/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T15:03:16.580708+00:00"
+  },
+  {
+    "name": "周长小工匠",
+    "path": "games/perimeter-builder/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T05:16:15.363Z"
+  },
+  {
+    "name": "行星排序实验室",
+    "path": "games/planet-order/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T04:39:00Z"
+  },
+  {
+    "name": "质数猎手",
+    "path": "games/prime-hunter/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T09:20:17Z"
+  },
+  {
+    "name": "概率决策实验室",
+    "path": "games/probability-decision-lab/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-01T16:36:43.669Z"
+  },
+  {
+    "name": "概率转盘实验室",
+    "path": "games/probability-spinner-lab/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T09:39:39.376Z"
+  },
+  {
+    "name": "命题逻辑真值擂台",
+    "path": "games/proposition-truth-arena/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-01T17:35:09.165882Z"
+  },
+  {
+    "name": "比例平衡实验室",
+    "path": "games/ratio-balance-lab/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T13:00:04Z"
+  },
+  {
+    "name": "比值调配实验室",
+    "path": "games/ratio-mixer-lab/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T07:19:19.291268+08:00"
+  },
+  {
+    "name": "余数快闪战",
+    "path": "games/remainder-flash-battle/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-02T03:59:13.650100+08:00"
+  },
+  {
+    "name": "罗马数字快译",
+    "path": "games/roman-numeral-rush/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T15:39:37.025341+08:00"
+  },
+  {
+    "name": "数列推理冲刺",
+    "path": "games/sequence-reasoning-sprint/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-01T18:39:18.739830Z"
+  },
+  {
+    "name": "集合速判：Venn 挑战",
+    "path": "games/set-theory-venn-challenge/index.html",
+    "category": "数学+逻辑",
+    "createdAt": "2026-03-01T18:18:47Z"
+  },
+  {
+    "name": "角度猎人",
+    "path": "games/shape-angle-hunt/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T08:59:15Z"
+  },
+  {
+    "name": "图形配对大师",
+    "path": "games/shape-match/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T03:59:02Z"
+  },
+  {
+    "name": "空间方程迷宫",
+    "path": "games/spatial-equation-maze/index.html",
+    "category": "数学+逻辑/空间",
+    "createdAt": "2026-03-01T14:31:47.795Z"
+  },
+  {
+    "name": "速度路程时间冲刺",
+    "path": "games/speed-distance-time-race/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T10:19:39Z"
+  },
+  {
+    "name": "减法练习",
+    "path": "games/subtraction-practice/index.html",
+    "category": "education",
+    "createdAt": "2026-02-28T18:23:21Z"
+  },
+  {
+    "name": "数独挑战",
+    "path": "games/sudoku-puzzle/index.html",
+    "category": "逻辑推理",
+    "createdAt": "2026-03-03T00:17:00+08:00"
+  },
+  {
+    "name": "镜面对称快判",
+    "path": "games/symmetry-judge/index.html",
+    "category": "数学+空间",
+    "createdAt": "2026-03-02T05:39:32.255Z"
+  },
+  {
+    "name": "近义词冲刺",
+    "path": "games/synonym-sprint/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T09:31:22Z"
+  },
+  {
+    "name": "秒分时换算站",
+    "path": "games/time-conversion-station/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T13:20:32Z"
+  },
+  {
+    "name": "读钟小达人",
+    "path": "games/time-telling/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T04:59:22.752Z"
+  },
+  {
+    "name": "三角形面积冲刺",
+    "path": "games/triangle-area-rush/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T08:59:34.699Z"
+  },
+  {
+    "name": "真假话侦探局",
+    "path": "games/truth-lie-detective/index.html",
+    "category": "逻辑推理",
+    "createdAt": "2026-03-01T23:33:21.751332+08:00"
+  },
+  {
+    "name": "单位换算冲刺",
+    "path": "games/unit-conversion-rush/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T08:44:38Z"
+  },
+  {
+    "name": "向量密室：Vector Vault",
+    "path": "games/vector-vault/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T13:31:36Z"
+  },
+  {
+    "name": "体积单位换算冲刺",
+    "path": "games/volume-unit-conversion-sprint/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-02T11:19:14.165911+08:00"
+  },
+  {
+    "name": "荒原车队：补给线",
+    "path": "games/wasteland-convoy/index.html",
+    "category": "策略经营",
+    "createdAt": "2026-03-01T18:27:07.601513Z"
+  },
+  {
+    "name": "重量单位换算实验室",
+    "path": "games/weight-conversion-lab/index.html",
+    "category": "education",
+    "createdAt": "2026-03-02T03:39:15Z"
+  },
+  {
+    "name": "词语分类挑战",
+    "path": "games/word-category-sort/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T05:11:05Z"
+  },
+  {
+    "name": "词语分类冲刺",
+    "path": "games/word-sorter/index.html",
+    "category": "语言学习",
+    "createdAt": "2026-03-01T22:52:57.303416+08:00"
+  },
+  {
+    "name": "单词拼写挑战",
+    "path": "games/word-spell/index.html",
+    "category": "education",
+    "createdAt": "2026-03-01T03:59:40Z"
+  },
+  {
+    "name": "数学合成塔",
+    "path": "games/math-merge-tower/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T16:48:00+08:00"
+  },
+  {
+    "name": "数学增量工厂",
+    "path": "games/math-incremental-factory/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T19:20:00+08:00"
+  },
+  {
+    "name": "数学纸夹宇宙",
+    "path": "games/math-paperclip-universe/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T13:24:03Z"
+  },
+  {
+    "name": "数学纸夹宇宙",
+    "path": "games/math-paperclip-universe/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T14:00:00Z"
+  },
+  {
+    "name": "数学节奏冲刺",
+    "path": "games/math-rhythm-sprint/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T15:09:26Z"
+  },
+  {
+    "name": "数学表情合成",
+    "path": "games/math-emoji-merge/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T15:31:05Z"
+  },
+  {
+    "name": "数学曲折跑",
+    "path": "games/math-zigzag-runner/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T23:43:00Z"
+  },
+  {
+    "name": "看图猜成语",
+    "path": "games/看图猜成语/index.html",
+    "category": "education",
+    "createdAt": "2026-03-03T16:08:36Z"
+  },
+  {
+    "name": "看图猜成语",
+    "path": "games/kan-tu-cai-cheng-yu/index.html",
+    "category": "语言学习",
+    "createdAt": "2026-03-04T02:46:00Z"
+  },
+  {
+    "name": "看图猜成语",
+    "path": "games/kan-tu-cai-cheng-yu/index.html",
+    "category": "成语",
+    "createdAt": "2026-03-03T19:13:55Z"
+  },
+  {
+    "name": "成语小秀才",
+    "path": "games/cheng-yu-xiao-xiu-cai/index.html",
+    "category": "成语",
+    "createdAt": "2026-03-03T19:20:34Z"
+  },
+  {
+    "name": "弹射英雄",
+    "path": "games/tan-she-ying-xiong/index.html",
+    "category": "弹射",
+    "createdAt": "2026-03-03T19:27:23Z"
+  },
+  {
+    "name": "动物餐厅",
+    "path": "games/dong-wu-can-ting/index.html",
+    "category": "模拟经营",
+    "createdAt": "2026-03-03T19:33:40Z"
+  },
+  {
+    "name": "QQ经典农场",
+    "path": "games/qq-jing-dian-nong-chang/index.html",
+    "category": "模拟经营",
+    "createdAt": "2026-03-03T19:41:24Z"
+  },
+  {
+    "name": "我的花园世界",
+    "path": "games/wo-de-hua-yuan-shi-jie/index.html",
+    "category": "模拟经营",
+    "createdAt": "2026-03-03T19:50:10Z"
+  },
+  {
+    "name": "细胞生存",
+    "path": "games/xi-bao-sheng-cun/index.html",
+    "category": "益智解谜",
+    "createdAt": "2026-03-03T19:56:19Z"
+  },
+  {
+    "name": "向僵尸开炮",
+    "path": "games/xiang-jiang-shi-kai-pao/index.html",
+    "category": "休闲益智",
+    "createdAt": "2026-03-03T20:05:11Z"
+  },
+  {
+    "name": "生存33天",
+    "path": "games/sheng-cun-33-tian/index.html",
+    "category": "生存策略",
+    "createdAt": "2026-03-03T20:13:18Z"
+  },
+  {
+    "name": "羊了个羊：星球",
+    "path": "games/yang-le-ge-yang-xing-qiu/index.html",
+    "category": "消除休闲",
+    "createdAt": "2026-03-03T20:21:01Z"
+  },
+  {
+    "name": "新弹弹堂",
+    "path": "games/xin-dan-dan-tang/index.html",
+    "category": "弹射策略",
+    "createdAt": "2026-03-03T20:34:37Z"
+  },
+  {
+    "name": "猛鬼宿舍",
+    "path": "games/meng-gui-su-she/index.html",
+    "category": "塔防策略",
+    "createdAt": "2026-03-03T20:49:48Z"
+  },
+  {
+    "name": "指尖陀螺RPG",
+    "path": "games/zhi-jian-tuo-luo-rpg/index.html",
+    "category": "点击增量",
+    "createdAt": "2026-03-03T21:12:13Z"
+  },
+  {
+    "name": "闲置浓缩咖啡店",
+    "path": "games/xian-zhi-nong-suo-ka-fei-dian/index.html",
+    "category": "模拟经营",
+    "createdAt": "2026-03-03T21:39:08Z"
+  },
+  {
+    "name": "肥鹅健身房",
+    "path": "games/fei-e-jian-shen-fang/index.html",
+    "category": "合成消除",
+    "createdAt": "2026-03-03T21:55:29Z"
+  },
+  {
+    "name": "飞刀挑战",
+    "path": "games/fei-dao-tiao-zhan/index.html",
+    "category": "弹射",
+    "createdAt": "2026-03-03T22:07:00Z"
+  },
+  {
+    "name": "旅行青蛙·中国之旅",
+    "path": "games/lv-xing-qing-wa-zhong-guo-zhi-lv/index.html",
+    "category": "放置养成",
+    "createdAt": "2026-03-03T22:18:51Z"
+  },
+  {
+    "name": "羊了个羊",
+    "path": "games/yang-le-ge-yang/index.html",
+    "category": "消除",
+    "createdAt": "2026-03-03T22:37:13Z"
+  },
+  {
+    "name": "汤姆猫跑酷",
+    "path": "games/tang-mu-mao-pao-ku/index.html",
+    "category": "跑酷",
+    "createdAt": "2026-03-03T22:44:35Z"
+  },
+  {
+    "name": "躺平发育",
+    "path": "games/tang-ping-fa-yu/index.html",
+    "category": "塔防",
+    "createdAt": "2026-03-03T22:48:20Z"
+  },
+  {
+    "name": "时光大爆炸",
+    "path": "games/shi-guang-da-bao-zha/index.html",
+    "category": "模拟经营",
+    "createdAt": "2026-03-03T22:51:40Z"
+  },
+  {
+    "name": "无尽冬日",
+    "path": "games/wu-jin-dong-ri/index.html",
+    "category": "生存",
+    "createdAt": "2026-03-03T22:55:35Z"
+  },
+  {
+    "name": "羊了个羊：星球",
+    "path": "games/yang-liao-ge-yang-xing-qiu/index.html",
+    "category": "消除",
+    "createdAt": "2026-03-03T23:01:50Z"
+  },
+  {
+    "name": "地铁跑酷",
+    "path": "games/di-tie-pao-ku/index.html",
+    "category": "跑酷",
+    "createdAt": "2026-03-03T23:07:10Z"
+  },
+  {
+    "name": "三国：冰河时代",
+    "path": "games/san-guo-bing-he-shi-dai/index.html",
+    "category": "策略",
+    "createdAt": "2026-03-03T23:12:15Z"
+  },
+  {
+    "name": "动物餐厅",
+    "path": "games/dong-wu-can-ting/index.html",
+    "category": "模拟经营",
+    "createdAt": "2026-03-03T23:19:10Z"
+  },
+  {
+    "name": "别抢我的座",
+    "path": "games/bie-qiang-wo-de-zuo/index.html",
+    "category": "解谜",
+    "createdAt": "2026-03-03T23:28:30Z"
+  },
+  {
+    "name": "元梦之星",
+    "path": "games/yuan-meng-zhi-xing/index.html",
+    "category": "派对游戏",
+    "createdAt": "2026-03-03T23:37:05Z"
+  },
+  {
+    "name": "龙魂旅人",
+    "path": "games/long-hun-lv-ren/index.html",
+    "category": "放置RPG",
+    "createdAt": "2026-03-03T23:50:55Z"
+  },
+  {
+    "name": "机甲斗兽场",
+    "path": "games/ji-jia-dou-shou-chang/index.html",
+    "category": "机甲对决",
+    "createdAt": "2026-03-04T00:02:17Z"
+  },
+  {
+    "name": "变形机战王",
+    "path": "games/bian-xing-ji-zhan-wang/index.html",
+    "category": "策略回合",
+    "createdAt": "2026-03-04T00:14:25Z"
+  },
+  {
+    "name": "切一刀到底",
+    "path": "games/qie-yi-dao-dao-di/index.html",
+    "category": "休闲切割",
+    "createdAt": "2026-03-04T00:31:11Z"
+  },
+  {
+    "name": "消失的轨迹",
+    "path": "games/xiao-shi-de-gui-ji/index.html",
+    "category": "明星培养",
+    "createdAt": "2026-03-04T00:41:03Z"
+  },
+  {
+    "name": "一波超人",
+    "path": "games/yi-bo-chao-ren/index.html",
+    "category": "格斗闯关",
+    "createdAt": "2026-03-04T00:48:40Z"
+  },
+  {
+    "name": "一步两步",
+    "path": "games/yi-bu-liang-bu/index.html",
+    "category": "塔防",
+    "createdAt": "2026-03-04T01:01:06Z"
+  },
+  {
+    "name": "小鸡舰队出击",
+    "path": "games/xiao-ji-jian-dui-chu-ji/index.html",
+    "category": "塔防+Roguelike",
+    "createdAt": "2026-03-04T01:23:38Z"
+  },
+  {
+    "name": "抓大鹅",
+    "path": "games/zhua-da-e/index.html",
+    "category": "三消",
+    "createdAt": "2026-03-04T01:29:18Z"
+  },
+  {
+    "name": "灵画师",
+    "path": "games/ling-hua-shi/index.html",
+    "category": "开箱RPG",
+    "createdAt": "2026-03-04T01:32:22Z"
+  },
+  {
+    "name": "不服来通关",
+    "path": "games/bu-fu-lai-tong-guan/index.html",
+    "category": "Roguelike射击",
+    "createdAt": "2026-03-04T01:35:08Z"
+  },
+  {
+    "name": "百炼英雄",
+    "path": "games/bai-lian-ying-xiong/index.html",
+    "category": "自动战斗",
+    "createdAt": "2026-03-04T01:37:55Z"
+  },
+  {
+    "name": "疯狂水世界",
+    "path": "games/feng-kuang-shui-shi-jie/index.html",
+    "category": "末日生存",
+    "createdAt": "2026-03-04T01:42:46Z"
+  },
+  {
+    "name": "欢乐斗地主",
+    "path": "games/huan-le-dou-di-zhu/index.html",
+    "category": "扑克牌对战",
+    "createdAt": "2026-03-04T01:46:19Z"
+  },
+  {
+    "name": "曙光重临",
+    "path": "games/shu-guang-chong-lin/index.html",
+    "category": "抓宠养成",
+    "createdAt": "2026-03-04T01:49:03Z"
+  },
+  {
+    "name": "英雄没有闪",
+    "path": "games/ying-xiong-mei-you-shan/index.html",
+    "category": "开箱刷宝",
+    "createdAt": "2026-03-04T01:51:59Z"
+  },
+  {
+    "name": "寻道大千",
+    "path": "games/xun-dao-da-qian/index.html",
+    "category": "修仙养成",
+    "createdAt": "2026-03-04T01:54:36Z"
+  },
+  {
+    "name": "看图猜成语",
+    "path": "games/kan-tu-cai-cheng-yu/index.html",
+    "category": "education",
+    "createdAt": "2026-03-04T14:36:00Z"
+  },
+  {
+    "name": "单词拼写大师",
+    "path": "games/word-spelling-master/index.html",
+    "category": "education",
+    "createdAt": "2026-03-04T14:36:00Z"
+  },
+  {
+    "name": "看图猜成语",
+    "path": "games/看图猜成语/index.html",
+    "category": "教育",
+    "createdAt": "2026-03-04T07:20:47Z"
+  },
+  {
+    "name": "跳一跳",
+    "path": "games/tiao-yi-tiao/index.html",
+    "category": "休闲",
+    "createdAt": "2026-03-04T16:45:00Z"
+  },
+  {
+    "name": "看图猜成语",
+    "path": "games/kan-tu-cai-cheng-yu/index.html",
+    "category": "education",
+    "createdAt": "2026-03-04T09:20:44Z"
+  },
+  {
+    "name": "方块堆叠塔",
+    "path": "games/stack-tower/index.html",
+    "category": "休闲",
+    "createdAt": "2026-03-04T18:30:00Z"
   }
 ]
