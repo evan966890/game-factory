@@ -1,0 +1,867 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>机甲斗兽场</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --mech: #fef3c7;
+      --mech-dark: #f59e0b;
+      --battle: #dbeafe;
+      --battle-dark: #3b82f6;
+      --operation: #d1fae5;
+      --operation-dark: #10b981;
+      --level: #fce7f3;
+      --level-dark: #ec4899;
+      --upgrade: #e0e7ff;
+      --upgrade-dark: #6366f1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .mech {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--mech);
+      margin-bottom: 16px;
+    }
+
+    .mech-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .mech-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .mech-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .mech-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .mech-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .mech-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .mech-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .mech-item .level {
+      font-size: 0.7rem;
+      color: var(--mech-dark);
+      font-weight: 700;
+    }
+
+    .battle {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--battle);
+      margin-bottom: 16px;
+    }
+
+    .battle-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .battle-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .battle-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .battle-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .battle-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .battle-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .battle-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .battle-item .reward {
+      font-size: 0.7rem;
+      color: var(--battle-dark);
+      font-weight: 700;
+    }
+
+    .operation {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--operation);
+      margin-bottom: 16px;
+    }
+
+    .operation-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .operation-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .operation-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .operation-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .operation-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .operation-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .operation-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .operation-item .cost {
+      font-size: 0.7rem;
+      color: var(--operation-dark);
+      font-weight: 700;
+    }
+
+    .level {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--level);
+      margin-bottom: 16px;
+    }
+
+    .level-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .level-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .level-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .level-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .level-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .level-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .level-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .level-item .reward {
+      font-size: 0.7rem;
+      color: var(--level-dark);
+      font-weight: 700;
+    }
+
+    .upgrade {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--upgrade);
+      margin-bottom: 16px;
+    }
+
+    .upgrade-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .upgrade-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .upgrade-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .upgrade-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .upgrade-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .upgrade-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .upgrade-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .upgrade-item .cost {
+      font-size: 0.7rem;
+      color: var(--upgrade-dark);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--mech-dark);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>机甲斗兽场</h1>
+    <p class="subtitle">控制你的机甲恐龙在混乱的世界中进行激烈的战斗！</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="gold">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span class="value green" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">机甲</span>
+        <span class="value blue" id="mechs">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="mech">
+          <div class="mech-title">机甲</div>
+          <div class="mech-grid" id="mech"></div>
+        </div>
+
+        <div class="battle">
+          <div class="battle-title">战斗</div>
+          <div class="battle-grid" id="battle"></div>
+        </div>
+
+        <div class="operation">
+          <div class="operation-title">操作</div>
+          <div class="operation-grid" id="operation"></div>
+        </div>
+
+        <div class="level">
+          <div class="level-title">关卡</div>
+          <div class="level-grid" id="level"></div>
+        </div>
+
+        <div class="upgrade">
+          <div class="upgrade-title">升级</div>
+          <div class="upgrade-grid" id="upgrade"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="startBtn">开始战斗</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      mech: [
+        { id: 'dragon', name: '机甲龙', emoji: '🐉', level: 1 },
+        { id: 'tiger', name: '机甲虎', emoji: '🐯', level: 1 },
+        { id: 'eagle', name: '机甲鹰', emoji: '🦅', level: 1 },
+        { id: 'bear', name: '机甲熊', emoji: '🐻', level: 1 },
+        { id: 'wolf', name: '机甲狼', emoji: '🐺', level: 1 },
+        { id: 'lion', name: '机甲狮', emoji: '🦁', level: 1 }
+      ],
+      battle: [
+        { id: 'arena', name: '竞技场', emoji: '🏟️', reward: 50 },
+        { id: 'war', name: '王者战场', emoji: '⚔️', reward: 100 },
+        { id: 'dungeon', name: '每日副本', emoji: '🏚️', reward: 150 },
+        { id: 'boss', name: 'BOSS战', emoji: '👹', reward: 200 },
+        { id: 'team', name: '团队战', emoji: '👥', reward: 250 },
+        { id: 'final', name: '最终决战', emoji: '🏆', reward: 300 }
+      ],
+      operation: [
+        { id: 'attack', name: '攻击', emoji: '⚔️', cost: 10 },
+        { id: 'defend', name: '防御', emoji: '🛡️', cost: 15 },
+        { id: 'skill', name: '技能', emoji: '✨', cost: 20 },
+        { id: 'combo', name: '连招', emoji: '💥', cost: 25 },
+        { id: 'ultimate', name: '终极技', emoji: '🌟', cost: 30 },
+        { id: 'counter', name: '反击', emoji: '🔄', cost: 35 }
+      ],
+      level: [
+        { id: 'level1', name: '第一关', emoji: '1️⃣', reward: 50 },
+        { id: 'level2', name: '第二关', emoji: '2️⃣', reward: 100 },
+        { id: 'level3', name: '第三关', emoji: '3️⃣', reward: 150 },
+        { id: 'level4', name: '第四关', emoji: '4️⃣', reward: 200 },
+        { id: 'level5', name: '第五关', emoji: '5️⃣', reward: 250 },
+        { id: 'level6', name: '第六关', emoji: '6️⃣', reward: 300 }
+      ],
+      upgrade: [
+        { id: 'weapon', name: '武器', emoji: '⚔️', cost: 100 },
+        { id: 'armor', name: '护甲', emoji: '🛡️', cost: 150 },
+        { id: 'engine', name: '引擎', emoji: '⚙️', cost: 200 },
+        { id: 'shield', name: '护盾', emoji: '🛡️', cost: 250 },
+        { id: 'weapon2', name: '高级武器', emoji: '🔫', cost: 300 },
+        { id: 'core', name: '核心', emoji: '💎', cost: 350 }
+      ]
+    };
+
+    // 游戏状态
+    let gold = 0;
+    let level = 1;
+    let mechs = 0;
+    let ownedMechs = [];
+    let ownedOperations = [];
+    let ownedLevels = [];
+    let ownedUpgrades = [];
+    let gameLoop = null;
+
+    // DOM 元素
+    const goldEl = document.getElementById('gold');
+    const levelEl = document.getElementById('level');
+    const mechsEl = document.getElementById('mechs');
+    const mechEl = document.getElementById('mech');
+    const battleEl = document.getElementById('battle');
+    const operationEl = document.getElementById('operation');
+    const levelEl = document.getElementById('level');
+    const upgradeEl = document.getElementById('upgrade');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      gold = 0;
+      level = 1;
+      mechs = 0;
+      ownedMechs = [];
+      ownedOperations = [];
+      ownedLevels = [];
+      ownedUpgrades = [];
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateMech();
+      updateBattle();
+      updateOperation();
+      updateLevel();
+      updateUpgrade();
+
+      // 开始游戏循环
+      startGameLoop();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('ji-jia-dou-shou-chang');
+      if (saved) {
+        const data = JSON.parse(saved);
+        gold = data.gold || 0;
+        level = data.level || 1;
+        mechs = data.mechs || 0;
+        ownedMechs = data.ownedMechs || [];
+        ownedOperations = data.ownedOperations || [];
+        ownedLevels = data.ownedLevels || [];
+        ownedUpgrades = data.ownedUpgrades || [];
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        gold,
+        level,
+        mechs,
+        ownedMechs,
+        ownedOperations,
+        ownedLevels,
+        ownedUpgrades
+      };
+      localStorage.setItem('ji-jia-dou-shou-chang', JSON.stringify(data));
+    }
+
+    // 开始游戏循环
+    function startGameLoop() {
+      if (gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => {
+        // 自动收集资源
+        collectResources();
+        updateStats();
+        saveGame();
+      }, 1000);
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      goldEl.textContent = gold;
+      levelEl.textContent = level;
+      mechsEl.textContent = mechs;
+    }
+
+    // 更新机甲显示
+    function updateMech() {
+      mechEl.innerHTML = '';
+      config.mech.forEach(mech => {
+        const owned = ownedMechs.some(m => m.id === mech.id);
+        const canAfford = gold >= 50;
+
+        const mechEl = document.createElement('div');
+        mechEl.className = 'mech-item';
+        mechEl.innerHTML = `
+          <div class="emoji">${mech.emoji}</div>
+          <div class="name">${mech.name}</div>
+          <div class="level">Lv.${mech.level}</div>
+        `;
+        if (!owned && canAfford) {
+          mechEl.addEventListener('click', () => buyMech(mech));
+        } else {
+          mechEl.disabled = true;
+        }
+        mechEl.appendChild(mechEl);
+      });
+    }
+
+    // 更新战斗显示
+    function updateBattle() {
+      battleEl.innerHTML = '';
+      config.battle.forEach(battle => {
+        const canPlay = ownedMechs.length > 0;
+
+        const battleEl = document.createElement('div');
+        battleEl.className = 'battle-item';
+        battleEl.innerHTML = `
+          <div class="emoji">${battle.emoji}</div>
+          <div class="name">${battle.name}</div>
+          <div class="reward">+${battle.reward}</div>
+        `;
+        if (canPlay) {
+          battleEl.addEventListener('click', () => doBattle(battle));
+        } else {
+          battleEl.disabled = true;
+        }
+        battleEl.appendChild(battleEl);
+      });
+    }
+
+    // 更新操作显示
+    function updateOperation() {
+      operationEl.innerHTML = '';
+      config.operation.forEach(operation => {
+        const owned = ownedOperations.some(o => o.id === operation.id);
+        const canAfford = gold >= operation.cost;
+
+        const operationEl = document.createElement('div');
+        operationEl.className = 'operation-item';
+        operationEl.innerHTML = `
+          <div class="emoji">${operation.emoji}</div>
+          <div class="name">${operation.name}</div>
+          <div class="cost">${operation.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          operationEl.addEventListener('click', () => buyOperation(operation));
+        } else {
+          operationEl.disabled = true;
+        }
+        operationEl.appendChild(operationEl);
+      });
+    }
+
+    // 更新关卡显示
+    function updateLevel() {
+      levelEl.innerHTML = '';
+      config.level.forEach(level => {
+        const owned = ownedLevels.some(l => l.id === level.id);
+        const canAfford = gold >= level.reward;
+
+        const levelEl = document.createElement('div');
+        levelEl.className = 'level-item';
+        levelEl.innerHTML = `
+          <div class="emoji">${level.emoji}</div>
+          <div class="name">${level.name}</div>
+          <div class="reward">+${level.reward}</div>
+        `;
+        if (!owned && canAfford) {
+          levelEl.addEventListener('click', () => buyLevel(level));
+        } else {
+          levelEl.disabled = true;
+        }
+        levelEl.appendChild(levelEl);
+      });
+    }
+
+    // 更新升级显示
+    function updateUpgrade() {
+      upgradeEl.innerHTML = '';
+      config.upgrade.forEach(upgrade => {
+        const owned = ownedUpgrades.some(u => u.id === upgrade.id);
+        const canAfford = gold >= upgrade.cost;
+
+        const upgradeEl = document.createElement('div');
+        upgradeEl.className = 'upgrade-item';
+        upgradeEl.innerHTML = `
+          <div class="emoji">${upgrade.emoji}</div>
+          <div class="name">${upgrade.name}</div>
+          <div class="cost">${upgrade.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          upgradeEl.addEventListener('click', () => buyUpgrade(upgrade));
+        } else {
+          upgradeEl.disabled = true;
+        }
+        upgradeEl.appendChild(upgradeEl);
+      });
+    }
+
+    // 购买机甲
+    function buyMech(mech) {
+      if (gold >= 50) {
+        gold -= 50;
+        ownedMechs.push(mech);
+        mechs++;
+        updateStats();
+        updateMech();
+        updateBattle();
+        saveGame();
+        alert(`购买成功！获得 ${mech.name}`);
+      }
+    }
+
+    // 进行战斗
+    function doBattle(battle) {
+      if (ownedMechs.length > 0) {
+        gold += battle.reward;
+        updateStats();
+        saveGame();
+        alert(`战斗成功！获得 ${battle.reward} 金币`);
+      }
+    }
+
+    // 购买操作
+    function buyOperation(operation) {
+      if (gold >= operation.cost) {
+        gold -= operation.cost;
+        ownedOperations.push(operation);
+        updateStats();
+        updateOperation();
+        saveGame();
+        alert(`购买成功！获得 ${operation.name}`);
+      }
+    }
+
+    // 购买关卡
+    function buyLevel(level) {
+      if (gold >= level.reward) {
+        gold -= level.reward;
+        ownedLevels.push(level);
+        level++;
+        updateStats();
+        updateLevel();
+        saveGame();
+        alert(`挑战成功！进入 ${level.name}，关卡 +1`);
+      }
+    }
+
+    // 购买升级
+    function buyUpgrade(upgrade) {
+      if (gold >= upgrade.cost) {
+        gold -= upgrade.cost;
+        ownedUpgrades.push(upgrade);
+        updateStats();
+        updateUpgrade();
+        saveGame();
+        alert(`购买成功！获得 ${upgrade.name}`);
+      }
+    }
+
+    // 收集资源
+    function collectResources() {
+      // 机甲加成
+      ownedMechs.forEach(mech => {
+        gold += 1;
+      });
+
+      // 操作加成
+      ownedOperations.forEach(operation => {
+        gold += 2;
+      });
+
+      // 关卡加成
+      gold += level * 5;
+    }
+
+    // 开始战斗
+    function startBattle() {
+      // 随机添加机甲
+      const randomMech = Math.floor(Math.random() * 3) + 1;
+      for (let i = 0; i < randomMech; i++) {
+        const mech = config.mech[Math.floor(Math.random() * config.mech.length)];
+        if (!ownedMechs.some(m => m.id === mech.id)) {
+          ownedMechs.push(mech);
+          mechs++;
+        }
+      }
+      updateStats();
+      updateMech();
+      updateBattle();
+      saveGame();
+      alert(`战斗开始！添加了 ${randomMech} 个机甲`);
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('ji-jia-dou-shou-chang');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    startBtn.addEventListener('click', startBattle);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
