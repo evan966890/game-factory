@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>化学元素猜猜看</title>
+  <style>
+    :root {
+      --bg: #f0f7ff;
+      --card: #ffffff;
+      --text: #1a365d;
+      --muted: #4a5568;
+      --primary: #2b6cb0;
+      --primary-dark: #2c5282;
+      --ok: #38a169;
+      --bad: #e53e3e;
+      --warning: #d69e2e;
+      --border: #e2e8f0;
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(43, 108, 176, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e6f2ff 0%, var(--bg) 45%, #f0fff4 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin: 0 0 8px;
+      line-height: 1.25;
+      text-align: center;
+      color: var(--primary);
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 0 0 20px;
+      text-align: center;
+    }
+
+    .game-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: #f7fafc;
+      border-radius: 12px;
+    }
+
+    .info-item {
+      text-align: center;
+    }
+
+    .info-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .info-value {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .timer.warning {
+      color: var(--warning);
+      animation: pulse 1s infinite;
+    }
+
+    .timer.danger {
+      color: var(--bad);
+      animation: pulse 0.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .prompt-area {
+      text-align: center;
+      margin-bottom: 24px;
+      padding: 20px;
+      background: linear-gradient(135deg, #ebf8ff 0%, #f0fff4 100%);
+      border-radius: 12px;
+      border: 2px solid var(--border);
+    }
+
+    .prompt-label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .prompt-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .prompt-hint {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .option-btn {
+      padding: 16px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: var(--card);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--primary);
+      background: #ebf8ff;
+      transform: translateY(-2px);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .option-btn.correct {
+      border-color: var(--ok);
+      background: #f0fff4;
+      color: var(--ok);
+      animation: correctPulse 0.5s ease;
+    }
+
+    .option-btn.wrong {
+      border-color: var(--bad);
+      background: #fff5f5;
+      color: var(--bad);
+      animation: wrongShake 0.5s ease;
+    }
+
+    @keyframes correctPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes wrongShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .info-card {
+      display: none;
+      padding: 16px;
+      background: #f7fafc;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border-left: 4px solid var(--primary);
+    }
+
+    .info-card.show {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .info-card h3 {
+      margin: 0 0 12px;
+      color: var(--primary);
+      font-size: 1.2rem;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+
+    .info-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .info-key {
+      color: var(--muted);
+    }
+
+    .info-val {
+      font-weight: 500;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: 500;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: #edf2f7;
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .game-over {
+      display: none;
+      text-align: center;
+      padding: 24px;
+      background: linear-gradient(135deg, #ebf8ff 0%, #f0fff4 100%);
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .game-over.show {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .game-over h2 {
+      margin: 0 0 16px;
+      color: var(--primary);
+    }
+
+    .final-score {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .high-score {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .high-score.new {
+      color: var(--warning);
+      font-weight: 600;
+    }
+
+    .combo-display {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 4rem;
+      font-weight: 700;
+      color: var(--warning);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .combo-display.show {
+      animation: comboPop 0.8s ease;
+    }
+
+    @keyframes comboPop {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    .level-indicator {
+      text-align: center;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .level-name {
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    @media (max-width: 400px) {
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .prompt-value {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>🧪 化学元素猜猜看</h1>
+    <p class="subtitle">学习化学元素，挑战你的知识！</p>
+    
+    <div class="game-info">
+      <div class="info-item">
+        <div class="info-label">分数</div>
+        <div class="info-value" id="score">0</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">连击</div>
+        <div class="info-value" id="combo">0</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">时间</div>
+        <div class="info-value timer" id="timer">60</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">最高分</div>
+        <div class="info-value" id="highScore">0</div>
+      </div>
+    </div>
+
+    <div class="level-indicator">
+      关卡: <span class="level-name" id="levelName">非金属</span>
+    </div>
+
+    <div class="prompt-area" id="promptArea">
+      <div class="prompt-label" id="promptLabel">元素符号</div>
+      <div class="prompt-value" id="promptValue">H</div>
+      <div class="prompt-hint" id="promptHint">选择正确的元素名称</div>
+    </div>
+
+    <div class="options-grid" id="optionsGrid">
+      <!-- Options will be generated by JavaScript -->
+    </div>
+
+    <div class="info-card" id="infoCard">
+      <h3 id="elementName">氢</h3>
+      <div class="info-row">
+        <span class="info-key">原子序数</span>
+        <span class="info-val" id="elementNumber">1</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">原子量</span>
+        <span class="info-val" id="elementMass">1.008</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">电子排布</span>
+        <span class="info-val" id="elementConfig">1s¹</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">常见用途</span>
+        <span class="info-val" id="elementUses">燃料电池、火箭燃料</span>
+      </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+      <h2>游戏结束！</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <div class="high-score" id="finalHighScore">最高分: 0</div>
+      <div class="controls">
+        <button class="btn btn-primary" id="restartBtn">再来一局</button>
+      </div>
+    </div>
+
+    <div class="controls" id="controls">
+      <button class="btn btn-primary" id="startBtn">开始游戏</button>
+      <button class="btn btn-secondary" id="pauseBtn" style="display: none;">暂停</button>
+    </div>
+  </div>
+
+  <div class="combo-display" id="comboDisplay">连击 x3!</div>
+
+  <script>
+    // 化学元素数据
+    const elements = [
+      // 非金属
+      { symbol: 'H', name: '氢', number: 1, mass: 1.008, config: '1s¹', uses: '燃料电池、火箭燃料', category: '非金属', emoji: '💨' },
+      { symbol: 'He', name: '氦', number: 2, mass: 4.003, config: '1s²', uses: '气球填充、低温冷却', category: '非金属', emoji: '🎈' },
+      { symbol: 'C', name: '碳', number: 6, mass: 12.011, config: '1s² 2s² 2p²', uses: '燃料、钻石、石墨', category: '非金属', emoji: '💎' },
+      { symbol: 'N', name: '氮', number: 7, mass: 14.007, config: '1s² 2s² 2p³', uses: '肥料、制冷剂', category: '非金属', emoji: '❄️' },
+      { symbol: 'O', name: '氧', number: 8, mass: 15.999, config: '1s² 2s² 2p⁴', uses: '呼吸、燃烧', category: '非金属', emoji: '🌬️' },
+      { symbol: 'F', name: '氟', number: 9, mass: 18.998, config: '1s² 2s² 2p⁵', uses: '牙膏、制冷剂', category: '非金属', emoji: '🦷' },
+      { symbol: 'Ne', name: '氖', number: 10, mass: 20.180, config: '1s² 2s² 2p⁶', uses: '霓虹灯、激光', category: '非金属', emoji: '💡' },
+      
+      // 碱金属
+      { symbol: 'Li', name: '锂', number: 3, mass: 6.941, config: '1s² 2s¹', uses: '电池、药物', category: '碱金属', emoji: '🔋' },
+      { symbol: 'Na', name: '钠', number: 11, mass: 22.990, config: '1s² 2s² 2p⁶ 3s¹', uses: '食盐、照明', category: '碱金属', emoji: '🧂' },
+      { symbol: 'K', name: '钾', number: 19, mass: 39.098, config: '1s² 2s² 2p⁶ 3s² 3p⁶ 4s¹', uses: '肥料、肥皂', category: '碱金属', emoji: '🍌' },
+      { symbol: 'Rb', name: '铷', number: 37, mass: 85.468, config: '[Kr] 5s¹', uses: '原子钟、光电管', category: '碱金属', emoji: '⏰' },
+      { symbol: 'Cs', name: '铯', number: 55, mass: 132.905, config: '[Xe] 6s¹', uses: '原子钟、光电管', category: '碱金属', emoji: '⏱️' },
+      { symbol: 'Fr', name: '钫', number: 87, mass: 223, config: '[Rn] 7s¹', uses: '研究用途', category: '碱金属', emoji: '🔬' },
+      
+      // 卤素
+      { symbol: 'Cl', name: '氯', number: 17, mass: 35.453, config: '1s² 2s² 2p⁶ 3s² 3p⁵', uses: '消毒、漂白', category: '卤素', emoji: '🧪' },
+      { symbol: 'Br', name: '溴', number: 35, mass: 79.904, config: '[Ar] 3d¹⁰ 4s² 4p⁵', uses: '阻燃剂、药物', category: '卤素', emoji: '🔥' },
+      { symbol: 'I', name: '碘', number: 53, mass: 126.904, config: '[Kr] 4d¹⁰ 5s² 5p⁵', uses: '消毒、食盐添加剂', category: '卤素', emoji: '🧫' },
+      { symbol: 'At', name: '砹', number: 85, mass: 210, config: '[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁵', uses: '癌症治疗研究', category: '卤素', emoji: '☢️' },
+      { symbol: 'Ts', name: '鿬', number: 117, mass: 294, config: '[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁵', uses: '研究用途', category: '卤素', emoji: '🔬' },
+      
+      // 稀有气体
+      { symbol: 'Ar', name: '氩', number: 18, mass: 39.948, config: '1s² 2s² 2p⁶ 3s² 3p⁶', uses: '焊接保护气、灯泡', category: '稀有气体', emoji: '💡' },
+      { symbol: 'Kr', name: '氪', number: 36, mass: 83.798, config: '[Ar] 3d¹⁰ 4s² 4p⁶', uses: '照明、激光', category: '稀有气体', emoji: '🔦' },
+      { symbol: 'Xe', name: '氙', number: 54, mass: 131.293, config: '[Kr] 4d¹⁰ 5s² 5p⁶', uses: '闪光灯、麻醉', category: '稀有气体', emoji: '📸' },
+      { symbol: 'Rn', name: '氡', number: 86, mass: 222, config: '[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁶', uses: '癌症治疗', category: '稀有气体', emoji: '☢️' },
+      { symbol: 'Og', name: '鿫', number: 118, mass: 294, config: '[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶', uses: '研究用途', category: '稀有气体', emoji: '🔬' },
+      
+      // 过渡金属
+      { symbol: 'Fe', name: '铁', number: 26, mass: 55.845, config: '[Ar] 3d⁶ 4s²', uses: '建筑、钢铁', category: '过渡金属', emoji: '🏗️' },
+      { symbol: 'Cu', name: '铜', number: 29, mass: 63.546, config: '[Ar] 3d¹⁰ 4s¹', uses: '电线、管道', category: '过渡金属', emoji: '🔌' },
+      { symbol: 'Zn', name: '锌', number: 30, mass: 65.38, config: '[Ar] 3d¹⁰ 4s²', uses: '镀锌、电池', category: '过渡金属', emoji: '🔋' },
+      { symbol: 'Ag', name: '银', number: 47, mass: 107.868, config: '[Kr] 4d¹⁰ 5s¹', uses: '珠宝、摄影', category: '过渡金属', emoji: '💍' },
+      { symbol: 'Au', name: '金', number: 79, mass: 196.967, config: '[Xe] 4f¹⁴ 5d¹⁰ 6s¹', uses: '珠宝、电子', category: '过渡金属', emoji: '👑' },
+      { symbol: 'Pt', name: '铂', number: 78, mass: 195.084, config: '[Xe] 4f¹⁴ 5d⁹ 6s¹', uses: '催化剂、珠宝', category: '过渡金属', emoji: '💎' }
+    ];
+
+    // 关卡配置
+    const levels = [
+      { name: '非金属', categories: ['非金属'] },
+      { name: '碱金属', categories: ['碱金属'] },
+      { name: '卤素', categories: ['卤素'] },
+      { name: '稀有气体', categories: ['稀有气体'] },
+      { name: '过渡金属', categories: ['过渡金属'] }
+    ];
+
+    // 游戏状态
+    let gameState = {
+      currentLevel: 0,
+      score: 0,
+      combo: 0,
+      timeLeft: 60,
+      highScore: 0,
+      isPlaying: false,
+      isPaused: false,
+      currentElement: null,
+      timerInterval: null,
+      usedElements: []
+    };
+
+    // DOM 元素
+    const scoreEl = document.getElementById('score');
+    const comboEl = document.getElementById('combo');
+    const timerEl = document.getElementById('timer');
+    const highScoreEl = document.getElementById('highScore');
+    const levelNameEl = document.getElementById('levelName');
+    const promptLabelEl = document.getElementById('promptLabel');
+    const promptValueEl = document.getElementById('promptValue');
+    const promptHintEl = document.getElementById('promptHint');
+    const optionsGridEl = document.getElementById('optionsGrid');
+    const infoCardEl = document.getElementById('infoCard');
+    const gameOverEl = document.getElementById('gameOver');
+    const finalScoreEl = document.getElementById('finalScore');
+    const finalHighScoreEl = document.getElementById('finalHighScore');
+    const controlsEl = document.getElementById('controls');
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const comboDisplayEl = document.getElementById('comboDisplay');
+
+    // 初始化
+    function init() {
+      loadHighScore();
+      updateDisplay();
+      startBtn.addEventListener('click', startGame);
+      pauseBtn.addEventListener('click', togglePause);
+      restartBtn.addEventListener('click', restartGame);
+    }
+
+    // 加载最高分
+    function loadHighScore() {
+      const saved = localStorage.getItem('chemistry-element-guess-highscore');
+      if (saved) {
+        gameState.highScore = parseInt(saved);
+        highScoreEl.textContent = gameState.highScore;
+      }
+    }
+
+    // 保存最高分
+    function saveHighScore() {
+      if (gameState.score > gameState.highScore) {
+        gameState.highScore = gameState.score;
+        localStorage.setItem('chemistry-element-guess-highscore', gameState.highScore);
+        return true;
+      }
+      return false;
+    }
+
+    // 开始游戏
+    function startGame() {
+      gameState.isPlaying = true;
+      gameState.isPaused = false;
+      gameState.score = 0;
+      gameState.combo = 0;
+      gameState.timeLeft = 60;
+      gameState.currentLevel = 0;
+      gameState.usedElements = [];
+      
+      startBtn.style.display = 'none';
+      pauseBtn.style.display = 'inline-block';
+      gameOverEl.classList.remove('show');
+      infoCardEl.classList.remove('show');
+      
+      updateDisplay();
+      startTimer();
+      nextQuestion();
+    }
+
+    // 切换暂停
+    function togglePause() {
+      if (gameState.isPaused) {
+        gameState.isPaused = false;
+        pauseBtn.textContent = '暂停';
+        startTimer();
+      } else {
+        gameState.isPaused = true;
+        pauseBtn.textContent = '继续';
+        clearInterval(gameState.timerInterval);
+      }
+    }
+
+    // 重新开始游戏
+    function restartGame() {
+      startGame();
+    }
+
+    // 开始计时器
+    function startTimer() {
+      clearInterval(gameState.timerInterval);
+      gameState.timerInterval = setInterval(() => {
+        if (!gameState.isPaused) {
+          gameState.timeLeft--;
+          updateTimerDisplay();
+          
+          if (gameState.timeLeft <= 0) {
+            endGame();
+          }
+        }
+      }, 1000);
+    }
+
+    // 更新计时器显示
+    function updateTimerDisplay() {
+      timerEl.textContent = gameState.timeLeft;
+      
+      if (gameState.timeLeft <= 10) {
+        timerEl.classList.add('danger');
+        timerEl.classList.remove('warning');
+      } else if (gameState.timeLeft <= 20) {
+        timerEl.classList.add('warning');
+        timerEl.classList.remove('danger');
+      } else {
+        timerEl.classList.remove('warning', 'danger');
+      }
+    }
+
+    // 下一题
+    function nextQuestion() {
+      if (!gameState.isPlaying) return;
+      
+      // 获取当前关卡的元素
+      const currentLevel = levels[gameState.currentLevel];
+      const levelElements = elements.filter(e => currentLevel.categories.includes(e.category));
+      
+      // 如果当前关卡的元素都用过了，进入下一关
+      const availableElements = levelElements.filter(e => !gameState.usedElements.includes(e.symbol));
+      if (availableElements.length === 0) {
+        gameState.currentLevel++;
+        if (gameState.currentLevel >= levels.length) {
+          // 所有关卡完成，游戏结束
+          endGame();
+          return;
+        }
+        gameState.usedElements = [];
+        levelNameEl.textContent = levels[gameState.currentLevel].name;
+        nextQuestion();
+        return;
+      }
+      
+      // 随机选择一个元素
+      const randomIndex = Math.floor(Math.random() * availableElements.length);
+      gameState.currentElement = availableElements[randomIndex];
+      gameState.usedElements.push(gameState.currentElement.symbol);
+      
+      // 随机选择提示类型
+      const promptTypes = ['symbol', 'number', 'emoji'];
+      const promptType = promptTypes[Math.floor(Math.random() * promptTypes.length)];
+      
+      // 设置提示
+      switch (promptType) {
+        case 'symbol':
+          promptLabelEl.textContent = '元素符号';
+          promptValueEl.textContent = gameState.currentElement.symbol;
+          promptHintEl.textContent = '选择正确的元素名称';
+          break;
+        case 'number':
+          promptLabelEl.textContent = '原子序数';
+          promptValueEl.textContent = gameState.currentElement.number;
+          promptHintEl.textContent = '选择正确的元素名称';
+          break;
+        case 'emoji':
+          promptLabelEl.textContent = '元素特性';
+          promptValueEl.textContent = gameState.currentElement.emoji;
+          promptHintEl.textContent = '选择正确的元素名称';
+          break;
+      }
+      
+      // 生成选项
+      generateOptions();
+    }
+
+    // 生成选项
+    function generateOptions() {
+      const correctAnswer = gameState.currentElement.name;
+      const options = [correctAnswer];
+      
+      // 获取同一分类的其他元素作为错误选项
+      const currentLevel = levels[gameState.currentLevel];
+      const levelElements = elements.filter(e => 
+        currentLevel.categories.includes(e.category) && 
+        e.name !== correctAnswer
+      );
+      
+      // 随机选择3个错误选项
+      const wrongOptions = [];
+      const availableWrong = [...levelElements];
+      
+      while (wrongOptions.length < 3 && availableWrong.length > 0) {
+        const randomIndex = Math.floor(Math.random() * availableWrong.length);
+        wrongOptions.push(availableWrong[randomIndex].name);
+        availableWrong.splice(randomIndex, 1);
+      }
+      
+      // 如果同一分类的元素不够，从其他分类补充
+      if (wrongOptions.length < 3) {
+        const otherElements = elements.filter(e => 
+          !currentLevel.categories.includes(e.category) && 
+          e.name !== correctAnswer &&
+          !wrongOptions.includes(e.name)
+        );
+        
+        while (wrongOptions.length < 3 && otherElements.length > 0) {
+          const randomIndex = Math.floor(Math.random() * otherElements.length);
+          wrongOptions.push(otherElements[randomIndex].name);
+          otherElements.splice(randomIndex, 1);
+        }
+      }
+      
+      options.push(...wrongOptions);
+      
+      // 打乱选项顺序
+      shuffleArray(options);
+      
+      // 渲染选项
+      renderOptions(options, correctAnswer);
+    }
+
+    // 打乱数组
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    // 渲染选项
+    function renderOptions(options, correctAnswer) {
+      optionsGridEl.innerHTML = '';
+      
+      options.forEach(option => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = option;
+        btn.addEventListener('click', () => handleAnswer(option, correctAnswer, btn));
+        optionsGridEl.appendChild(btn);
+      });
+    }
+
+    // 处理答案
+    function handleAnswer(selected, correct, btn) {
+      if (!gameState.isPlaying || gameState.isPaused) return;
+      
+      // 禁用所有选项
+      const allBtns = optionsGridEl.querySelectorAll('.option-btn');
+      allBtns.forEach(b => b.disabled = true);
+      
+      if (selected === correct) {
+        // 正确答案
+        btn.classList.add('correct');
+        gameState.combo++;
+        
+        // 计算分数（连击加成）
+        const baseScore = 10;
+        const comboBonus = Math.min(gameState.combo - 1, 5) * 2;
+        const scoreGain = baseScore + comboBonus;
+        gameState.score += scoreGain;
+        
+        // 显示连击动画
+        if (gameState.combo >= 3) {
+          showComboAnimation();
+        }
+        
+        // 显示元素信息
+        showElementInfo();
+        
+        // 延迟后下一题
+        setTimeout(() => {
+          infoCardEl.classList.remove('show');
+          nextQuestion();
+        }, 2000);
+      } else {
+        // 错误答案
+        btn.classList.add('wrong');
+        gameState.combo = 0;
+        
+        // 显示正确答案
+        allBtns.forEach(b => {
+          if (b.textContent === correct) {
+            b.classList.add('correct');
+          }
+        });
+        
+        // 延迟后下一题
+        setTimeout(() => {
+          nextQuestion();
+        }, 1500);
+      }
+      
+      updateDisplay();
+    }
+
+    // 显示连击动画
+    function showComboAnimation() {
+      comboDisplayEl.textContent = `连击 x${gameState.combo}!`;
+      comboDisplayEl.classList.add('show');
+      
+      setTimeout(() => {
+        comboDisplayEl.classList.remove('show');
+      }, 800);
+    }
+
+    // 显示元素信息
+    function showElementInfo() {
+      const el = gameState.currentElement;
+      document.getElementById('elementName').textContent = el.name;
+      document.getElementById('elementNumber').textContent = el.number;
+      document.getElementById('elementMass').textContent = el.mass;
+      document.getElementById('elementConfig').textContent = el.config;
+      document.getElementById('elementUses').textContent = el.uses;
+      
+      infoCardEl.classList.add('show');
+    }
+
+    // 更新显示
+    function updateDisplay() {
+      scoreEl.textContent = gameState.score;
+      comboEl.textContent = gameState.combo;
+      timerEl.textContent = gameState.timeLeft;
+      highScoreEl.textContent = gameState.highScore;
+      levelNameEl.textContent = levels[gameState.currentLevel].name;
+    }
+
+    // 结束游戏
+    function endGame() {
+      gameState.isPlaying = false;
+      clearInterval(gameState.timerInterval);
+      
+      const isNewHighScore = saveHighScore();
+      
+      finalScoreEl.textContent = gameState.score;
+      finalHighScoreEl.textContent = `最高分: ${gameState.highScore}`;
+      if (isNewHighScore) {
+        finalHighScoreEl.classList.add('new');
+        finalHighScoreEl.textContent += ' 🎉 新纪录！';
+      } else {
+        finalHighScoreEl.classList.remove('new');
+      }
+      
+      gameOverEl.classList.add('show');
+      controlsEl.style.display = 'none';
+      pauseBtn.style.display = 'none';
+      startBtn.style.display = 'inline-block';
+      startBtn.textContent = '再来一局';
+    }
+
+    // 启动游戏
+    init();
+  </script>
+</body>
+</html>

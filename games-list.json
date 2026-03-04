@@ -1140,5 +1140,11 @@
     "path": "games/kan-tu-cai-cheng-yu/index.html",
     "category": "成语学习",
     "createdAt": "2026-03-04T14:36:49Z"
+  },
+  {
+    "name": "数学弹珠",
+    "path": "games/数学弹珠/index.html",
+    "category": "数学",
+    "createdAt": "2026-03-05T01:05:00Z"
   }
 ]

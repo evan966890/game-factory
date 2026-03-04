@@ -1,0 +1,477 @@
+:root {
+  --bg: #f0f7ff;
+  --card: #ffffff;
+  --text: #1a365d;
+  --muted: #4a5568;
+  --primary: #3182ce;
+  --primary-dark: #2c5282;
+  --ok: #38a169;
+  --bad: #e53e3e;
+  --warning: #d69e2e;
+  --border: #e2e8f0;
+  --radius: 16px;
+  --shadow: 0 10px 30px rgba(49, 130, 206, 0.12);
+  
+  /* 元素分类颜色 */
+  --alkali-metal: #e53e3e;
+  --alkaline-earth: #dd6b20;
+  --transition-metal: #d69e2e;
+  --post-transition: #38a169;
+  --metalloid: #319795;
+  --nonmetal: #3182ce;
+  --halogen: #805ad5;
+  --noble-gas: #d53f8c;
+  --lanthanide: #718096;
+  --actinide: #4a5568;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  color: var(--text);
+  background: linear-gradient(135deg, #e9f7ff 0%, var(--bg) 50%, #f0fff4 100%);
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.app {
+  width: min(100%, 560px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+h1 {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  color: var(--primary-dark);
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.game-info {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.info-item {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.info-item .label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.info-item .value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.timer-bar {
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.timer-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ok), var(--warning), var(--bad));
+  border-radius: 4px;
+  transition: width 0.1s linear;
+  width: 100%;
+}
+
+.game-area {
+  min-height: 300px;
+}
+
+/* 开始界面 */
+.start-screen {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.element-preview {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.start-screen h2 {
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.start-screen p {
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+/* 游戏界面 */
+.game-screen {
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.prompt-area {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.prompt-label {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.prompt-content {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  background: var(--bg);
+  border-radius: 16px;
+  padding: 20px;
+  display: inline-block;
+  min-width: 120px;
+  animation: bounceIn 0.5s ease;
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.options-area {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.option-btn {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.option-btn:hover {
+  border-color: var(--primary);
+  background: var(--bg);
+  transform: translateY(-2px);
+}
+
+.option-btn:active {
+  transform: translateY(0);
+}
+
+.option-btn.correct {
+  border-color: var(--ok);
+  background: rgba(56, 161, 105, 0.1);
+  color: var(--ok);
+  animation: correctPulse 0.5s ease;
+}
+
+.option-btn.wrong {
+  border-color: var(--bad);
+  background: rgba(229, 62, 62, 0.1);
+  color: var(--bad);
+  animation: shake 0.5s ease;
+}
+
+@keyframes correctPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.option-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* 元素信息面板 */
+.element-info {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.element-info h3 {
+  text-align: center;
+  margin-bottom: 16px;
+  color: var(--primary-dark);
+  font-size: 1.5rem;
+}
+
+.element-details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.detail-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* 反馈信息 */
+.feedback {
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  animation: fadeIn 0.3s ease;
+}
+
+.feedback.correct {
+  background: rgba(56, 161, 105, 0.1);
+  border: 1px solid var(--ok);
+}
+
+.feedback.wrong {
+  background: rgba(229, 62, 62, 0.1);
+  border: 1px solid var(--bad);
+}
+
+.feedback-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.feedback.correct .feedback-text {
+  color: var(--ok);
+}
+
+.feedback.wrong .feedback-text {
+  color: var(--bad);
+}
+
+/* 结束界面 */
+.end-screen {
+  text-align: center;
+  padding: 40px 20px;
+  animation: fadeIn 0.5s ease;
+}
+
+.end-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.end-screen h2 {
+  margin-bottom: 24px;
+  color: var(--text);
+}
+
+.final-score {
+  background: var(--bg);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.score-label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.score-value {
+  display: block;
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.final-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-item {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* 按钮样式 */
+.btn {
+  display: inline-block;
+  padding: 14px 32px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* 页脚 */
+footer {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+footer p {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .app {
+    padding: 16px;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  .game-info {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .prompt-content {
+    font-size: 2.5rem;
+    padding: 16px;
+    min-width: 100px;
+  }
+  
+  .options-area {
+    grid-template-columns: 1fr;
+  }
+  
+  .element-details {
+    grid-template-columns: 1fr;
+  }
+  
+  .final-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 元素分类颜色类 */
+.alkali-metal { border-left: 4px solid var(--alkali-metal); }
+.alkaline-earth { border-left: 4px solid var(--alkaline-earth); }
+.transition-metal { border-left: 4px solid var(--transition-metal); }
+.post-transition { border-left: 4px solid var(--post-transition); }
+.metalloid { border-left: 4px solid var(--metalloid); }
+.nonmetal { border-left: 4px solid var(--nonmetal); }
+.halogen { border-left: 4px solid var(--halogen); }
+.noble-gas { border-left: 4px solid var(--noble-gas); }
+.lanthanide { border-left: 4px solid var(--lanthanide); }
+.actinide { border-left: 4px solid var(--actinide); }

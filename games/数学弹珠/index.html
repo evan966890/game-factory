@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>数学弹珠 - 心算练习游戏</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>🧮 数学弹珠</h1>
+            <div class="stats">
+                <div class="stat">
+                    <span class="label">得分</span>
+                    <span class="value" id="score">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">关卡</span>
+                    <span class="value" id="level">1</span>
+                </div>
+                <div class="stat">
+                    <span class="label">时间</span>
+                    <span class="value" id="time">60</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="equation-display">
+            <div class="current-equation">
+                <span class="label">当前算式：</span>
+                <span class="equation" id="currentEquation">_</span>
+            </div>
+            <div class="target-display">
+                <span class="label">目标分数：</span>
+                <span class="target" id="targetScore">10</span>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="launcher-info">
+                <span>拖动调整角度，松开发射</span>
+            </div>
+            <button id="startBtn" class="btn primary">开始游戏</button>
+            <button id="restartBtn" class="btn secondary" style="display: none;">再来一局</button>
+        </div>
+
+        <div class="game-over" id="gameOver" style="display: none;">
+            <div class="overlay"></div>
+            <div class="panel">
+                <h2>游戏结束</h2>
+                <div class="final-score">
+                    <span>最终得分：</span>
+                    <span id="finalScore">0</span>
+                </div>
+                <div class="final-level">
+                    <span>到达关卡：</span>
+                    <span id="finalLevel">1</span>
+                </div>
+                <button id="playAgainBtn" class="btn primary">再来一局</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

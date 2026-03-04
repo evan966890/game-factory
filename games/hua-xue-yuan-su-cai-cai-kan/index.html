@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>化学元素猜猜看</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>🧪 化学元素猜猜看</h1>
+      <p class="subtitle">通过提示猜出化学元素，学习元素知识！</p>
+    </header>
+
+    <div class="game-info">
+      <div class="info-item">
+        <span class="label">关卡</span>
+        <span class="value" id="level">1</span>
+      </div>
+      <div class="info-item">
+        <span class="label">分数</span>
+        <span class="value" id="score">0</span>
+      </div>
+      <div class="info-item">
+        <span class="label">连击</span>
+        <span class="value" id="combo">0</span>
+      </div>
+      <div class="info-item">
+        <span class="label">最高分</span>
+        <span class="value" id="high-score">0</span>
+      </div>
+    </div>
+
+    <div class="timer-bar">
+      <div class="timer-fill" id="timer-fill"></div>
+    </div>
+
+    <div class="game-area" id="game-area">
+      <div class="start-screen" id="start-screen">
+        <div class="element-preview">🔬</div>
+        <h2>准备好学习化学元素了吗？</h2>
+        <p>根据提示猜出正确的化学元素，每题20秒！</p>
+        <button class="btn btn-primary" id="start-btn">开始游戏</button>
+      </div>
+
+      <div class="game-screen" id="game-screen" style="display: none;">
+        <div class="prompt-area">
+          <div class="prompt-label">提示：</div>
+          <div class="prompt-content" id="prompt-content">H</div>
+        </div>
+
+        <div class="options-area" id="options-area">
+          <!-- 选项将由JS动态生成 -->
+        </div>
+
+        <div class="element-info" id="element-info" style="display: none;">
+          <h3 id="element-name">氢</h3>
+          <div class="element-details">
+            <div class="detail-item">
+              <span class="detail-label">符号</span>
+              <span class="detail-value" id="detail-symbol">H</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">原子序数</span>
+              <span class="detail-value" id="detail-number">1</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">原子量</span>
+              <span class="detail-value" id="detail-mass">1.008</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">电子排布</span>
+              <span class="detail-value" id="detail-config">1s¹</span>
+            </div>
+            <div class="detail-item full-width">
+              <span class="detail-label">常见用途</span>
+              <span class="detail-value" id="detail-use">用于制造氨、甲醇等化工产品，火箭燃料</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="feedback" id="feedback" style="display: none;">
+          <span class="feedback-text" id="feedback-text">正确！</span>
+        </div>
+      </div>
+
+      <div class="end-screen" id="end-screen" style="display: none;">
+        <div class="end-icon">🏆</div>
+        <h2>游戏结束！</h2>
+        <div class="final-score">
+          <span class="score-label">最终分数</span>
+          <span class="score-value" id="final-score">0</span>
+        </div>
+        <div class="final-stats">
+          <div class="stat-item">
+            <span class="stat-label">完成关卡</span>
+            <span class="stat-value" id="final-level">1</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">最高连击</span>
+            <span class="stat-value" id="final-combo">0</span>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="restart-btn">再来一局</button>
+      </div>
+    </div>
+
+    <footer>
+      <p>游戏工厂 · 寓教于乐</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
