@@ -1,0 +1,875 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>小鸡舰队出击</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --tower: #fef3c7;
+      --tower-dark: #f59e0b;
+      --hero: #dbeafe;
+      --hero-dark: #3b82f6;
+      --roguelike: #d1fae5;
+      --roguelike-dark: #10b981;
+      --card: #fce7f3;
+      --card-dark: #ec4899;
+      --upgrade: #e0e7ff;
+      --upgrade-dark: #6366f1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .tower {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--tower);
+      margin-bottom: 16px;
+    }
+
+    .tower-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .tower-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .tower-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .tower-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .tower-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .tower-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .tower-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .tower-item .level {
+      font-size: 0.7rem;
+      color: var(--tower-dark);
+      font-weight: 700;
+    }
+
+    .hero {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--hero);
+      margin-bottom: 16px;
+    }
+
+    .hero-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .hero-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .hero-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .hero-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .hero-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .hero-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .hero-item .power {
+      font-size: 0.7rem;
+      color: var(--hero-dark);
+      font-weight: 700;
+    }
+
+    .roguelike {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--roguelike);
+      margin-bottom: 16px;
+    }
+
+    .roguelike-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .roguelike-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .roguelike-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .roguelike-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .roguelike-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .roguelike-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .roguelike-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .roguelike-item .reward {
+      font-size: 0.7rem;
+      color: var(--roguelike-dark);
+      font-weight: 700;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--card);
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .card-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .card-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .card-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .card-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .card-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .card-item .cost {
+      font-size: 0.7rem;
+      color: var(--card-dark);
+      font-weight: 700;
+    }
+
+    .upgrade {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--upgrade);
+      margin-bottom: 16px;
+    }
+
+    .upgrade-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .upgrade-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .upgrade-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .upgrade-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .upgrade-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .upgrade-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .upgrade-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .upgrade-item .cost {
+      font-size: 0.7rem;
+      color: var(--upgrade-dark);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--tower-dark);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>小鸡舰队出击</h1>
+    <p class="subtitle">5只不同职业的小鸡，拾取金羽毛升级或选择强化BUFF，塔防+Roguelike玩法！</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="gold">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">波次</span>
+        <span class="value green" id="wave">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">小鸡</span>
+        <span class="value blue" id="chickens">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="tower">
+          <div class="tower-title">塔防</div>
+          <div class="tower-grid" id="tower"></div>
+        </div>
+
+        <div class="hero">
+          <div class="hero-title">小鸡</div>
+          <div class="hero-grid" id="hero"></div>
+        </div>
+
+        <div class="roguelike">
+          <div class="roguelike-title">金羽毛</div>
+          <div class="roguelike-grid" id="roguelike"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">卡牌</div>
+          <div class="card-grid" id="card"></div>
+        </div>
+
+        <div class="upgrade">
+          <div class="upgrade-title">升级</div>
+          <div class="upgrade-grid" id="upgrade"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="startBtn">开始出击</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      tower: [
+        { id: 'basic', name: '基础塔', emoji: '🗼', level: 1 },
+        { id: 'arrow', name: '箭塔', emoji: '🏹', level: 1 },
+        { id: 'magic', name: '魔法塔', emoji: '🔮', level: 1 },
+        { id: 'fire', name: '火焰塔', emoji: '🔥', level: 1 },
+        { id: 'ice', name: '冰霜塔', emoji: '❄️', level: 1 },
+        { id: 'thunder', name: '雷霆塔', emoji: '⚡', level: 1 }
+      ],
+      hero: [
+        { id: 'warrior', name: '战士小鸡', emoji: '⚔️', power: 100 },
+        { id: 'mage', name: '法师小鸡', emoji: '🧙', power: 80 },
+        { id: 'archer', name: '弓箭手小鸡', emoji: '🏹', power: 90 },
+        { id: 'tank', name: '坦克小鸡', emoji: '🛡️', power: 120 },
+        { id: 'healer', name: '治疗师小鸡', emoji: '💚', power: 110 },
+        { id: 'assassin', name: '刺客小鸡', emoji: '🗡️', power: 130 }
+      ],
+      roguelike: [
+        { id: 'feather1', name: '金羽毛1', emoji: '🪶', reward: 50 },
+        { id: 'feather2', name: '金羽毛2', emoji: '🪶', reward: 100 },
+        { id: 'feather3', name: '金羽毛3', emoji: '🪶', reward: 150 },
+        { id: 'feather4', name: '金羽毛4', emoji: '🪶', reward: 200 },
+        { id: 'feather5', name: '金羽毛5', emoji: '🪶', reward: 250 },
+        { id: 'feather6', name: '金羽毛6', emoji: '🪶', reward: 300 }
+      ],
+      card: [
+        { id: 'attack', name: '攻击卡', emoji: '⚔️', cost: 100 },
+        { id: 'defense', name: '防御卡', emoji: '🛡️', cost: 150 },
+        { id: 'magic', name: '魔法卡', emoji: '🔮', cost: 200 },
+        { id: 'speed', name: '速度卡', emoji: '💨', cost: 250 },
+        { id: 'critical', name: '暴击卡', emoji: '💥', cost: 300 },
+        { id: 'ultimate', name: '终极卡', emoji: '🌟', cost: 350 }
+      ],
+      upgrade: [
+        { id: 'attack', name: '攻击升级', emoji: '⚔️', cost: 100 },
+        { id: 'defense', name: '防御升级', emoji: '🛡️', cost: 150 },
+        { id: 'speed', name: '速度升级', emoji: '💨', cost: 200 },
+        { id: 'critical', name: '暴击升级', emoji: '💥', cost: 250 },
+        { id: 'health', name: '生命升级', emoji: '❤️', cost: 300 },
+        { id: 'mana', name: '法力升级', emoji: '💙', cost: 350 }
+      ]
+    };
+
+    // 游戏状态
+    let gold = 0;
+    let wave = 1;
+    let chickens = 0;
+    let ownedTowers = [];
+    let ownedHeroes = [];
+    let ownedRoguelikes = [];
+    let ownedCards = [];
+    let ownedUpgrades = [];
+    let gameLoop = null;
+
+    // DOM 元素
+    const goldEl = document.getElementById('gold');
+    const waveEl = document.getElementById('wave');
+    const chickensEl = document.getElementById('chickens');
+    const towerEl = document.getElementById('tower');
+    const heroEl = document.getElementById('hero');
+    const roguelikeEl = document.getElementById('roguelike');
+    const cardEl = document.getElementById('card');
+    const upgradeEl = document.getElementById('upgrade');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      gold = 0;
+      wave = 1;
+      chickens = 0;
+      ownedTowers = [];
+      ownedHeroes = [];
+      ownedRoguelikes = [];
+      ownedCards = [];
+      ownedUpgrades = [];
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateTower();
+      updateHero();
+      updateRoguelike();
+      updateCard();
+      updateUpgrade();
+
+      // 开始游戏循环
+      startGameLoop();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('xiao-ji-jian-dui-chu-ji');
+      if (saved) {
+        const data = JSON.parse(saved);
+        gold = data.gold || 0;
+        wave = data.wave || 1;
+        chickens = data.chickens || 0;
+        ownedTowers = data.ownedTowers || [];
+        ownedHeroes = data.ownedHeroes || [];
+        ownedRoguelikes = data.ownedRoguelikes || [];
+        ownedCards = data.ownedCards || [];
+        ownedUpgrades = data.ownedUpgrades || [];
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        gold,
+        wave,
+        chickens,
+        ownedTowers,
+        ownedHeroes,
+        ownedRoguelikes,
+        ownedCards,
+        ownedUpgrades
+      };
+      localStorage.setItem('xiao-ji-jian-dui-chu-ji', JSON.stringify(data));
+    }
+
+    // 开始游戏循环
+    function startGameLoop() {
+      if (gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => {
+        // 自动收集资源
+        collectResources();
+        updateStats();
+        saveGame();
+      }, 1000);
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      goldEl.textContent = gold;
+      waveEl.textContent = wave;
+      chickensEl.textContent = chickens;
+    }
+
+    // 更新塔防显示
+    function updateTower() {
+      towerEl.innerHTML = '';
+      config.tower.forEach(tower => {
+        const owned = ownedTowers.some(t => t.id === tower.id);
+        const canAfford = gold >= 50;
+
+        const towerEl = document.createElement('div');
+        towerEl.className = 'tower-item';
+        towerEl.innerHTML = `
+          <div class="emoji">${tower.emoji}</div>
+          <div class="name">${tower.name}</div>
+          <div class="level">Lv.${tower.level}</div>
+        `;
+        if (!owned && canAfford) {
+          towerEl.addEventListener('click', () => buyTower(tower));
+        } else {
+          towerEl.disabled = true;
+        }
+        towerEl.appendChild(towerEl);
+      });
+    }
+
+    // 更新英雄显示
+    function updateHero() {
+      heroEl.innerHTML = '';
+      config.hero.forEach(hero => {
+        const owned = ownedHeroes.some(h => h.id === hero.id);
+        const canAfford = gold >= 100;
+
+        const heroEl = document.createElement('div');
+        heroEl.className = 'hero-item';
+        heroEl.innerHTML = `
+          <div class="emoji">${hero.emoji}</div>
+          <div class="name">${hero.name}</div>
+          <div class="power">${hero.power}</div>
+        `;
+        if (!owned && canAfford) {
+          heroEl.addEventListener('click', () => buyHero(hero));
+        } else {
+          heroEl.disabled = true;
+        }
+        heroEl.appendChild(heroEl);
+      });
+    }
+
+    // 更新Roguelike显示
+    function updateRoguelike() {
+      roguelikeEl.innerHTML = '';
+      config.roguelike.forEach(roguelike => {
+        const canPlay = ownedHeroes.length > 0;
+
+        const roguelikeEl = document.createElement('div');
+        roguelikeEl.className = 'roguelike-item';
+        roguelikeEl.innerHTML = `
+          <div class="emoji">${roguelike.emoji}</div>
+          <div class="name">${roguelike.name}</div>
+          <div class="reward">+${roguelike.reward}</div>
+        `;
+        if (canPlay) {
+          roguelikeEl.addEventListener('click', () => doRoguelike(roguelike));
+        } else {
+          roguelikeEl.disabled = true;
+        }
+        roguelikeEl.appendChild(roguelikeEl);
+      });
+    }
+
+    // 更新卡牌显示
+    function updateCard() {
+      cardEl.innerHTML = '';
+      config.card.forEach(card => {
+        const owned = ownedCards.some(c => c.id === card.id);
+        const canAfford = gold >= card.cost;
+
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card-item';
+        cardEl.innerHTML = `
+          <div class="emoji">${card.emoji}</div>
+          <div class="name">${card.name}</div>
+          <div class="cost">${card.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          cardEl.addEventListener('click', () => buyCard(card));
+        } else {
+          cardEl.disabled = true;
+        }
+        cardEl.appendChild(cardEl);
+      });
+    }
+
+    // 更新升级显示
+    function updateUpgrade() {
+      upgradeEl.innerHTML = '';
+      config.upgrade.forEach(upgrade => {
+        const owned = ownedUpgrades.some(u => u.id === upgrade.id);
+        const canAfford = gold >= upgrade.cost;
+
+        const upgradeEl = document.createElement('div');
+        upgradeEl.className = 'upgrade-item';
+        upgradeEl.innerHTML = `
+          <div class="emoji">${upgrade.emoji}</div>
+          <div class="name">${upgrade.name}</div>
+          <div class="cost">${upgrade.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          upgradeEl.addEventListener('click', () => buyUpgrade(upgrade));
+        } else {
+          upgradeEl.disabled = true;
+        }
+        upgradeEl.appendChild(upgradeEl);
+      });
+    }
+
+    // 购买塔防
+    function buyTower(tower) {
+      if (gold >= 50) {
+        gold -= 50;
+        ownedTowers.push(tower);
+        updateStats();
+        updateTower();
+        saveGame();
+        alert(`购买成功！获得 ${tower.name}`);
+      }
+    }
+
+    // 购买英雄
+    function buyHero(hero) {
+      if (gold >= 100) {
+        gold -= 100;
+        ownedHeroes.push(hero);
+        chickens++;
+        updateStats();
+        updateHero();
+        updateRoguelike();
+        saveGame();
+        alert(`购买成功！获得 ${hero.name}`);
+      }
+    }
+
+    // 进行Roguelike
+    function doRoguelike(roguelike) {
+      if (ownedHeroes.length > 0) {
+        gold += roguelike.reward;
+        updateStats();
+        saveGame();
+        alert(`拾取成功！获得 ${roguelike.reward} 金币`);
+      }
+    }
+
+    // 购买卡牌
+    function buyCard(card) {
+      if (gold >= card.cost) {
+        gold -= card.cost;
+        ownedCards.push(card);
+        updateStats();
+        updateCard();
+        saveGame();
+        alert(`购买成功！获得 ${card.name}`);
+      }
+    }
+
+    // 购买升级
+    function buyUpgrade(upgrade) {
+      if (gold >= upgrade.cost) {
+        gold -= upgrade.cost;
+        ownedUpgrades.push(upgrade);
+        updateStats();
+        updateUpgrade();
+        saveGame();
+        alert(`购买成功！获得 ${upgrade.name}`);
+      }
+    }
+
+    // 收集资源
+    function collectResources() {
+      // 塔防加成
+      ownedTowers.forEach(tower => {
+        gold += 1;
+      });
+
+      // 英雄加成
+      ownedHeroes.forEach(hero => {
+        gold += 2;
+      });
+
+      // 卡牌加成
+      ownedCards.forEach(card => {
+        gold += 3;
+      });
+
+      // 升级加成
+      gold += ownedUpgrades.length * 5;
+    }
+
+    // 开始出击
+    function startAttack() {
+      // 随机添加小鸡
+      const randomChicken = Math.floor(Math.random() * 3) + 1;
+      for (let i = 0; i < randomChicken; i++) {
+        const hero = config.hero[Math.floor(Math.random() * config.hero.length)];
+        if (!ownedHeroes.some(h => h.id === hero.id)) {
+          ownedHeroes.push(hero);
+          chickens++;
+        }
+      }
+      updateStats();
+      updateHero();
+      updateRoguelike();
+      saveGame();
+      alert(`出击开始！添加了 ${randomChicken} 只小鸡`);
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('xiao-ji-jian-dui-chu-ji');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    startBtn.addEventListener('click', startAttack);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
