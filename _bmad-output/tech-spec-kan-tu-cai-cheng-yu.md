@@ -1,172 +1,182 @@
 ---
 title: '看图猜成语'
 slug: 'kan-tu-cai-cheng-yu'
-created: '2026-03-04T11:22:00+08:00'
+created: '2026-03-04'
 status: 'ready-for-dev'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['HTML', 'CSS', 'JavaScript']
 files_to_modify: ['game-factory/games/kan-tu-cai-cheng-yu/index.html']
-code_patterns: ['单文件HTML游戏', '移动端优先响应式设计', 'CSS动画反馈', 'localStorage本地存储', 'emoji组合图片提示']
+code_patterns: ['移动端优先', '响应式设计', '离线可用', '单个 HTML 文件', '内联 CSS 和 JS']
 test_patterns: []
 ---
 
 # Tech-Spec: 看图猜成语
 
-**Created:** 2026-03-04T11:22:00+08:00
+**Created:** 2026-03-04
 
 ## Overview
 
 ### Problem Statement
 
-玩家需要通过图片提示猜出正确的成语，在娱乐中学习成语知识，提升语言文化素养。
+玩家需要通过图片提示猜出正确的成语，锻炼成语知识和联想能力。现有成语学习应用多为文字填空，缺乏视觉联想和趣味性。
 
 ### Solution
 
-使用 emoji 或简单图形组合成图片提示，玩家从四个选项中选择正确的成语填入。答对显示成语释义和出处，加入连击系统和时间限制增加游戏性，让学习成语变得有趣。
+显示一张由 emoji 或简单图形组成的图片，玩家从四个选项中选择正确的成语。答对显示释义和出处，有金币和提示系统。加入连击系统和时间限制增加游戏性。
 
 ### Scope
 
 **In Scope:**
-- 使用 emoji 或简单图形组合成图片提示
-- 四字成语，从四个选项中选择填入
-- 答对显示释义和出处
-- 连击系统（连续答对加分）
-- 时间限制增加紧张感
+- 图片提示（使用 emoji 或简单图形组合）
+- 四字成语选项（4选1）
+- 计分系统（答对得分，连击加分）
+- 连击系统（连续答对有额外奖励）
+- 时间限制（每题限时）
+- 金币和提示系统（金币可购买提示）
+- 成语释义和出处显示
 - 移动端优先，响应式设计
-- 纯 HTML/CSS/JS，无外部依赖
+- 离线可用，无外部资源依赖
 
 **Out of Scope:**
-- 用户账户系统
 - 多人对战模式
-- 复杂的关卡编辑器
-- 音效（可后续添加）
+- 排行榜系统
+- 社交分享功能
+- 复杂音效（可选，但非必需）
 
 ## Context for Development
 
 ### Codebase Patterns
 
-游戏工厂采用纯 HTML/CSS/JS 单文件结构，每个游戏一个目录，包含 index.html 文件。移动端优先，响应式设计，离线可用。所有游戏都遵循以下模式：
-- 单文件 HTML 结构，包含 HTML、CSS、JavaScript
-- 使用 viewport meta 标签确保移动端适配
-- 使用 CSS Flexbox/Grid 进行布局
-- 使用 localStorage 保存游戏状态
-- 使用 CSS 动画提供视觉反馈
+- **Clean Slate**: 无现有代码，全新开发
+- 纯 HTML/CSS/JS，无框架依赖
+- 单个 HTML 文件，内联 CSS 和 JS
+- 移动端优先，响应式设计
+- 离线可用，无外部资源依赖
+- 游戏性优先：手感、节奏、反馈比功能完整更重要
+- 参考现有游戏结构：`game-factory/games/` 下的游戏均为单个 index.html 文件
 
 ### Files to Reference
 
 | File | Purpose |
 | ---- | ------- |
-| game-factory/games/addition-practice/index.html | 参考游戏结构，了解单文件HTML游戏模式 |
-| game-factory/games-list.json | 游戏注册格式参考 |
-| game-factory/CHANGELOG.md | 更新日志格式参考 |
+| game-factory/games/bai-lian-ying-xiong/index.html | 参考现有游戏结构（单个 HTML 文件） |
+| game-factory/games/ (参考) | 查看现有游戏结构 |
+| game-factory/_bmad-output/ (输出) | 存放设计文档 |
 
 ### Technical Decisions
 
-1. **单文件结构**：所有代码在一个 index.html 文件中，便于部署和维护
-2. **emoji 图片提示**：使用 emoji 组合代替图片素材，减少资源依赖
-3. **本地存储**：使用 localStorage 保存最高分和进度
-4. **CSS 动画**：使用 CSS 实现简单的视觉反馈效果
-5. **响应式设计**：使用 CSS 媒体查询适配不同屏幕尺寸
-6. **无外部依赖**：纯 HTML/CSS/JS，无需任何外部库或框架
+- 使用 emoji 作为图片提示，避免外部图片资源
+- 使用 CSS Grid/Flexbox 实现响应式布局
+- 使用 localStorage 存储金币和最高分
+- 使用 CSS 动画实现反馈效果
+- 游戏状态管理使用简单 JavaScript 对象
+- 成语数据硬编码在 JavaScript 数组中（至少 20 个成语）
+- 使用 setInterval 实现倒计时
+- 使用事件委托处理选项点击
 
 ## Implementation Plan
 
 ### Tasks
 
-- [ ] Task 1: 创建游戏目录
-  - File: `game-factory/games/kan-tu-cai-cheng-yu/`
-  - Action: 创建新目录用于存放游戏文件
-  - Notes: 确保目录名称与 slug 一致
-
-- [ ] Task 2: 创建基础 HTML 结构
+- [ ] Task 1: 创建 index.html 文件结构
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 创建 HTML 文件，包含基本结构、viewport meta 标签、游戏容器
-  - Notes: 参考 addition-practice/index.html 的结构
+  - Action: 创建 HTML 骨架，包含 meta 标题、viewport 设置、基本结构
+  - Notes: 移动端优先，设置 viewport 为 device-width
 
-- [ ] Task 3: 实现成语数据库
+- [ ] Task 2: 实现游戏界面布局
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 创建包含至少 20 个成语的数组，每个成语包含：成语、emoji提示、释义、出处
-  - Notes: 成语需要精心挑选，确保 emoji 提示合理
+  - Action: 使用 CSS Grid/Flexbox 实现响应式布局，包含标题、图片提示区域、选项按钮区域、计分板、金币显示、时间显示
+  - Notes: 使用 emoji 作为图片提示，按钮使用 CSS 样式
 
-- [ ] Task 4: 实现游戏状态管理
+- [ ] Task 3: 实现游戏逻辑 - 成语数据
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 实现游戏状态对象，包含当前分数、连击数、时间、当前题目等
-  - Notes: 使用 localStorage 保存最高分
+  - Action: 在 JavaScript 中定义成语数据数组，每个成语包含：成语、图片提示（emoji 组合）、释义、出处
+  - Notes: 至少准备 20 个成语，确保图片提示直观易懂
 
-- [ ] Task 5: 实现题目生成逻辑
+- [ ] Task 4: 实现游戏逻辑 - 随机出题
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 实现随机选择成语、生成选项（1个正确+3个错误）的逻辑
-  - Notes: 错误选项需要从其他成语中随机选择
+  - Action: 实现随机选择成语，生成四个选项（一个正确，三个干扰）
+  - Notes: 干扰项需要从其他成语中随机选择，确保不重复
 
-- [ ] Task 6: 实现计分和连击系统
+- [ ] Task 5: 实现计分系统
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 实现答对加分、连击加分、答错重置连击的逻辑
-  - Notes: 连击加分公式：基础分 + 连击数 * 10
+  - Action: 实现得分逻辑（答对得分，连击加分），连击系统（连续答对有额外奖励）
+  - Notes: 连击数重置条件：答错或超时
 
-- [ ] Task 7: 实现时间限制
+- [ ] Task 6: 实现时间限制
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 实现倒计时，时间到自动结束游戏
-  - Notes: 使用 setInterval 实现，每秒更新
+  - Action: 使用 setInterval 实现倒计时，每题限时 30 秒
+  - Notes: 时间到自动判定为答错，进入下一题
 
-- [ ] Task 8: 实现 UI 界面
+- [ ] Task 7: 实现金币和提示系统
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 实现游戏主界面、emoji提示区域、选项按钮、计分板、时间条、结果弹窗
-  - Notes: 使用 CSS Flexbox 布局，确保移动端适配
+  - Action: 实现金币获取（答对获得金币），提示功能（消耗金币显示提示，如显示第一个字）
+  - Notes: 金币存储在 localStorage 中
 
-- [ ] Task 9: 添加 CSS 样式和动画
+- [ ] Task 8: 实现成语释义显示
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 添加样式，实现按钮点击效果、正确/错误反馈动画、时间条动画
-  - Notes: 使用 CSS transition 和 animation
+  - Action: 答对后显示成语释义和出处，使用模态框或弹窗
+  - Notes: 显示 3 秒后自动进入下一题
 
-- [ ] Task 10: 测试游戏功能
+- [ ] Task 9: 实现游戏结束和重玩功能
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 在浏览器中测试所有功能，确保无 bug
-  - Notes: 测试移动端响应式显示
+  - Action: 实现游戏结束条件（时间到或答错），显示最终得分，提供"再来一局"按钮
+  - Notes: 重玩时重置所有状态
 
-- [ ] Task 11: 注册到 games-list.json
-  - File: `game-factory/games-list.json`
-  - Action: 在 games-list.json 中添加新游戏条目
-  - Notes: 按照现有格式添加
+- [ ] Task 10: 添加 CSS 样式和动画效果
+  - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
+  - Action: 添加 CSS 样式，实现按钮点击反馈、正确/错误动画、倒计时动画
+  - Notes: 使用 CSS 动画，避免复杂 JS 动画
 
-- [ ] Task 12: 更新 CHANGELOG
-  - File: `game-factory/CHANGELOG.md`
-  - Action: 使用 bash 追加新游戏记录
-  - Notes: 使用 sed 命令，不要用 Edit 工具
+- [ ] Task 11: 移动端适配和响应式设计
+  - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
+  - Action: 测试并调整移动端显示，确保触摸体验良好
+  - Notes: 使用媒体查询适配不同屏幕尺寸
 
-- [ ] Task 13: git commit
-  - File: `game-factory/`
-  - Action: 执行 git add 和 git commit
-  - Notes: 提交信息格式：`feat: 新增《看图猜成语》- 图片猜成语学习游戏`
+- [ ] Task 12: 自测验收
+  - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
+  - Action: 按照 Acceptance Criteria 逐项测试，修复问题
+  - Notes: 测试不通过不发布
 
 ### Acceptance Criteria
 
-- [ ] AC 1: Given 游戏加载完成，when 用户打开游戏，then 显示游戏主界面，包含 emoji 图片提示和四个选项按钮
-- [ ] AC 2: Given 游戏进行中，when 用户点击正确选项，then 显示"正确"反馈，成语释义和出处，分数增加，连击数增加
-- [ ] AC 3: Given 游戏进行中，when 用户点击错误选项，then 显示"错误"反馈，连击数重置为0
-- [ ] AC 4: Given 游戏进行中，when 时间倒计时结束，then 显示游戏结束弹窗，显示最终分数和最高分
-- [ ] AC 5: Given 游戏结束，when 用户点击"再来一局"按钮，then 重置游戏状态，开始新游戏
-- [ ] AC 6: Given 游戏进行中，when 用户连续答对，then 连击数增加，加分公式正确（基础分 + 连击数 * 10）
-- [ ] AC 7: Given 游戏加载，when 用户之前玩过游戏，then 显示之前保存的最高分
-- [ ] AC 8: Given 游戏在移动设备上打开，when 屏幕尺寸变化，then 界面自适应，按钮可正常点击
-- [ ] AC 9: Given 游戏进行中，when 用户答对题目，then 自动加载下一题
-- [ ] AC 10: Given 游戏进行中，when 用户答错题目，then 自动加载下一题
+- [ ] AC 1: Given 游戏页面加载，when 用户打开 index.html，then 页面正常显示，无白屏/JS 报错
+- [ ] AC 2: Given 游戏页面加载完成，when 用户点击"开始游戏"按钮，then 游戏开始，显示图片提示和选项
+- [ ] AC 3: Given 游戏进行中，when 用户观察图片提示，then 图片提示清晰可辨，能理解其含义
+- [ ] AC 4: Given 游戏进行中，when 用户点击四个选项按钮之一，then 按钮有点击反馈，选择被记录
+- [ ] AC 5: Given 用户选择正确答案，when 系统判断答案正确，then 显示正确提示，得分增加，连击数增加
+- [ ] AC 6: Given 用户选择错误答案，when 系统判断答案错误，then 显示错误提示，连击数重置
+- [ ] AC 7: Given 游戏进行中，when 时间流逝，then 倒计时正常显示，时间到自动判定为答错
+- [ ] AC 8: Given 用户答对题目，when 系统处理得分，then 金币数量增加
+- [ ] AC 9: Given 用户有足够金币，when 用户点击提示按钮，then 消耗金币显示提示（如显示第一个字）
+- [ ] AC 10: Given 用户答对题目，when 系统显示释义，then 成语释义和出处正常显示
+- [ ] AC 11: Given 游戏结束条件触发（时间到或答错），when 系统处理结束，then 显示最终得分，提供"再来一局"按钮
+- [ ] AC 12: Given 游戏结束，when 用户点击"再来一局"按钮，then 游戏重置，可以重新开始
+- [ ] AC 13: Given 游戏页面，when 用户调整浏览器窗口大小，then 布局自适应，无文字溢出、元素重叠
+- [ ] AC 14: Given 移动设备访问，when 用户打开游戏，then 显示正常，触摸体验良好
 
 ## Additional Context
 
 ### Dependencies
 
-无外部依赖，纯 HTML/CSS/JS。
+- 无外部依赖
 
 ### Testing Strategy
 
-1. 在浏览器中打开游戏，测试基本功能
-2. 测试移动端响应式显示
-3. 测试连击系统
-4. 测试时间限制
-5. 测试最高分保存
+1. 打开游戏 index.html，检查页面加载
+2. 点击开始游戏，检查游戏是否正常开始
+3. 观察图片提示是否清晰
+4. 点击选项按钮，检查反馈是否正确
+5. 检查计分系统是否正常
+6. 检查时间限制是否正常
+7. 检查金币和提示系统是否正常
+8. 检查成语释义显示是否正常
+9. 检查游戏结束和重玩功能
+10. 在移动设备上测试响应式布局
 
 ### Notes
 
-- 成语数据库需要精心挑选，确保图片提示合理
-- 难度曲线：前几题简单，后面逐渐增加难度
-- 参考微信小游戏《看图猜成语》的 UI 设计
+- 成语数据需要准备至少 20 个成语，每个成语包含：成语、图片提示（emoji 组合）、释义、出处
+- 图片提示需要设计得直观易懂
+- 游戏难度需要平衡，不能太简单也不能太难
+- 注意移动端触摸体验
