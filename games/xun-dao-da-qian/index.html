@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>寻道大千</title>
+  <style>
+    :root{--bg:#0f172a;--bg2:#111827;--card:#1f2937;--line:#374151;--text:#f3f4f6;--muted:#9ca3af;--brand:#22d3ee;--ok:#34d399;--warn:#fbbf24;--bad:#f87171}
+    *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;padding:12px}
+    .app{max-width:760px;margin:0 auto;background:rgba(31,41,55,.96);border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:0 14px 32px rgba(0,0,0,.35)}
+    h1{margin:0;font-size:24px}.sub{margin:5px 0 10px;color:var(--muted);font-size:13px}
+    .hud{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+    .k{background:#111827;border:1px solid var(--line);border-radius:10px;padding:6px;text-align:center}.k small{display:block;color:var(--muted);font-size:11px}.k b{font-size:15px}
+    .panel{margin-top:8px;background:#111827;border:1px solid var(--line);border-radius:12px;padding:10px}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    button{border:none;border-radius:10px;padding:9px 12px;font-weight:800;cursor:pointer;background:var(--brand);color:#062a2f}
+    button.ok{background:var(--ok);color:#032015} button.warn{background:var(--warn);color:#3a2a00} button.alt{background:#6b7280;color:#fff}
+    .tree{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .treeBox{flex:1;min-height:86px;border:1px dashed var(--line);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:46px;background:#0c1324}
+    .realm{font-size:14px;color:#c7d2fe;margin-top:5px}
+    .techs{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+    .tech{background:#0d162c;border:1px solid var(--line);border-radius:10px;padding:7px;font-size:12px}
+    .rar-n{color:#cbd5e1}.rar-r{color:#60a5fa}.rar-sr{color:#d8b4fe}.rar-ssr{color:#fcd34d}
+    .log{height:140px;overflow:auto;background:#0b1220;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:12px;line-height:1.45}.log p{margin:0 0 4px}
+    @media(max-width:620px){.hud{grid-template-columns:repeat(3,1fr)}.techs{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <h1>寻道大千</h1>
+  <p class="sub">砍树得资源，抽功法涨战力，突破境界斩妖王。</p>
+
+  <div class="hud">
+    <div class="k"><small>境界</small><b id="realm">炼气一层</b></div>
+    <div class="k"><small>灵石</small><b id="stone">0</b></div>
+    <div class="k"><small>木材</small><b id="wood">0</b></div>
+    <div class="k"><small>攻击</small><b id="atk">0</b></div>
+    <div class="k"><small>道行</small><b id="power">0</b></div>
+  </div>
+
+  <div class="panel">
+    <div class="tree">
+      <div class="treeBox" id="tree">🌳</div>
+      <div style="min-width:210px">
+        <div style="font-weight:700;margin-bottom:6px">修行操作</div>
+        <div class="row">
+          <button id="chopBtn">🪓 砍树</button>
+          <button id="drawBtn" class="warn">📜 参悟功法（120灵石）</button>
+          <button id="breakBtn" class="ok">⛰️ 突破境界</button>
+          <button id="bossBtn">👹 挑战妖王</button>
+        </div>
+        <div class="realm" id="breakReq">突破需求：灵石 300 / 木材 180</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div style="font-weight:700;margin-bottom:6px">已领悟功法</div>
+    <div class="techs" id="techs"></div>
+  </div>
+
+  <div class="panel">
+    <div style="font-weight:700;margin-bottom:6px">修仙日志</div>
+    <div class="log" id="log"></div>
+  </div>
+</div>
+
+<script>
+const KEY='xun-dao-da-qian-save-v1';
+const REALMS=['炼气一层','炼气九层','筑基初期','筑基圆满','金丹初期','金丹圆满','元婴初期','元婴圆满','化神初期'];
+const TECH_POOL=[
+  {name:'松风诀',rar:'n',atk:2,auto:1},
+  {name:'长春术',rar:'n',atk:1,auto:2},
+  {name:'太乙剑经',rar:'r',atk:6,auto:2},
+  {name:'玄龟护体',rar:'r',atk:4,auto:3},
+  {name:'紫霄雷法',rar:'sr',atk:12,auto:5},
+  {name:'九转焚天诀',rar:'sr',atk:10,auto:6},
+  {name:'混沌道典',rar:'ssr',atk:22,auto:10}
+];
+const RATE=[['ssr',0.03],['sr',0.16],['r',0.35],['n',0.46]];
+const $=id=>document.getElementById(id);
+const el={realm:$('realm'),stone:$('stone'),wood:$('wood'),atk:$('atk'),power:$('power'),techs:$('techs'),log:$('log'),breakReq:$('breakReq'),tree:$('tree')};
+
+let s={
+  realm:0,stone:220,wood:120,baseAtk:12,techs:[],bossLv:1,lastSeen:Date.now()
+};
+
+function totalAtk(){
+  const t=s.techs.reduce((a,x)=>a+x.atk,0);
+  return s.baseAtk + t + s.realm*6;
+}
+function autoGain(){
+  const t=s.techs.reduce((a,x)=>a+x.auto,0);
+  return 3 + s.realm*2 + t;
+}
+function daoPower(){
+  return Math.floor(totalAtk()*9 + s.realm*80 + s.techs.length*16);
+}
+function breakCost(){
+  return {stone:300+s.realm*180,wood:180+s.realm*120};
+}
+function save(){s.lastSeen=Date.now();localStorage.setItem(KEY,JSON.stringify(s));}
+function load(){
+  try{
+    const raw=localStorage.getItem(KEY);if(!raw)return;
+    const x=JSON.parse(raw);Object.assign(s,x);
+    const sec=Math.floor((Date.now()-(x.lastSeen||Date.now()))/1000);
+    if(sec>30){
+      const gain=Math.min(sec,7200)*autoGain();
+      const stone=Math.floor(gain*0.68),wood=Math.floor(gain*0.52);
+      s.stone+=stone;s.wood+=wood;
+      log(`离线修行收益：灵石+${stone} 木材+${wood}`);
+    }
+  }catch{}
+}
+function log(text){
+  const p=document.createElement('p');
+  p.textContent=`[${new Date().toLocaleTimeString('zh-CN',{hour12:false})}] ${text}`;
+  el.log.prepend(p);
+  while(el.log.children.length>60)el.log.removeChild(el.log.lastChild);
+}
+function renderTechs(){
+  el.techs.innerHTML='';
+  if(!s.techs.length){el.techs.innerHTML='<div class="tech">暂无功法，先参悟一次吧。</div>';return}
+  s.techs.slice().reverse().slice(0,8).forEach(t=>{
+    const d=document.createElement('div');d.className='tech';
+    d.innerHTML=`<div class="rar-${t.rar}">${t.name}（${t.rar.toUpperCase()}）</div><div>攻击 +${t.atk}｜挂机 +${t.auto}/秒</div>`;
+    el.techs.appendChild(d);
+  });
+}
+function render(){
+  el.realm.textContent=REALMS[Math.min(s.realm,REALMS.length-1)];
+  el.stone.textContent=s.stone;
+  el.wood.textContent=s.wood;
+  el.atk.textContent=totalAtk();
+  el.power.textContent=daoPower();
+  const c=breakCost();
+  el.breakReq.textContent=s.realm>=REALMS.length-1?'已到当前版本最高境界':`突破需求：灵石 ${c.stone} / 木材 ${c.wood}`;
+  renderTechs();
+  save();
+}
+function pickRar(){
+  let x=Math.random();
+  for(const [r,p] of RATE){if(x<p)return r;x-=p;}
+  return 'n';
+}
+function chop(){
+  const stone=8+Math.floor(Math.random()*8)+s.realm*2;
+  const wood=5+Math.floor(Math.random()*6)+Math.floor(s.realm*1.6);
+  s.stone+=stone;s.wood+=wood;
+  el.tree.textContent='🪵';
+  setTimeout(()=>el.tree.textContent='🌳',180);
+  log(`砍树收获：灵石+${stone} 木材+${wood}`);
+  render();
+}
+function drawTech(){
+  const cost=120;
+  if(s.stone<cost){log('灵石不足，无法参悟功法');return}
+  s.stone-=cost;
+  const rar=pickRar();
+  const pool=TECH_POOL.filter(t=>t.rar===rar);
+  const base=pool[Math.floor(Math.random()*pool.length)];
+  const tech={name:base.name,rar,atk:base.atk+Math.floor(Math.random()*3),auto:base.auto+Math.floor(Math.random()*2)};
+  s.techs.push(tech);
+  log(`领悟功法：${tech.name}（${rar.toUpperCase()}） 攻击+${tech.atk} 挂机+${tech.auto}`);
+  render();
+}
+function breakthrough(){
+  if(s.realm>=REALMS.length-1){log('你已达当前版本最高境界');return}
+  const c=breakCost();
+  if(s.stone<c.stone||s.wood<c.wood){log(`资源不足，突破需要灵石${c.stone} 木材${c.wood}`);return}
+  s.stone-=c.stone;s.wood-=c.wood;
+  const rate=Math.min(0.95,0.62+s.techs.length*0.015+s.realm*0.03);
+  if(Math.random()<rate){
+    s.realm++;s.baseAtk+=6+s.realm*2;
+    log(`突破成功！踏入【${REALMS[Math.min(s.realm,REALMS.length-1)]}】`);
+  }else{
+    const back=Math.floor(c.stone*0.35);
+    s.stone+=back;
+    log(`突破失败，心神受损，返还灵石 ${back}`);
+  }
+  render();
+}
+function challengeBoss(){
+  const my=daoPower();
+  const boss=Math.floor(320 + s.bossLv*160 + Math.random()*120);
+  const ratio=(my*(0.86+Math.random()*0.28))/boss;
+  if(ratio>=1){
+    const stone=140+s.bossLv*55;
+    const wood=90+s.bossLv*40;
+    s.stone+=stone;s.wood+=wood;s.bossLv++;
+    log(`斩杀妖王成功！奖励灵石+${stone} 木材+${wood}`);
+    if(Math.random()<0.35){
+      const tech={name:'妖丹淬体',rar:'r',atk:5+Math.floor(s.bossLv*0.8),auto:2};
+      s.techs.push(tech);
+      log(`吸收妖丹：获得功法【${tech.name}】`);
+    }
+  }else{
+    const safe=60+Math.floor(s.bossLv*20);
+    s.stone+=safe;
+    log(`挑战失利，悟道撤退，保底获得灵石+${safe}`);
+  }
+  render();
+}
+
+$('chopBtn').onclick=chop;
+$('drawBtn').onclick=drawTech;
+$('breakBtn').onclick=breakthrough;
+$('bossBtn').onclick=challengeBoss;
+
+load();
+log('踏上修仙路：先砍树积累资源，再参悟功法。');
+render();
+setInterval(()=>{
+  const gain=autoGain();
+  s.stone+=Math.floor(gain*0.9);
+  s.wood+=Math.floor(gain*0.7);
+  render();
+},3000);
+</script>
+</body>
+</html>
