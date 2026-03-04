@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>曙光重临</title>
+  <style>
+    :root{--bg:#0b1020;--bg2:#121a2e;--card:#1a2744;--line:#2b3b63;--text:#e8eefc;--muted:#9bb0dc;--brand:#4cc9f0;--ok:#52d273;--warn:#f6c945;--bad:#ff6b6b}
+    *{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;padding:12px}
+    .app{max-width:720px;margin:0 auto;background:rgba(26,39,68,.96);border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+    h1{margin:0;font-size:24px} .sub{margin:6px 0 10px;font-size:13px;color:var(--muted)}
+    .hud{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px}
+    .k{background:#0f1730;border:1px solid var(--line);border-radius:10px;padding:6px;text-align:center}.k small{display:block;color:var(--muted);font-size:11px}.k b{font-size:15px}
+    .panel{background:#0f1730;border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    button{border:none;background:var(--brand);color:#06202b;font-weight:800;border-radius:10px;padding:10px 12px;cursor:pointer}
+    button.alt{background:#5d6e95;color:#fff} button.ok{background:var(--ok);color:#05250f} button.warn{background:var(--warn);color:#2f2300}
+    .team{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.slot{border:1px dashed var(--line);border-radius:10px;min-height:76px;padding:5px;text-align:center;background:#101a34}
+    .pet{border:1px solid var(--line);border-radius:9px;padding:4px;background:#132145}
+    .pet .n{font-size:11px;color:var(--muted)} .pet .p{font-size:12px}
+    .rar-n{color:#b4bfd8}.rar-r{color:#62a6ff}.rar-sr{color:#cb7bff}.rar-ssr{color:#ffc14a}
+    .list{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+    .log{height:140px;overflow:auto;background:#081025;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:12px;line-height:1.45}
+    .log p{margin:0 0 4px}
+    @media (max-width:560px){.hud{grid-template-columns:repeat(3,1fr)}.team{grid-template-columns:repeat(3,1fr)}.list{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <h1>曙光重临</h1>
+  <p class="sub">探索采集、营地建造、抓宠养成、5宠自动群战。</p>
+
+  <div class="hud">
+    <div class="k"><small>关卡</small><b id="stage">1</b></div>
+    <div class="k"><small>木材</small><b id="wood">0</b></div>
+    <div class="k"><small>矿石</small><b id="ore">0</b></div>
+    <div class="k"><small>食物</small><b id="food">0</b></div>
+    <div class="k"><small>队伍战力</small><b id="power">0</b></div>
+  </div>
+
+  <div class="panel">
+    <div class="row">
+      <button id="exploreBtn">🌫️ 探索迷雾</button>
+      <button id="captureBtn" class="ok">🐾 抓宠（80食物）</button>
+      <button id="fightBtn" class="warn">⚔️ 自动群战</button>
+      <button id="upgradeCampBtn" class="alt">🏕️ 升级营地</button>
+      <button id="upgradeMineBtn" class="alt">⛏️ 升级矿井</button>
+      <button id="upgradeFarmBtn" class="alt">🌾 升级农田</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div style="font-weight:700;margin-bottom:6px">上阵宠物（最多5只）</div>
+    <div class="team" id="team"></div>
+  </div>
+
+  <div class="panel">
+    <div style="font-weight:700;margin-bottom:6px">宠物背包（点击升级，消耗矿石）</div>
+    <div class="list" id="bag"></div>
+  </div>
+
+  <div class="panel">
+    <div style="font-weight:700;margin-bottom:6px">战报</div>
+    <div class="log" id="log"></div>
+  </div>
+</div>
+
+<script>
+const KEY='shu-guang-chong-lin-save-v1';
+const PETS=[
+  {name:'叶狐',emoji:'🦊',rar:'n',base:24},{name:'石龟',emoji:'🐢',rar:'n',base:26},{name:'电雀',emoji:'🐦',rar:'n',base:25},
+  {name:'潮汐鹿',emoji:'🦌',rar:'r',base:38},{name:'熔岩犬',emoji:'🐕',rar:'r',base:41},
+  {name:'霜翼龙',emoji:'🐲',rar:'sr',base:58},{name:'雷角兽',emoji:'🦄',rar:'sr',base:62},
+  {name:'曙光圣灵',emoji:'🪽',rar:'ssr',base:88}
+];
+const RATE=[['ssr',0.03],['sr',0.15],['r',0.34],['n',0.48]];
+const $=id=>document.getElementById(id);
+const els={stage:$('stage'),wood:$('wood'),ore:$('ore'),food:$('food'),power:$('power'),team:$('team'),bag:$('bag'),log:$('log')};
+let s={stage:1,wood:160,ore:90,food:180,campLv:1,mineLv:1,farmLv:1,pets:[],team:[],lastSeen:Date.now()};
+
+function save(){s.lastSeen=Date.now();localStorage.setItem(KEY,JSON.stringify(s));}
+function load(){
+  try{const raw=localStorage.getItem(KEY);if(!raw) return;const x=JSON.parse(raw);Object.assign(s,x);
+    const off=Math.floor((Date.now()-(x.lastSeen||Date.now()))/1000);
+    if(off>30){const w=Math.floor(off*(0.2+s.campLv*0.1)),o=Math.floor(off*(0.1+s.mineLv*0.08)),f=Math.floor(off*(0.16+s.farmLv*0.1));
+      s.wood+=w;s.ore+=o;s.food+=f;log(`离线收益 木+${w} 矿+${o} 食+${f}`,'tip');}
+  }catch{}
+}
+function log(t,c=''){const p=document.createElement('p');p.className=c;p.textContent=`[${new Date().toLocaleTimeString('zh-CN',{hour12:false})}] ${t}`;els.log.prepend(p);while(els.log.children.length>50)els.log.removeChild(els.log.lastChild)}
+function powerOfPet(p){return Math.floor(p.base*(1+p.level*0.16)*rarMul(p.rar));}
+function rarMul(r){return r==='ssr'?1.45:r==='sr'?1.25:r==='r'?1.12:1}
+function teamPower(){return s.team.reduce((a,id)=>{const p=s.pets.find(x=>x.id===id);return a+(p?powerOfPet(p):0)},0)}
+function render(){
+  els.stage.textContent=s.stage;els.wood.textContent=s.wood;els.ore.textContent=s.ore;els.food.textContent=s.food;els.power.textContent=teamPower();
+  renderTeam();renderBag();save();
+}
+function renderTeam(){
+  els.team.innerHTML='';
+  for(let i=0;i<5;i++){
+    const slot=document.createElement('div');slot.className='slot';
+    const id=s.team[i];const p=s.pets.find(x=>x.id===id);
+    if(!p){slot.innerHTML='➕<div style="font-size:11px;color:#9bb0dc">空位</div>'}
+    else{slot.innerHTML=`<div class="pet"><div>${p.emoji} <span class="rar-${p.rar}">${p.name}</span></div><div class="n">Lv.${p.level}</div><div class="p">⚔ ${powerOfPet(p)}</div></div>`}
+    els.team.appendChild(slot);
+  }
+}
+function renderBag(){
+  els.bag.innerHTML='';
+  if(!s.pets.length){els.bag.innerHTML='<div style="color:#9bb0dc;font-size:12px">还没有宠物，先去抓宠。</div>';return}
+  s.pets.forEach(p=>{
+    const div=document.createElement('button');div.className='alt';div.style.textAlign='left';div.style.padding='8px';
+    const cost=20+p.level*18;
+    const inTeam=s.team.includes(p.id);
+    div.innerHTML=`${p.emoji} <span class="rar-${p.rar}">${p.name}</span> Lv.${p.level} · ⚔${powerOfPet(p)}<br><span style="font-size:11px">升级需${cost}矿石｜${inTeam?'已上阵':'点击上阵'}</span>`;
+    div.onclick=()=>{
+      if(!inTeam){
+        if(s.team.length<5){s.team.push(p.id);log(`${p.name} 已上阵`,'tip');}
+        else{
+          const idx=s.team.findIndex(id=>{const tp=s.pets.find(x=>x.id===id);return tp&&powerOfPet(tp)<powerOfPet(p)});
+          if(idx>=0){const old=s.pets.find(x=>x.id===s.team[idx]);s.team[idx]=p.id;log(`替换上阵：${old.name} → ${p.name}`,'tip')}else log('上阵已满且当前宠物不更强','tip')
+        }
+      }else{
+        if(s.ore<cost){log(`矿石不足，无法升级 ${p.name}`,'tip');render();return}
+        s.ore-=cost;p.level++;log(`${p.name} 升到 Lv.${p.level}，战力提升`,'tip');
+      }
+      render();
+    };
+    els.bag.appendChild(div);
+  })
+}
+function rollR(){let x=Math.random();for(const [r,p] of RATE){if(x<p)return r;x-=p}return 'n'}
+function capture(){
+  if(s.food<80){log('食物不足，无法抓宠','tip');return render()}
+  s.food-=80;
+  const rar=rollR();const pool=PETS.filter(p=>p.rar===rar);const t=pool[Math.floor(Math.random()*pool.length)];
+  const p={id:Date.now()+Math.random(),name:t.name,emoji:t.emoji,rar:t.rar,base:t.base,level:1};s.pets.push(p);
+  log(`抓到 ${p.emoji}${p.name}（${rar.toUpperCase()}）`,'tip');
+  if(s.team.length<5){s.team.push(p.id);log(`${p.name} 自动上阵`,'tip')}
+  render();
+}
+function explore(){
+  const r=Math.random();
+  if(r<0.36){const v=20+Math.floor(Math.random()*28);s.wood+=v;log(`探索砍伐木材 +${v}`,'tip')}
+  else if(r<0.68){const v=14+Math.floor(Math.random()*26);s.ore+=v;log(`探索矿脉矿石 +${v}`,'tip')}
+  else if(r<0.94){const v=16+Math.floor(Math.random()*30);s.food+=v;log(`探索采集食物 +${v}`,'tip')}
+  else{const v=1+Math.floor(Math.random()*2);s.stage=Math.max(1,s.stage-v);log(`遭遇风暴，撤退 ${v} 关`,'tip')}
+  render();
+}
+function fight(){
+  if(!s.team.length){log('没有上阵宠物，无法战斗','tip');return}
+  const p=teamPower();
+  const enemy=Math.floor(130+s.stage*55+Math.random()*90);
+  const ratio=(p*(0.88+Math.random()*0.3))/enemy;
+  if(ratio>=1){
+    const w=36+Math.floor(Math.random()*45),o=26+Math.floor(Math.random()*35),f=28+Math.floor(Math.random()*40);
+    s.wood+=w;s.ore+=o;s.food+=f;s.stage++;
+    log(`第${s.stage-1}关胜利！木+${w} 矿+${o} 食+${f}`,'tip');
+  }else{
+    const loss=12+Math.floor(Math.random()*18);
+    s.food=Math.max(0,s.food-loss);log(`战斗失利，食物 -${loss}，先养成再来`,'tip');
+  }
+  render();
+}
+function upgradeCamp(){
+  const c={wood:100+s.campLv*60,ore:60+s.campLv*45};
+  if(s.wood<c.wood||s.ore<c.ore){log(`营地升级需求 木${c.wood}/矿${c.ore}`,'tip');return}
+  s.wood-=c.wood;s.ore-=c.ore;s.campLv++;log(`营地升至 Lv.${s.campLv}，探索收益提升`,'tip');render();
+}
+function upgradeMine(){
+  const c={wood:80+s.mineLv*50,food:40+s.mineLv*35};
+  if(s.wood<c.wood||s.food<c.food){log(`矿井升级需求 木${c.wood}/食${c.food}`,'tip');return}
+  s.wood-=c.wood;s.food-=c.food;s.mineLv++;log(`矿井升至 Lv.${s.mineLv}，矿石被动产出提升`,'tip');render();
+}
+function upgradeFarm(){
+  const c={wood:70+s.farmLv*45,ore:35+s.farmLv*30};
+  if(s.wood<c.wood||s.ore<c.ore){log(`农田升级需求 木${c.wood}/矿${c.ore}`,'tip');return}
+  s.wood-=c.wood;s.ore-=c.ore;s.farmLv++;log(`农田升至 Lv.${s.farmLv}，食物被动产出提升`,'tip');render();
+}
+
+$('exploreBtn').onclick=explore;$('captureBtn').onclick=capture;$('fightBtn').onclick=fight;
+$('upgradeCampBtn').onclick=upgradeCamp;$('upgradeMineBtn').onclick=upgradeMine;$('upgradeFarmBtn').onclick=upgradeFarm;
+setInterval(()=>{s.wood+=Math.floor(0.6+s.campLv*0.4);s.ore+=Math.floor(0.4+s.mineLv*0.35);s.food+=Math.floor(0.5+s.farmLv*0.4);render()},5000);
+load();log('欢迎来到曙光重临，先探索再抓宠组队。','tip');render();
+</script>
+</body>
+</html>

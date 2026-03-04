@@ -1062,5 +1062,11 @@
     "path": "games/huan-le-dou-di-zhu/index.html",
     "category": "扑克牌对战",
     "createdAt": "2026-03-04T01:46:19Z"
+  },
+  {
+    "name": "曙光重临",
+    "path": "games/shu-guang-chong-lin/index.html",
+    "category": "抓宠养成",
+    "createdAt": "2026-03-04T01:49:03Z"
   }
 ]
