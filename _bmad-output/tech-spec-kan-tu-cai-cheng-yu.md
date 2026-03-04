@@ -1,81 +1,73 @@
 ---
 title: '看图猜成语'
 slug: 'kan-tu-cai-cheng-yu'
-created: '2026-03-04'
+created: '2026-03-04T11:22:00+08:00'
 status: 'ready-for-dev'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['HTML', 'CSS', 'JavaScript']
 files_to_modify: ['game-factory/games/kan-tu-cai-cheng-yu/index.html']
-code_patterns: ['单 HTML 文件，内嵌 CSS 和 JavaScript', '使用 localStorage 存储最高分', '响应式设计，适配移动端', '简洁的 UI，注重游戏性']
-test_patterns: ['手动测试']
+code_patterns: ['单文件HTML游戏', '移动端优先响应式设计', 'CSS动画反馈', 'localStorage本地存储', 'emoji组合图片提示']
+test_patterns: []
 ---
 
 # Tech-Spec: 看图猜成语
 
-**Created:** 2026-03-04
+**Created:** 2026-03-04T11:22:00+08:00
 
 ## Overview
 
 ### Problem Statement
 
-玩家需要根据图片提示猜出正确的成语，考验成语知识和联想能力。原版游戏在微信小游戏中很受欢迎，但缺乏纯 HTML5 版本。
+玩家需要通过图片提示猜出正确的成语，在娱乐中学习成语知识，提升语言文化素养。
 
 ### Solution
 
-创建一个纯 HTML5 游戏，使用 emoji 或简单图形组合成图片提示，玩家从四个选项中选择正确的成语。加入计分系统、连击系统、时间限制和难度递增，提升游戏性和重玩价值。
+使用 emoji 或简单图形组合成图片提示，玩家从四个选项中选择正确的成语填入。答对显示成语释义和出处，加入连击系统和时间限制增加游戏性，让学习成语变得有趣。
 
 ### Scope
 
 **In Scope:**
 - 使用 emoji 或简单图形组合成图片提示
 - 四字成语，从四个选项中选择填入
-- 答对显示成语释义和出处
-- 计分系统（基础分 + 连击加成）
+- 答对显示释义和出处
 - 连击系统（连续答对加分）
-- 时间限制（每题 30 秒）
-- 难度递增（题目越来越难）
+- 时间限制增加紧张感
 - 移动端优先，响应式设计
-- 离线可用，无外部资源依赖
+- 纯 HTML/CSS/JS，无外部依赖
 
 **Out of Scope:**
-- 复杂的图形或图片素材
-- 多语言支持
 - 用户账户系统
-- 社交分享功能
-- 音效（可选，但非必需）
+- 多人对战模式
+- 复杂的关卡编辑器
+- 音效（可后续添加）
 
 ## Context for Development
 
 ### Codebase Patterns
 
-游戏工厂中的游戏通常采用以下模式：
-- 单 HTML 文件，内嵌 CSS 和 JavaScript
-- 使用 localStorage 存储最高分
-- 响应式设计，适配移动端
-- 简洁的 UI，注重游戏性
-- 使用 CSS 变量定义颜色主题
-- 使用 Flexbox 或 Grid 进行布局
-- 游戏逻辑集中在 JavaScript 中
+游戏工厂采用纯 HTML/CSS/JS 单文件结构，每个游戏一个目录，包含 index.html 文件。移动端优先，响应式设计，离线可用。所有游戏都遵循以下模式：
+- 单文件 HTML 结构，包含 HTML、CSS、JavaScript
+- 使用 viewport meta 标签确保移动端适配
+- 使用 CSS Flexbox/Grid 进行布局
+- 使用 localStorage 保存游戏状态
+- 使用 CSS 动画提供视觉反馈
 
 ### Files to Reference
 
 | File | Purpose |
 | ---- | ------- |
-| game-factory/games/addition-practice/index.html | 参考现有游戏的结构和样式 |
-| game-factory/games-list.json | 游戏注册文件 |
-| game-factory/CHANGELOG.md | 更新日志 |
+| game-factory/games/addition-practice/index.html | 参考游戏结构，了解单文件HTML游戏模式 |
+| game-factory/games-list.json | 游戏注册格式参考 |
+| game-factory/CHANGELOG.md | 更新日志格式参考 |
 
 ### Technical Decisions
 
-- 使用 emoji 作为图片提示，避免外部资源依赖
-- 使用 CSS Grid 或 Flexbox 进行布局
-- 使用 JavaScript 处理游戏逻辑
-- 使用 localStorage 存储最高分
-- 使用 CSS 动画提供视觉反馈
-- 使用 CSS 变量定义颜色主题，便于维护
-- 游戏数据存储在 JavaScript 数组中，便于扩展
-- 使用 setTimeout 实现计时器
-- 使用事件委托处理选项点击
+1. **单文件结构**：所有代码在一个 index.html 文件中，便于部署和维护
+2. **emoji 图片提示**：使用 emoji 组合代替图片素材，减少资源依赖
+3. **本地存储**：使用 localStorage 保存最高分和进度
+4. **CSS 动画**：使用 CSS 实现简单的视觉反馈效果
+5. **响应式设计**：使用 CSS 媒体查询适配不同屏幕尺寸
+6. **无外部依赖**：纯 HTML/CSS/JS，无需任何外部库或框架
 
 ## Implementation Plan
 
@@ -83,107 +75,98 @@ test_patterns: ['手动测试']
 
 - [ ] Task 1: 创建游戏目录
   - File: `game-factory/games/kan-tu-cai-cheng-yu/`
-  - Action: 创建目录
-  - Notes: 使用 mkdir 命令
+  - Action: 创建新目录用于存放游戏文件
+  - Notes: 确保目录名称与 slug 一致
 
-- [ ] Task 2: 创建 index.html 文件
+- [ ] Task 2: 创建基础 HTML 结构
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 创建单 HTML 文件，包含游戏结构、样式和逻辑
+  - Action: 创建 HTML 文件，包含基本结构、viewport meta 标签、游戏容器
   - Notes: 参考 addition-practice/index.html 的结构
 
-- [ ] Task 3: 定义 CSS 变量和基础样式
+- [ ] Task 3: 实现成语数据库
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 在 `<style>` 标签中定义 CSS 变量和基础样式
-  - Notes: 使用 CSS 变量定义颜色主题，确保响应式设计
+  - Action: 创建包含至少 20 个成语的数组，每个成语包含：成语、emoji提示、释义、出处
+  - Notes: 成语需要精心挑选，确保 emoji 提示合理
 
-- [ ] Task 4: 创建游戏界面结构
+- [ ] Task 4: 实现游戏状态管理
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 在 `<body>` 中创建游戏界面结构
-  - Notes: 包括标题、图片提示区域、选项按钮、计分板、计时器
+  - Action: 实现游戏状态对象，包含当前分数、连击数、时间、当前题目等
+  - Notes: 使用 localStorage 保存最高分
 
-- [ ] Task 5: 准备成语数据
+- [ ] Task 5: 实现题目生成逻辑
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 在 JavaScript 中创建成语数据数组
-  - Notes: 至少 20 个成语，每个包含图片提示（emoji）、选项、正确答案、释义、出处
+  - Action: 实现随机选择成语、生成选项（1个正确+3个错误）的逻辑
+  - Notes: 错误选项需要从其他成语中随机选择
 
-- [ ] Task 6: 实现游戏状态管理
+- [ ] Task 6: 实现计分和连击系统
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 实现游戏状态变量和初始化函数
-  - Notes: 包括当前题目、分数、连击数、时间、最高分
+  - Action: 实现答对加分、连击加分、答错重置连击的逻辑
+  - Notes: 连击加分公式：基础分 + 连击数 * 10
 
-- [ ] Task 7: 实现题目显示逻辑
+- [ ] Task 7: 实现时间限制
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 实现显示当前题目和选项的函数
-  - Notes: 随机选择题目，显示图片提示和四个选项
+  - Action: 实现倒计时，时间到自动结束游戏
+  - Notes: 使用 setInterval 实现，每秒更新
 
-- [ ] Task 8: 实现答案选择逻辑
+- [ ] Task 8: 实现 UI 界面
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 实现选项点击事件处理
-  - Notes: 判断答案正确性，更新分数和连击数，显示反馈
+  - Action: 实现游戏主界面、emoji提示区域、选项按钮、计分板、时间条、结果弹窗
+  - Notes: 使用 CSS Flexbox 布局，确保移动端适配
 
-- [ ] Task 9: 实现计时器
+- [ ] Task 9: 添加 CSS 样式和动画
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 实现 30 秒倒计时
-  - Notes: 超时自动跳到下一题，重置连击
+  - Action: 添加样式，实现按钮点击效果、正确/错误反馈动画、时间条动画
+  - Notes: 使用 CSS transition 和 animation
 
-- [ ] Task 10: 实现难度递增
+- [ ] Task 10: 测试游戏功能
   - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 实现题目难度递增逻辑
-  - Notes: 根据答对题目数量增加难度（减少时间、增加选项干扰等）
+  - Action: 在浏览器中测试所有功能，确保无 bug
+  - Notes: 测试移动端响应式显示
 
-- [ ] Task 11: 实现最高分存储
-  - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 使用 localStorage 存储和读取最高分
-  - Notes: 游戏结束时更新最高分
-
-- [ ] Task 12: 实现游戏结束逻辑
-  - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 实现游戏结束界面和重新开始功能
-  - Notes: 显示最终分数、最高分，提供重新开始按钮
-
-- [ ] Task 13: 测试游戏功能
-  - File: `game-factory/games/kan-tu-cai-cheng-yu/index.html`
-  - Action: 手动测试所有功能
-  - Notes: 测试答题、计分、计时、最高分存储等
-
-- [ ] Task 14: 注册游戏到 games-list.json
+- [ ] Task 11: 注册到 games-list.json
   - File: `game-factory/games-list.json`
-  - Action: 添加新游戏条目
-  - Notes: 包括游戏名称、描述、路径、图标等
+  - Action: 在 games-list.json 中添加新游戏条目
+  - Notes: 按照现有格式添加
 
-- [ ] Task 15: 更新 CHANGELOG.md
+- [ ] Task 12: 更新 CHANGELOG
   - File: `game-factory/CHANGELOG.md`
   - Action: 使用 bash 追加新游戏记录
-  - Notes: 使用 sed 命令在第二行插入记录
+  - Notes: 使用 sed 命令，不要用 Edit 工具
+
+- [ ] Task 13: git commit
+  - File: `game-factory/`
+  - Action: 执行 git add 和 git commit
+  - Notes: 提交信息格式：`feat: 新增《看图猜成语》- 图片猜成语学习游戏`
 
 ### Acceptance Criteria
 
-- [ ] AC 1: Given 游戏加载完成，when 玩家打开游戏，then 显示游戏界面，包括图片提示、选项按钮、计分板、计时器
-- [ ] AC 2: Given 游戏开始，when 玩家看到图片提示，then 图片提示清晰，能引导玩家猜出成语
-- [ ] AC 3: Given 四个选项，when 玩家查看选项，then 四个选项中有一个正确答案
-- [ ] AC 4: Given 玩家选择正确答案，when 点击正确选项，then 显示成语释义和出处，并加分，连击数增加
-- [ ] AC 5: Given 玩家选择错误答案，when 点击错误选项，then 显示正确答案，并重置连击数
-- [ ] AC 6: Given 计分系统，when 玩家答对题目，then 计分系统正确计算基础分和连击加成
-- [ ] AC 7: Given 时间限制，when 30 秒倒计时结束，then 自动跳到下一题，重置连击数
-- [ ] AC 8: Given 难度递增，when 玩家连续答对题目，then 题目难度增加（时间减少、选项干扰增加）
-- [ ] AC 9: Given 最高分存储，when 游戏结束，then 最高分正确存储到 localStorage，并在界面上显示
-- [ ] AC 10: Given 移动端适配，when 在移动设备上打开游戏，then 游戏界面适配良好，操作流畅
-- [ ] AC 11: Given 游戏流畅性，when 玩家进行游戏操作，then 游戏流畅，无卡顿
+- [ ] AC 1: Given 游戏加载完成，when 用户打开游戏，then 显示游戏主界面，包含 emoji 图片提示和四个选项按钮
+- [ ] AC 2: Given 游戏进行中，when 用户点击正确选项，then 显示"正确"反馈，成语释义和出处，分数增加，连击数增加
+- [ ] AC 3: Given 游戏进行中，when 用户点击错误选项，then 显示"错误"反馈，连击数重置为0
+- [ ] AC 4: Given 游戏进行中，when 时间倒计时结束，then 显示游戏结束弹窗，显示最终分数和最高分
+- [ ] AC 5: Given 游戏结束，when 用户点击"再来一局"按钮，then 重置游戏状态，开始新游戏
+- [ ] AC 6: Given 游戏进行中，when 用户连续答对，then 连击数增加，加分公式正确（基础分 + 连击数 * 10）
+- [ ] AC 7: Given 游戏加载，when 用户之前玩过游戏，then 显示之前保存的最高分
+- [ ] AC 8: Given 游戏在移动设备上打开，when 屏幕尺寸变化，then 界面自适应，按钮可正常点击
+- [ ] AC 9: Given 游戏进行中，when 用户答对题目，then 自动加载下一题
+- [ ] AC 10: Given 游戏进行中，when 用户答错题目，then 自动加载下一题
 
 ## Additional Context
 
 ### Dependencies
 
-无外部依赖，纯 HTML/CSS/JavaScript。
+无外部依赖，纯 HTML/CSS/JS。
 
 ### Testing Strategy
 
-- 手动测试所有功能
-- 测试移动端适配
-- 测试边界情况（超时、连击中断等）
+1. 在浏览器中打开游戏，测试基本功能
+2. 测试移动端响应式显示
+3. 测试连击系统
+4. 测试时间限制
+5. 测试最高分保存
 
 ### Notes
 
-- 参考微信小游戏《看图猜成语》的核心玩法
-- 注重游戏性，让玩家想玩第二局
-- 保持代码简洁，易于维护
+- 成语数据库需要精心挑选，确保图片提示合理
+- 难度曲线：前几题简单，后面逐渐增加难度
+- 参考微信小游戏《看图猜成语》的 UI 设计

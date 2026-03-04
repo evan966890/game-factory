@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>看图猜成语</title>
+  <title>单词拼写大师</title>
   <style>
     :root {
       --bg: #f6fbff;
@@ -17,8 +17,6 @@
       --border: #d9e6ef;
       --radius: 16px;
       --gold: #ffd700;
-      --silver: #c0c0c0;
-      --bronze: #cd7f32;
     }
 
     * { box-sizing: border-box; }
@@ -113,56 +111,148 @@
       background: var(--bg);
       border-radius: var(--radius);
       margin-bottom: 20px;
-      min-height: 120px;
+      min-height: 100px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
     .emoji-hint {
-      font-size: 3.5rem;
+      font-size: 4rem;
       line-height: 1.2;
-      letter-spacing: 8px;
     }
 
-    .options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .option-btn {
+    .word-display {
+      text-align: center;
       padding: 16px;
-      font-size: 1.1rem;
-      font-weight: 500;
-      border: 2px solid var(--border);
+      background: var(--bg);
       border-radius: var(--radius);
-      background: var(--card);
+      margin-bottom: 20px;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .letter-slot {
+      width: 40px;
+      height: 50px;
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
       color: var(--text);
-      cursor: pointer;
-      transition: all 0.2s ease;
+      background: var(--card);
     }
 
-    .option-btn:hover {
+    .letter-slot.filled {
+      border-style: solid;
       border-color: var(--primary);
-      background: rgba(10, 125, 140, 0.05);
+      background: rgba(10, 125, 140, 0.1);
     }
 
-    .option-btn:active {
-      transform: scale(0.98);
-    }
-
-    .option-btn.correct {
+    .letter-slot.correct {
       border-color: var(--ok);
       background: rgba(19, 127, 63, 0.1);
       color: var(--ok);
     }
 
-    .option-btn.wrong {
+    .letter-slot.wrong {
       border-color: var(--bad);
       background: rgba(178, 50, 50, 0.1);
       color: var(--bad);
+    }
+
+    .letter-pool {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: var(--bg);
+      border-radius: var(--radius);
+    }
+
+    .letter-btn {
+      width: 44px;
+      height: 44px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .letter-btn:hover {
+      border-color: var(--primary);
+      background: rgba(10, 125, 140, 0.05);
+    }
+
+    .letter-btn:active {
+      transform: scale(0.95);
+    }
+
+    .letter-btn.used {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .letter-btn.correct {
+      border-color: var(--ok);
+      background: rgba(19, 127, 63, 0.1);
+      color: var(--ok);
+    }
+
+    .letter-btn.wrong {
+      border-color: var(--bad);
+      background: rgba(178, 50, 50, 0.1);
+      color: var(--bad);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(10, 125, 140, 0.3);
+    }
+
+    .btn-secondary {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: #c5d5e0;
     }
 
     .result-panel {
@@ -192,14 +282,14 @@
       color: var(--bad);
     }
 
-    .idiom-meaning {
+    .word-meaning {
       font-size: 0.95rem;
       color: var(--muted);
       margin-bottom: 8px;
       line-height: 1.5;
     }
 
-    .idiom-origin {
+    .word-pronunciation {
       font-size: 0.85rem;
       color: var(--muted);
       font-style: italic;
@@ -235,31 +325,6 @@
       animation: pulse 1s infinite;
     }
 
-    .btn {
-      padding: 14px 32px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      border: none;
-      border-radius: var(--radius);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-dark);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(10, 125, 140, 0.3);
-    }
-
-    .btn-primary:active {
-      transform: translateY(0);
-    }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -272,16 +337,18 @@
 
     @media (max-width: 400px) {
       .emoji-hint {
-        font-size: 2.5rem;
-        letter-spacing: 4px;
+        font-size: 3rem;
       }
       
-      .options {
-        grid-template-columns: 1fr;
+      .letter-slot {
+        width: 32px;
+        height: 40px;
+        font-size: 1.2rem;
       }
       
-      .option-btn {
-        padding: 14px;
+      .letter-btn {
+        width: 36px;
+        height: 36px;
         font-size: 1rem;
       }
     }
@@ -289,8 +356,8 @@
 </head>
 <body>
   <div class="app">
-    <h1>看图猜成语</h1>
-    <p class="subtitle">根据图片提示猜出正确的成语</p>
+    <h1>单词拼写大师</h1>
+    <p class="subtitle">根据图片提示拼写英文单词</p>
     
     <div class="stats">
       <div class="stat">
@@ -312,17 +379,26 @@
     </div>
     
     <div class="emoji-container">
-      <div class="emoji-hint" id="emojiHint">🐍🎨🦶</div>
+      <div class="emoji-hint" id="emojiHint">🍎</div>
     </div>
     
-    <div class="options" id="options">
-      <!-- Options will be generated by JavaScript -->
+    <div class="word-display" id="wordDisplay">
+      <!-- Letter slots will be generated by JavaScript -->
+    </div>
+    
+    <div class="letter-pool" id="letterPool">
+      <!-- Letter buttons will be generated by JavaScript -->
+    </div>
+    
+    <div class="action-buttons">
+      <button class="btn btn-secondary" id="clearBtn">清除</button>
+      <button class="btn btn-primary" id="submitBtn">提交</button>
     </div>
     
     <div class="result-panel" id="resultPanel">
       <div class="result-title" id="resultTitle">正确！</div>
-      <div class="idiom-meaning" id="idiomMeaning"></div>
-      <div class="idiom-origin" id="idiomOrigin"></div>
+      <div class="word-meaning" id="wordMeaning"></div>
+      <div class="word-pronunciation" id="wordPronunciation"></div>
     </div>
     
     <div class="game-over" id="gameOver">
@@ -334,128 +410,28 @@
   </div>
 
   <script>
-    // 成语数据库
-    const idioms = [
-      {
-        idiom: "画蛇添足",
-        emoji: "🐍🎨🦶",
-        meaning: "画蛇时给蛇添上脚。比喻做了多余的事，反而不恰当。",
-        origin: "《战国策·齐策二》"
-      },
-      {
-        idiom: "守株待兔",
-        emoji: "🌳🐇⏳",
-        meaning: "守着树桩等待兔子撞死。比喻死守狭隘经验，不知变通。",
-        origin: "《韩非子·五蠹》"
-      },
-      {
-        idiom: "井底之蛙",
-        emoji: "🕳️🐸👁️",
-        meaning: "井底下的青蛙只能看到井口那么大的天。比喻见识短浅的人。",
-        origin: "《庄子·秋水》"
-      },
-      {
-        idiom: "对牛弹琴",
-        emoji: "🐮🎹🎵",
-        meaning: "对着牛弹琴。比喻对不懂道理的人讲道理，白费口舌。",
-        origin: "《庄子·齐物论》"
-      },
-      {
-        idiom: "狐假虎威",
-        emoji: "🦊🐯👑",
-        meaning: "狐狸借老虎的威势。比喻倚仗别人的势力欺压人。",
-        origin: "《战国策·楚策一》"
-      },
-      {
-        idiom: "掩耳盗铃",
-        emoji: "👂🚫🔔",
-        meaning: "捂住耳朵偷铃铛。比喻自己欺骗自己，明明掩盖不住的事情偏要想法子掩盖。",
-        origin: "《吕氏春秋·自知》"
-      },
-      {
-        idiom: "亡羊补牢",
-        emoji: "🐑🔧🏠",
-        meaning: "羊丢了才修补羊圈。比喻出了问题以后想办法补救，可以防止继续受损失。",
-        origin: "《战国策·楚策四》"
-      },
-      {
-        idiom: "杯弓蛇影",
-        emoji: "🥛🐍👻",
-        meaning: "将映在酒杯里的弓影误认为蛇。比喻因疑神疑鬼而引起恐惧。",
-        origin: "《晋书·乐广传》"
-      },
-      {
-        idiom: "拔苗助长",
-        emoji: "🌱⬆️🌾",
-        meaning: "把苗拔起来，帮助其生长。比喻违反事物发展的客观规律，急于求成，反而把事情弄糟。",
-        origin: "《孟子·公孙丑上》"
-      },
-      {
-        idiom: "鹬蚌相争",
-        emoji: "🦩🦪⚔️",
-        meaning: "鹬和蚌互相争持，让渔翁得利。比喻双方相争，两败俱伤，让第三者得利。",
-        origin: "《战国策·燕策二》"
-      },
-      {
-        idiom: "刻舟求剑",
-        emoji: "⛵🗡️🔍",
-        meaning: "在船上刻记号找剑。比喻拘泥成法，固执不知变通。",
-        origin: "《吕氏春秋·察今》"
-      },
-      {
-        idiom: "滥竽充数",
-        emoji: "🎵🔢👥",
-        meaning: "不会吹竽的人混在吹竽的队伍里充数。比喻无本领的冒充有本领，次货冒充好货。",
-        origin: "《韩非子·内储说上》"
-      },
-      {
-        idiom: "买椟还珠",
-        emoji: "📦💎🔄",
-        meaning: "买了盒子，退还了珍珠。比喻没有眼力，取舍不当。",
-        origin: "《韩非子·外储说左上》"
-      },
-      {
-        idiom: "南辕北辙",
-        emoji: "🧭⬅️➡️",
-        meaning: "想往南而车子却向北行。比喻行动和目的正好相反。",
-        origin: "《战国策·魏策四》"
-      },
-      {
-        idiom: "塞翁失马",
-        emoji: "🏇👴❓",
-        meaning: "边塞的老翁丢了马。比喻坏事在一定条件下可以变为好事。",
-        origin: "《淮南子·人间训》"
-      },
-      {
-        idiom: "朝三暮四",
-        emoji: "🌅3️⃣🌆4️⃣",
-        meaning: "原指玩弄手法欺骗人。后用来比喻常常变卦，反复无常。",
-        origin: "《庄子·齐物论》"
-      },
-      {
-        idiom: "自相矛盾",
-        emoji: "⚔️🛡️💥",
-        meaning: "比喻自己说话做事前后抵触。",
-        origin: "《韩非子·难一》"
-      },
-      {
-        idiom: "愚公移山",
-        emoji: "🏔️👴⛏️",
-        meaning: "比喻做事有毅力，有恒心，坚持不懈，不怕困难。",
-        origin: "《列子·汤问》"
-      },
-      {
-        idiom: "完璧归赵",
-        emoji: "💎🏛️🔙",
-        meaning: "本指蔺相如将和氏璧完好地自秦送回赵国。后比喻把原物完好地归还本人。",
-        origin: "《史记·廉颇蔺相如列传》"
-      },
-      {
-        idiom: "负荆请罪",
-        emoji: "🎋🙇💔",
-        meaning: "背着荆条向对方请罪。表示向人认错赔罪。",
-        origin: "《史记·廉颇蔺相如列传》"
-      }
+    // 单词数据库
+    const words = [
+      { word: "apple", emoji: "🍎", meaning: "苹果", pronunciation: "/ˈæp.əl/" },
+      { word: "banana", emoji: "🍌", meaning: "香蕉", pronunciation: "/bəˈnæn.ə/" },
+      { word: "cat", emoji: "🐱", meaning: "猫", pronunciation: "/kæt/" },
+      { word: "dog", emoji: "🐶", meaning: "狗", pronunciation: "/dɒɡ/" },
+      { word: "elephant", emoji: "🐘", meaning: "大象", pronunciation: "/ˈel.ɪ.fənt/" },
+      { word: "fish", emoji: "🐟", meaning: "鱼", pronunciation: "/fɪʃ/" },
+      { word: "grape", emoji: "🍇", meaning: "葡萄", pronunciation: "/ɡreɪp/" },
+      { word: "house", emoji: "🏠", meaning: "房子", pronunciation: "/haʊs/" },
+      { word: "ice", emoji: "🧊", meaning: "冰", pronunciation: "/aɪs/" },
+      { word: "juice", emoji: "🧃", meaning: "果汁", pronunciation: "/dʒuːs/" },
+      { word: "kite", emoji: "🪁", meaning: "风筝", pronunciation: "/kaɪt/" },
+      { word: "lion", emoji: "🦁", meaning: "狮子", pronunciation: "/ˈlaɪ.ən/" },
+      { word: "moon", emoji: "🌙", meaning: "月亮", pronunciation: "/muːn/" },
+      { word: "nest", emoji: "🪺", meaning: "鸟巢", pronunciation: "/nest/" },
+      { word: "orange", emoji: "🍊", meaning: "橙子", pronunciation: "/ˈɒr.ɪndʒ/" },
+      { word: "pencil", emoji: "✏️", meaning: "铅笔", pronunciation: "/ˈpen.səl/" },
+      { word: "queen", emoji: "👑", meaning: "女王", pronunciation: "/kwiːn/" },
+      { word: "rainbow", emoji: "🌈", meaning: "彩虹", pronunciation: "/ˈreɪn.bəʊ/" },
+      { word: "sun", emoji: "☀️", meaning: "太阳", pronunciation: "/sʌn/" },
+      { word: "tree", emoji: "🌳", meaning: "树", pronunciation: "/triː/" }
     ];
 
     // 游戏状态
@@ -464,10 +440,11 @@
       combo: 0,
       timeLeft: 30,
       maxTime: 30,
-      currentIdiom: null,
-      options: [],
+      currentWord: null,
+      letterPool: [],
+      currentSpelling: [],
       isGameOver: false,
-      highScore: parseInt(localStorage.getItem('kan-tu-cai-cheng-yu-highscore') || '0')
+      highScore: parseInt(localStorage.getItem('word-spelling-master-highscore') || '0')
     };
 
     // DOM 元素
@@ -476,11 +453,14 @@
     const highScoreEl = document.getElementById('highScore');
     const timeFillEl = document.getElementById('timeFill');
     const emojiHintEl = document.getElementById('emojiHint');
-    const optionsEl = document.getElementById('options');
+    const wordDisplayEl = document.getElementById('wordDisplay');
+    const letterPoolEl = document.getElementById('letterPool');
+    const clearBtn = document.getElementById('clearBtn');
+    const submitBtn = document.getElementById('submitBtn');
     const resultPanelEl = document.getElementById('resultPanel');
     const resultTitleEl = document.getElementById('resultTitle');
-    const idiomMeaningEl = document.getElementById('idiomMeaning');
-    const idiomOriginEl = document.getElementById('idiomOrigin');
+    const wordMeaningEl = document.getElementById('wordMeaning');
+    const wordPronunciationEl = document.getElementById('wordPronunciation');
     const gameOverEl = document.getElementById('gameOver');
     const finalScoreEl = document.getElementById('finalScore');
     const highScoreDisplayEl = document.getElementById('highScoreDisplay');
@@ -510,39 +490,45 @@
 
     // 加载新题目
     function loadNewQuestion() {
-      // 随机选择成语
-      const randomIndex = Math.floor(Math.random() * idioms.length);
-      gameState.currentIdiom = idioms[randomIndex];
+      // 随机选择单词
+      const randomIndex = Math.floor(Math.random() * words.length);
+      gameState.currentWord = words[randomIndex];
       
       // 显示 emoji 提示
-      emojiHintEl.textContent = gameState.currentIdiom.emoji;
+      emojiHintEl.textContent = gameState.currentWord.emoji;
       
-      // 生成选项
-      generateOptions();
+      // 重置当前拼写
+      gameState.currentSpelling = new Array(gameState.currentWord.word.length).fill('');
+      
+      // 生成字母池
+      generateLetterPool();
+      
+      // 渲染单词显示区域
+      renderWordDisplay();
       
       // 隐藏结果面板
       resultPanelEl.classList.remove('show');
     }
 
-    // 生成选项
-    function generateOptions() {
-      const correctIdiom = gameState.currentIdiom.idiom;
-      const options = [correctIdiom];
+    // 生成字母池
+    function generateLetterPool() {
+      const word = gameState.currentWord.word;
+      const letters = word.split('');
       
-      // 添加3个错误选项
-      while (options.length < 4) {
-        const randomIndex = Math.floor(Math.random() * idioms.length);
-        const wrongIdiom = idioms[randomIndex].idiom;
-        if (!options.includes(wrongIdiom)) {
-          options.push(wrongIdiom);
+      // 添加一些随机干扰字母
+      const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+      while (letters.length < 12) {
+        const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
+        if (!letters.includes(randomLetter)) {
+          letters.push(randomLetter);
         }
       }
       
-      // 随机打乱选项顺序
-      gameState.options = shuffleArray(options);
+      // 随机打乱字母顺序
+      gameState.letterPool = shuffleArray(letters);
       
-      // 渲染选项按钮
-      renderOptions();
+      // 渲染字母池
+      renderLetterPool();
     }
 
     // 数组随机打乱
@@ -555,41 +541,96 @@
       return newArray;
     }
 
-    // 渲染选项按钮
-    function renderOptions() {
-      optionsEl.innerHTML = '';
+    // 渲染单词显示区域
+    function renderWordDisplay() {
+      wordDisplayEl.innerHTML = '';
       
-      gameState.options.forEach((option, index) => {
+      for (let i = 0; i < gameState.currentWord.word.length; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'letter-slot';
+        slot.dataset.index = i;
+        
+        if (gameState.currentSpelling[i]) {
+          slot.textContent = gameState.currentSpelling[i];
+          slot.classList.add('filled');
+        }
+        
+        slot.addEventListener('click', () => removeLetter(i));
+        wordDisplayEl.appendChild(slot);
+      }
+    }
+
+    // 渲染字母池
+    function renderLetterPool() {
+      letterPoolEl.innerHTML = '';
+      
+      gameState.letterPool.forEach((letter, index) => {
         const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.textContent = option;
-        btn.addEventListener('click', () => handleOptionClick(option, btn));
-        optionsEl.appendChild(btn);
+        btn.className = 'letter-btn';
+        btn.textContent = letter;
+        btn.dataset.index = index;
+        
+        // 检查这个字母是否已经被使用
+        const usedCount = gameState.currentSpelling.filter(l => l === letter).length;
+        const totalCount = gameState.currentWord.word.split('').filter(l => l === letter).length;
+        if (usedCount >= totalCount) {
+          btn.classList.add('used');
+          btn.disabled = true;
+        }
+        
+        btn.addEventListener('click', () => addLetter(letter, index));
+        letterPoolEl.appendChild(btn);
       });
     }
 
-    // 处理选项点击
-    function handleOptionClick(selectedOption, btn) {
+    // 添加字母到拼写区域
+    function addLetter(letter, poolIndex) {
+      // 找到第一个空位
+      const emptyIndex = gameState.currentSpelling.findIndex(l => l === '');
+      if (emptyIndex === -1) return;
+      
+      gameState.currentSpelling[emptyIndex] = letter;
+      
+      // 更新显示
+      renderWordDisplay();
+      renderLetterPool();
+    }
+
+    // 从拼写区域移除字母
+    function removeLetter(index) {
+      if (!gameState.currentSpelling[index]) return;
+      
+      gameState.currentSpelling[index] = '';
+      
+      // 更新显示
+      renderWordDisplay();
+      renderLetterPool();
+    }
+
+    // 清除所有字母
+    clearBtn.addEventListener('click', () => {
+      gameState.currentSpelling = new Array(gameState.currentWord.word.length).fill('');
+      renderWordDisplay();
+      renderLetterPool();
+    });
+
+    // 提交答案
+    submitBtn.addEventListener('click', () => {
       if (gameState.isGameOver) return;
       
-      const isCorrect = selectedOption === gameState.currentIdiom.idiom;
+      const userAnswer = gameState.currentSpelling.join('');
+      const correctAnswer = gameState.currentWord.word;
+      
+      const isCorrect = userAnswer.toLowerCase() === correctAnswer.toLowerCase();
       
       // 禁用所有按钮
-      const allBtns = optionsEl.querySelectorAll('.option-btn');
-      allBtns.forEach(b => b.disabled = true);
+      submitBtn.disabled = true;
+      clearBtn.disabled = true;
       
       // 标记正确/错误
       if (isCorrect) {
-        btn.classList.add('correct');
         handleCorrectAnswer();
       } else {
-        btn.classList.add('wrong');
-        // 标记正确答案
-        allBtns.forEach(b => {
-          if (b.textContent === gameState.currentIdiom.idiom) {
-            b.classList.add('correct');
-          }
-        });
         handleWrongAnswer();
       }
       
@@ -599,16 +640,18 @@
       // 2秒后加载下一题或结束游戏
       setTimeout(() => {
         if (!gameState.isGameOver) {
+          submitBtn.disabled = false;
+          clearBtn.disabled = false;
           loadNewQuestion();
         }
       }, 2000);
-    }
+    });
 
     // 处理正确答案
     function handleCorrectAnswer() {
       gameState.combo++;
       const baseScore = 10;
-      const comboBonus = gameState.combo * 10;
+      const comboBonus = gameState.combo * 5;
       const totalScore = baseScore + comboBonus;
       gameState.score += totalScore;
       
@@ -628,8 +671,8 @@
     function showResult(isCorrect) {
       resultTitleEl.textContent = isCorrect ? '正确！' : '错误！';
       resultTitleEl.className = `result-title ${isCorrect ? 'correct' : 'wrong'}`;
-      idiomMeaningEl.textContent = gameState.currentIdiom.meaning;
-      idiomOriginEl.textContent = `出处：${gameState.currentIdiom.origin}`;
+      wordMeaningEl.textContent = `${gameState.currentWord.word} - ${gameState.currentWord.meaning}`;
+      wordPronunciationEl.textContent = `发音：${gameState.currentWord.pronunciation}`;
       resultPanelEl.classList.add('show');
     }
 
@@ -670,7 +713,7 @@
       // 更新最高分
       if (gameState.score > gameState.highScore) {
         gameState.highScore = gameState.score;
-        localStorage.setItem('kan-tu-cai-cheng-yu-highscore', gameState.highScore.toString());
+        localStorage.setItem('word-spelling-master-highscore', gameState.highScore.toString());
         highScoreDisplayEl.innerHTML = `最高分：<span class="new-record">${gameState.highScore} 🎉 新纪录！</span>`;
       } else {
         highScoreDisplayEl.textContent = `最高分：${gameState.highScore}`;
