@@ -1,8 +1,8 @@
 🎮 本轮新增 1 个游戏
 
-《指尖陀螺RPG》
-灵感来源：Steam 游戏《Fidget Spinner RPG》
-点击旋转陀螺，升级能力，制作物品，成就系统，自动旋转，增量成长
-▶️ 试玩：https://evan966890.github.io/game-factory/games/zhi-jian-tuo-luo-rpg/
+《看图猜成语》
+灵感来源：微信小游戏《看图猜成语》
+根据 emoji 图片提示猜成语，答对加分连击，30秒限时挑战
+▶️ 试玩：https://evan966890.github.io/game-factory/games/看图猜成语/
 
-📊 游戏工厂累计：148 个游戏
+📊 游戏工厂累计：180 个游戏
