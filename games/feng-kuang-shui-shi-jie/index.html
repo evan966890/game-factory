@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>疯狂水世界</title>
+  <style>
+    :root {
+      --bg:#0a192f;--bg2:#112240;--card:#1d3557;--line:#457b9d;--text:#f1faee;--muted:#a8dadc;
+      --brand:#e63946;--brand2:#f4a261;--ok:#2a9d8f;--bad:#e76f51;
+      --wood:#8b4513;--food:#228b22;--water:#1e90ff;--metal:#708090;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+      background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);padding:14px}
+    .app{max-width:760px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 10px 24px rgba(0,0,0,.3)}
+    h1{margin:0;font-size:24px}
+    .sub{margin:6px 0 12px;color:var(--muted);font-size:13px}
+    .hud{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+    .k{border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center;background:var(--bg2)}
+    .k b{display:block;font-size:17px}
+    .k span{font-size:12px;color:var(--muted)}
+    .k.wood b{color:var(--wood)}
+    .k.food b{color:var(--food)}
+    .k.water b{color:var(--water)}
+    .k.metal b{color:var(--metal)}
+    .tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+    .btn{border:none;border-radius:12px;padding:10px 8px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn.alt{background:#64748b}
+    .btn.good{background:var(--ok)}
+    .stage{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--bg2)}
+    .section{margin-bottom:16px}
+    .section-title{font-weight:700;margin-bottom:8px;color:var(--brand2)}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .item{border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center;background:var(--card);cursor:pointer;transition:all 0.2s}
+    .item:hover{background:var(--bg)}
+    .item:disabled{opacity:.5;cursor:not-allowed}
+    .item .emoji{font-size:1.2rem;margin-bottom:4px}
+    .item .name{font-size:0.8rem;color:var(--muted)}
+    .item .value{font-size:0.7rem;font-weight:700}
+    .msg{margin-top:10px;padding:9px 10px;border-radius:10px;font-size:13px;background:var(--bg2);border:1px solid var(--line)}
+    .bad{color:var(--bad)} .goodtxt{color:var(--ok)}
+    .ctrl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    @media (max-width:520px){.hud{grid-template-columns:repeat(2,1fr)} .grid{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>疯狂水世界</h1>
+    <p class="sub">末日生存，拾荒、建设、探索、养成、城战！</p>
+
+    <div class="hud">
+      <div class="k wood"><span>木材</span><b id="wood">0</b></div>
+      <div class="k food"><span>食物</span><b id="food">0</b></div>
+      <div class="k water"><span>水</span><b id="water">0</b></div>
+      <div class="k metal"><span>金属</span><b id="metal">0</b></div>
+    </div>
+
+    <div class="tools">
+      <button class="btn" id="scavengeBtn">🔍 拾荒</button>
+      <button class="btn" id="exploreBtn">🌊 探索海域</button>
+      <button class="btn" id="battleBtn">⚔️ 城战</button>
+    </div>
+
+    <div class="stage">
+      <div class="section">
+        <div class="section-title">家园建设</div>
+        <div class="grid" id="building"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">英雄养成</div>
+        <div class="grid" id="hero"></div>
+      </div>
+
+      <div class="msg" id="msg">欢迎来到疯狂水世界！开始拾荒收集资源吧！</div>
+    </div>
+
+    <div class="ctrl">
+      <button class="btn good" id="saveBtn">保存进度</button>
+      <button class="btn alt" id="resetBtn">重置游戏</button>
+    </div>
+  </div>
+
+  <script>
+    const KEY = 'feng-kuang-shui-shi-jie-save-v1';
+    const BUILDING_TYPES = [
+      {id:'house',name:'房屋',emoji:'🏠',cost:{wood:50,food:0,water:0,metal:0},effect:'人口+5'},
+      {id:'farm',name:'农场',emoji:'🌾',cost:{wood:30,food:0,water:10,metal:0},effect:'食物+2/秒'},
+      {id:'well',name:'水井',emoji:'💧',cost:{wood:20,food:0,water:0,metal:10},effect:'水+2/秒'},
+      {id:'mine',name:'矿场',emoji:'⛏️',cost:{wood:40,food:0,water:0,metal:20},effect:'金属+1/秒'},
+      {id:'barracks',name:'兵营',emoji:'⚔️',cost:{wood:60,food:20,water:0,metal:30},effect:'战斗力+10'},
+      {id:'workshop',name:'工坊',emoji:'🔧',cost:{wood:50,food:0,water:0,metal:40},effect:'建造速度+10%'}
+    ];
+    const HERO_TYPES = [
+      {id:'warrior',name:'战士',emoji:'⚔️',basePower:50},
+      {id:'mage',name:'法师',emoji:'🧙',basePower:40},
+      {id:'archer',name:'弓箭手',emoji:'🏹',basePower:45},
+      {id:'tank',name:'坦克',emoji:'🛡️',basePower:60},
+      {id:'healer',name:'治疗师',emoji:'💚',basePower:35},
+      {id:'assassin',name:'刺客',emoji:'🗡️',basePower:55}
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    const woodEl=$('wood'),foodEl=$('food'),waterEl=$('water'),metalEl=$('metal'),msgEl=$('msg');
+    const buildingEl=$('building'),heroEl=$('hero');
+    const scavengeBtn=$('scavengeBtn'),exploreBtn=$('exploreBtn'),battleBtn=$('battleBtn');
+
+    let state = null;
+
+    function loadGame(){
+      try{
+        const raw = localStorage.getItem(KEY);
+        if(!raw) return null;
+        return JSON.parse(raw);
+      }catch{return null}
+    }
+
+    function saveGame(){
+      localStorage.setItem(KEY, JSON.stringify(state));
+      setMsg('游戏进度已保存！', true);
+    }
+
+    function newGame(){
+      state = {
+        wood:100,
+        food:50,
+        water:50,
+        metal:20,
+        buildings:[],
+        heroes:[],
+        population:0,
+        power:0,
+        startAt:Date.now()
+      };
+      renderAll();
+      setMsg('欢迎来到疯狂水世界！开始拾荒收集资源吧！');
+    }
+
+    function scavenge(){
+      // 随机获得资源
+      const wood = Math.floor(10 + Math.random()*20);
+      const food = Math.floor(5 + Math.random()*15);
+      const water = Math.floor(5 + Math.random()*15);
+      const metal = Math.floor(2 + Math.random()*8);
+
+      state.wood += wood;
+      state.food += food;
+      state.water += water;
+      state.metal += metal;
+
+      setMsg(`拾荒成功！获得木材+${wood}，食物+${food}，水+${water}，金属+${metal}`, true);
+      renderAll();
+    }
+
+    function explore(){
+      // 随机事件
+      const rand = Math.random();
+      if(rand<0.4){
+        const wood = Math.floor(20 + Math.random()*30);
+        state.wood += wood;
+        setMsg(`探索发现森林，获得木材+${wood}`, true);
+      } else if(rand<0.7){
+        const food = Math.floor(15 + Math.random()*25);
+        state.food += food;
+        setMsg(`探索发现果园，获得食物+${food}`, true);
+      } else if(rand<0.85){
+        const water = Math.floor(15 + Math.random()*25);
+        state.water += water;
+        setMsg(`探索发现水源，获得水+${water}`, true);
+      } else if(rand<0.95){
+        const metal = Math.floor(10 + Math.random()*20);
+        state.metal += metal;
+        setMsg(`探索发现矿脉，获得金属+${metal}`, true);
+      } else {
+        // 随机英雄
+        const hero = HERO_TYPES[Math.floor(Math.random()*HERO_TYPES.length)];
+        const level = 1 + Math.floor(Math.random()*3);
+        const power = hero.basePower + level*10;
+        const newHero = {
+          id:Date.now(),
+          type:hero.id,
+          name:hero.name,
+          emoji:hero.emoji,
+          level:level,
+          power:power
+        };
+        state.heroes.push(newHero);
+        state.power += power;
+        setMsg(`探索发现英雄！获得${hero.name}，等级${level}，战斗力+${power}`, true);
+      }
+      renderAll();
+    }
+
+    function battle(){
+      if(state.power<50){setMsg('战斗力不足！需要至少50战斗力才能进行城战。',false,true);return;}
+      // 随机战斗结果
+      const enemyPower = Math.floor(30 + Math.random()*70);
+      const ratio = state.power / enemyPower;
+      if(ratio>=1){
+        const wood = Math.floor(30 + Math.random()*50);
+        const food = Math.floor(20 + Math.random()*40);
+        const water = Math.floor(20 + Math.random()*40);
+        const metal = Math.floor(15 + Math.random()*30);
+        state.wood += wood;
+        state.food += food;
+        state.water += water;
+        state.metal += metal;
+        setMsg(`城战胜利！获得木材+${wood}，食物+${food}，水+${water}，金属+${metal}`, true);
+      } else {
+        const loss = Math.floor(10 + Math.random()*20);
+        state.wood = Math.max(0, state.wood-loss);
+        state.food = Math.max(0, state.food-loss);
+        setMsg(`城战失败！损失木材-${loss}，食物-${loss}`, false, true);
+      }
+      renderAll();
+    }
+
+    function buildBuilding(type){
+      const building = BUILDING_TYPES.find(b=>b.id===type);
+      if(!building) return;
+      if(state.wood<building.cost.wood || state.food<building.cost.food || state.water<building.cost.water || state.metal<building.cost.metal){
+        setMsg('资源不足！无法建造。',false,true);return;
+      }
+      state.wood -= building.cost.wood;
+      state.food -= building.cost.food;
+      state.water -= building.cost.water;
+      state.metal -= building.cost.metal;
+
+      const newBuilding = {
+        id:Date.now(),
+        type:building.id,
+        name:building.name,
+        emoji:building.emoji,
+        effect:building.effect
+      };
+      state.buildings.push(newBuilding);
+
+      // 应用效果
+      if(building.id==='house') state.population += 5;
+      if(building.id==='barracks') state.power += 10;
+
+      setMsg(`建造成功！获得${building.name}，${building.effect}`, true);
+      renderAll();
+    }
+
+    function upgradeHero(type){
+      const hero = state.heroes.find(h=>h.id===type);
+      if(!hero) return;
+      const cost = hero.level * 50;
+      if(state.food<cost){setMsg(`食物不足！需要${cost}食物。`,false,true);return;}
+      state.food -= cost;
+      hero.level++;
+      hero.power += 10;
+      state.power += 10;
+      setMsg(`升级成功！${hero.name}等级提升至${hero.level}，战斗力+10`, true);
+      renderAll();
+    }
+
+    function renderBuilding(){
+      buildingEl.innerHTML='';
+      BUILDING_TYPES.forEach(building=>{
+        const owned = state.buildings.filter(b=>b.type===building.id).length;
+        const canAfford = state.wood>=building.cost.wood && state.food>=building.cost.food && state.water>=building.cost.water && state.metal>=building.cost.metal;
+
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <div class="emoji">${building.emoji}</div>
+          <div class="name">${building.name} (${owned})</div>
+          <div class="value">木${building.cost.wood} 食${building.cost.food} 水${building.cost.water} 金${building.cost.metal}</div>
+        `;
+        if(canAfford){
+          div.addEventListener('click',()=>buildBuilding(building.id));
+        } else {
+          div.disabled = true;
+        }
+        buildingEl.appendChild(div);
+      });
+    }
+
+    function renderHero(){
+      heroEl.innerHTML='';
+      if(state.heroes.length===0){
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = '<div class="emoji">👤</div><div class="name">暂无英雄</div><div class="value">探索海域获得</div>';
+        heroEl.appendChild(div);
+      } else {
+        state.heroes.forEach(hero=>{
+          const cost = hero.level * 50;
+          const canAfford = state.food>=cost;
+
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.innerHTML = `
+            <div class="emoji">${hero.emoji}</div>
+            <div class="name">${hero.name} Lv.${hero.level}</div>
+            <div class="value">⚔️${hero.power} 升级需${cost}食物</div>
+          `;
+          if(canAfford){
+            div.addEventListener('click',()=>upgradeHero(hero.id));
+          } else {
+            div.disabled = true;
+          }
+          heroEl.appendChild(div);
+        });
+      }
+    }
+
+    function renderHUD(){
+      woodEl.textContent = state.wood;
+      foodEl.textContent = state.food;
+      waterEl.textContent = state.water;
+      metalEl.textContent = state.metal;
+    }
+
+    function renderAll(){
+      renderHUD();
+      renderBuilding();
+      renderHero();
+    }
+
+    function setMsg(text, good=false, bad=false){
+      msgEl.textContent = text;
+      msgEl.className = 'msg' + (good ? ' goodtxt':'') + (bad ? ' bad':'');
+    }
+
+    scavengeBtn.addEventListener('click',scavenge);
+    exploreBtn.addEventListener('click',explore);
+    battleBtn.addEventListener('click',battle);
+    $('saveBtn').addEventListener('click',saveGame);
+    $('resetBtn').addEventListener('click',()=>{if(confirm('确定要重置游戏吗？所有进度将丢失。')){localStorage.removeItem(KEY);newGame();}});
+
+    // 自动生产
+    setInterval(()=>{
+      if(state){
+        state.buildings.forEach(b=>{
+          if(b.type==='farm') state.food += 2;
+          if(b.type==='well') state.water += 2;
+          if(b.type==='mine') state.metal += 1;
+        });
+        renderHUD();
+      }
+    },1000);
+
+    // 初始化
+    const saved = loadGame();
+    if(saved){
+      state = saved;
+      renderAll();
+      setMsg('欢迎回来！游戏进度已加载。');
+    } else {
+      newGame();
+    }
+  </script>
+</body>
+</html>
