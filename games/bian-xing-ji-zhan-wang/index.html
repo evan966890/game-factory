@@ -1,0 +1,871 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>变形机战王</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --commander: #fef3c7;
+      --commander-dark: #f59e0b;
+      --beast: #dbeafe;
+      --beast-dark: #3b82f6;
+      --battle: #d1fae5;
+      --battle-dark: #10b981;
+      --strategy: #fce7f3;
+      --strategy-dark: #ec4899;
+      --home: #e0e7ff;
+      --home-dark: #6366f1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .commander {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--commander);
+      margin-bottom: 16px;
+    }
+
+    .commander-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .commander-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .commander-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .commander-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .commander-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .commander-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .commander-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .commander-item .level {
+      font-size: 0.7rem;
+      color: var(--commander-dark);
+      font-weight: 700;
+    }
+
+    .beast {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--beast);
+      margin-bottom: 16px;
+    }
+
+    .beast-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .beast-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .beast-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .beast-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .beast-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .beast-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .beast-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .beast-item .power {
+      font-size: 0.7rem;
+      color: var(--beast-dark);
+      font-weight: 700;
+    }
+
+    .battle {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--battle);
+      margin-bottom: 16px;
+    }
+
+    .battle-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .battle-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .battle-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .battle-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .battle-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .battle-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .battle-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .battle-item .reward {
+      font-size: 0.7rem;
+      color: var(--battle-dark);
+      font-weight: 700;
+    }
+
+    .strategy {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--strategy);
+      margin-bottom: 16px;
+    }
+
+    .strategy-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .strategy-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .strategy-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .strategy-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .strategy-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .strategy-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .strategy-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .strategy-item .cost {
+      font-size: 0.7rem;
+      color: var(--strategy-dark);
+      font-weight: 700;
+    }
+
+    .home {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--home);
+      margin-bottom: 16px;
+    }
+
+    .home-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .home-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .home-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .home-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .home-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .home-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .home-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .home-item .cost {
+      font-size: 0.7rem;
+      color: var(--home-dark);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--commander-dark);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>变形机战王</h1>
+    <p class="subtitle">指挥被复活的史前巨兽抵抗机器人入侵，保护人类家园！</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="gold">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span class="value green" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">巨兽</span>
+        <span class="value blue" id="beasts">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="commander">
+          <div class="commander-title">指挥官</div>
+          <div class="commander-grid" id="commander"></div>
+        </div>
+
+        <div class="beast">
+          <div class="beast-title">巨兽</div>
+          <div class="beast-grid" id="beast"></div>
+        </div>
+
+        <div class="battle">
+          <div class="battle-title">战斗</div>
+          <div class="battle-grid" id="battle"></div>
+        </div>
+
+        <div class="strategy">
+          <div class="strategy-title">策略</div>
+          <div class="strategy-grid" id="strategy"></div>
+        </div>
+
+        <div class="home">
+          <div class="home-title">家园</div>
+          <div class="home-grid" id="home"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="startBtn">开始战斗</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      commander: [
+        { id: 'human', name: '人类指挥官', emoji: '👨‍✈️', level: 1 },
+        { id: 'elite', name: '精英指挥官', emoji: '🎖️', level: 1 },
+        { id: 'general', name: '将军', emoji: '⭐', level: 1 },
+        { id: 'hero', name: '英雄', emoji: '🦸', level: 1 },
+        { id: 'legend', name: '传奇', emoji: '👑', level: 1 },
+        { id: 'god', name: '神级', emoji: '🌟', level: 1 }
+      ],
+      beast: [
+        { id: 't-rex', name: '霸王龙', emoji: '🦖', power: 100 },
+        { id: 'triceratops', name: '三角龙', emoji: '🦕', power: 80 },
+        { id: 'pterosaur', name: '翼龙', emoji: '🦅', power: 90 },
+        { id: 'mammoth', name: '猛犸象', emoji: '🐘', power: 120 },
+        { id: 'saber', name: '剑齿虎', emoji: '🐯', power: 110 },
+        { id: 'giant', name: '巨猿', emoji: '🦍', power: 130 }
+      ],
+      battle: [
+        { id: 'robot', name: '机器人', emoji: '🤖', reward: 50 },
+        { id: 'tank', name: '坦克', emoji: '🚗', reward: 100 },
+        { id: 'plane', name: '飞机', emoji: '✈️', reward: 150 },
+        { id: 'mech', name: '机甲', emoji: '🤖', reward: 200 },
+        { id: 'boss', name: 'BOSS', emoji: '👹', reward: 250 },
+        { id: 'final', name: '最终BOSS', emoji: '👾', reward: 300 }
+      ],
+      strategy: [
+        { id: 'attack', name: '攻击', emoji: '⚔️', cost: 10 },
+        { id: 'defend', name: '防御', emoji: '🛡️', cost: 15 },
+        { id: 'skill', name: '技能', emoji: '✨', cost: 20 },
+        { id: 'combo', name: '连招', emoji: '💥', cost: 25 },
+        { id: 'ultimate', name: '终极技', emoji: '🌟', cost: 30 },
+        { id: 'counter', name: '反击', emoji: '🔄', cost: 35 }
+      ],
+      home: [
+        { id: 'wall', name: '城墙', emoji: '🧱', cost: 100 },
+        { id: 'tower', name: '防御塔', emoji: '🗼', cost: 150 },
+        { id: 'base', name: '基地', emoji: '🏠', cost: 200 },
+        { id: 'factory', name: '工厂', emoji: '🏭', cost: 250 },
+        { id: 'lab', name: '实验室', emoji: '🔬', cost: 300 },
+        { id: 'fortress', name: '要塞', emoji: '🏰', cost: 350 }
+      ]
+    };
+
+    // 游戏状态
+    let gold = 0;
+    let level = 1;
+    let beasts = 0;
+    let ownedCommanders = [];
+    let ownedBeasts = [];
+    let ownedStrategies = [];
+    let ownedHomes = [];
+    let gameLoop = null;
+
+    // DOM 元素
+    const goldEl = document.getElementById('gold');
+    const levelEl = document.getElementById('level');
+    const beastsEl = document.getElementById('beasts');
+    const commanderEl = document.getElementById('commander');
+    const beastEl = document.getElementById('beast');
+    const battleEl = document.getElementById('battle');
+    const strategyEl = document.getElementById('strategy');
+    const homeEl = document.getElementById('home');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      gold = 0;
+      level = 1;
+      beasts = 0;
+      ownedCommanders = [];
+      ownedBeasts = [];
+      ownedStrategies = [];
+      ownedHomes = [];
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateCommander();
+      updateBeast();
+      updateBattle();
+      updateStrategy();
+      updateHome();
+
+      // 开始游戏循环
+      startGameLoop();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('bian-xing-ji-zhan-wang');
+      if (saved) {
+        const data = JSON.parse(saved);
+        gold = data.gold || 0;
+        level = data.level || 1;
+        beasts = data.beasts || 0;
+        ownedCommanders = data.ownedCommanders || [];
+        ownedBeasts = data.ownedBeasts || [];
+        ownedStrategies = data.ownedStrategies || [];
+        ownedHomes = data.ownedHomes || [];
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        gold,
+        level,
+        beasts,
+        ownedCommanders,
+        ownedBeasts,
+        ownedStrategies,
+        ownedHomes
+      };
+      localStorage.setItem('bian-xing-ji-zhan-wang', JSON.stringify(data));
+    }
+
+    // 开始游戏循环
+    function startGameLoop() {
+      if (gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => {
+        // 自动收集资源
+        collectResources();
+        updateStats();
+        saveGame();
+      }, 1000);
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      goldEl.textContent = gold;
+      levelEl.textContent = level;
+      beastsEl.textContent = beasts;
+    }
+
+    // 更新指挥官显示
+    function updateCommander() {
+      commanderEl.innerHTML = '';
+      config.commander.forEach(commander => {
+        const owned = ownedCommanders.some(c => c.id === commander.id);
+        const canAfford = gold >= 50;
+
+        const commanderEl = document.createElement('div');
+        commanderEl.className = 'commander-item';
+        commanderEl.innerHTML = `
+          <div class="emoji">${commander.emoji}</div>
+          <div class="name">${commander.name}</div>
+          <div class="level">Lv.${commander.level}</div>
+        `;
+        if (!owned && canAfford) {
+          commanderEl.addEventListener('click', () => buyCommander(commander));
+        } else {
+          commanderEl.disabled = true;
+        }
+        commanderEl.appendChild(commanderEl);
+      });
+    }
+
+    // 更新巨兽显示
+    function updateBeast() {
+      beastEl.innerHTML = '';
+      config.beast.forEach(beast => {
+        const owned = ownedBeasts.some(b => b.id === beast.id);
+        const canAfford = gold >= 100;
+
+        const beastEl = document.createElement('div');
+        beastEl.className = 'beast-item';
+        beastEl.innerHTML = `
+          <div class="emoji">${beast.emoji}</div>
+          <div class="name">${beast.name}</div>
+          <div class="power">${beast.power}</div>
+        `;
+        if (!owned && canAfford) {
+          beastEl.addEventListener('click', () => buyBeast(beast));
+        } else {
+          beastEl.disabled = true;
+        }
+        beastEl.appendChild(beastEl);
+      });
+    }
+
+    // 更新战斗显示
+    function updateBattle() {
+      battleEl.innerHTML = '';
+      config.battle.forEach(battle => {
+        const canPlay = ownedBeasts.length > 0;
+
+        const battleEl = document.createElement('div');
+        battleEl.className = 'battle-item';
+        battleEl.innerHTML = `
+          <div class="emoji">${battle.emoji}</div>
+          <div class="name">${battle.name}</div>
+          <div class="reward">+${battle.reward}</div>
+        `;
+        if (canPlay) {
+          battleEl.addEventListener('click', () => doBattle(battle));
+        } else {
+          battleEl.disabled = true;
+        }
+        battleEl.appendChild(battleEl);
+      });
+    }
+
+    // 更新策略显示
+    function updateStrategy() {
+      strategyEl.innerHTML = '';
+      config.strategy.forEach(strategy => {
+        const owned = ownedStrategies.some(s => s.id === strategy.id);
+        const canAfford = gold >= strategy.cost;
+
+        const strategyEl = document.createElement('div');
+        strategyEl.className = 'strategy-item';
+        strategyEl.innerHTML = `
+          <div class="emoji">${strategy.emoji}</div>
+          <div class="name">${strategy.name}</div>
+          <div class="cost">${strategy.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          strategyEl.addEventListener('click', () => buyStrategy(strategy));
+        } else {
+          strategyEl.disabled = true;
+        }
+        strategyEl.appendChild(strategyEl);
+      });
+    }
+
+    // 更新家园显示
+    function updateHome() {
+      homeEl.innerHTML = '';
+      config.home.forEach(home => {
+        const owned = ownedHomes.some(h => h.id === home.id);
+        const canAfford = gold >= home.cost;
+
+        const homeEl = document.createElement('div');
+        homeEl.className = 'home-item';
+        homeEl.innerHTML = `
+          <div class="emoji">${home.emoji}</div>
+          <div class="name">${home.name}</div>
+          <div class="cost">${home.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          homeEl.addEventListener('click', () => buyHome(home));
+        } else {
+          homeEl.disabled = true;
+        }
+        homeEl.appendChild(homeEl);
+      });
+    }
+
+    // 购买指挥官
+    function buyCommander(commander) {
+      if (gold >= 50) {
+        gold -= 50;
+        ownedCommanders.push(commander);
+        updateStats();
+        updateCommander();
+        saveGame();
+        alert(`购买成功！获得 ${commander.name}`);
+      }
+    }
+
+    // 购买巨兽
+    function buyBeast(beast) {
+      if (gold >= 100) {
+        gold -= 100;
+        ownedBeasts.push(beast);
+        beasts++;
+        updateStats();
+        updateBeast();
+        updateBattle();
+        saveGame();
+        alert(`购买成功！获得 ${beast.name}`);
+      }
+    }
+
+    // 进行战斗
+    function doBattle(battle) {
+      if (ownedBeasts.length > 0) {
+        gold += battle.reward;
+        updateStats();
+        saveGame();
+        alert(`战斗成功！获得 ${battle.reward} 金币`);
+      }
+    }
+
+    // 购买策略
+    function buyStrategy(strategy) {
+      if (gold >= strategy.cost) {
+        gold -= strategy.cost;
+        ownedStrategies.push(strategy);
+        updateStats();
+        updateStrategy();
+        saveGame();
+        alert(`购买成功！获得 ${strategy.name}`);
+      }
+    }
+
+    // 购买家园
+    function buyHome(home) {
+      if (gold >= home.cost) {
+        gold -= home.cost;
+        ownedHomes.push(home);
+        updateStats();
+        updateHome();
+        saveGame();
+        alert(`购买成功！获得 ${home.name}`);
+      }
+    }
+
+    // 收集资源
+    function collectResources() {
+      // 指挥官加成
+      ownedCommanders.forEach(commander => {
+        gold += 1;
+      });
+
+      // 巨兽加成
+      ownedBeasts.forEach(beast => {
+        gold += 2;
+      });
+
+      // 家园加成
+      ownedHomes.forEach(home => {
+        gold += 3;
+      });
+
+      // 关卡加成
+      gold += level * 5;
+    }
+
+    // 开始战斗
+    function startBattle() {
+      // 随机添加巨兽
+      const randomBeast = Math.floor(Math.random() * 3) + 1;
+      for (let i = 0; i < randomBeast; i++) {
+        const beast = config.beast[Math.floor(Math.random() * config.beast.length)];
+        if (!ownedBeasts.some(b => b.id === beast.id)) {
+          ownedBeasts.push(beast);
+          beasts++;
+        }
+      }
+      updateStats();
+      updateBeast();
+      updateBattle();
+      saveGame();
+      alert(`战斗开始！添加了 ${randomBeast} 个巨兽`);
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('bian-xing-ji-zhan-wang');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    startBtn.addEventListener('click', startBattle);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
