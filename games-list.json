@@ -1014,5 +1014,11 @@
     "path": "games/yi-bo-chao-ren/index.html",
     "category": "格斗闯关",
     "createdAt": "2026-03-04T00:48:40Z"
+  },
+  {
+    "name": "一步两步",
+    "path": "games/yi-bu-liang-bu/index.html",
+    "category": "塔防",
+    "createdAt": "2026-03-04T01:01:06Z"
   }
 ]

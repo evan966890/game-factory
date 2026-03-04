@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>一步两步</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --tower: #fef3c7;
+      --tower-dark: #f59e0b;
+      --hero: #dbeafe;
+      --hero-dark: #3b82f6;
+      --chapter: #d1fae5;
+      --chapter-dark: #10b981;
+      --difficulty: #fce7f3;
+      --difficulty-dark: #ec4899;
+      --formation: #e0e7ff;
+      --formation-dark: #6366f1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .tower {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--tower);
+      margin-bottom: 16px;
+    }
+
+    .tower-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .tower-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .tower-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .tower-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .tower-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .tower-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .tower-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .tower-item .level {
+      font-size: 0.7rem;
+      color: var(--tower-dark);
+      font-weight: 700;
+    }
+
+    .hero {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--hero);
+      margin-bottom: 16px;
+    }
+
+    .hero-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .hero-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .hero-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .hero-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .hero-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .hero-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .hero-item .power {
+      font-size: 0.7rem;
+      color: var(--hero-dark);
+      font-weight: 700;
+    }
+
+    .chapter {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--chapter);
+      margin-bottom: 16px;
+    }
+
+    .chapter-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .chapter-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .chapter-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .chapter-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .chapter-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .chapter-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .chapter-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .chapter-item .reward {
+      font-size: 0.7rem;
+      color: var(--chapter-dark);
+      font-weight: 700;
+    }
+
+    .difficulty {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--difficulty);
+      margin-bottom: 16px;
+    }
+
+    .difficulty-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .difficulty-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .difficulty-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .difficulty-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .difficulty-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .difficulty-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .difficulty-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .difficulty-item .cost {
+      font-size: 0.7rem;
+      color: var(--difficulty-dark);
+      font-weight: 700;
+    }
+
+    .formation {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--formation);
+      margin-bottom: 16px;
+    }
+
+    .formation-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .formation-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .formation-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .formation-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .formation-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .formation-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .formation-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .formation-item .cost {
+      font-size: 0.7rem;
+      color: var(--formation-dark);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--tower-dark);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>一步两步</h1>
+    <p class="subtitle">放置英雄来防御敌人，章节闯关式设计，随着难度的提升，对上阵英雄的阵营有要求！</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="gold">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">章节</span>
+        <span class="value green" id="chapter">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">英雄</span>
+        <span class="value blue" id="heroes">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="tower">
+          <div class="tower-title">塔防</div>
+          <div class="tower-grid" id="tower"></div>
+        </div>
+
+        <div class="hero">
+          <div class="hero-title">英雄</div>
+          <div class="hero-grid" id="hero"></div>
+        </div>
+
+        <div class="chapter">
+          <div class="chapter-title">章节</div>
+          <div class="chapter-grid" id="chapter"></div>
+        </div>
+
+        <div class="difficulty">
+          <div class="difficulty-title">难度</div>
+          <div class="difficulty-grid" id="difficulty"></div>
+        </div>
+
+        <div class="formation">
+          <div class="formation-title">阵容</div>
+          <div class="formation-grid" id="formation"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="startBtn">开始防御</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      tower: [
+        { id: 'basic', name: '基础塔', emoji: '🗼', level: 1 },
+        { id: 'arrow', name: '箭塔', emoji: '🏹', level: 1 },
+        { id: 'magic', name: '魔法塔', emoji: '🔮', level: 1 },
+        { id: 'fire', name: '火焰塔', emoji: '🔥', level: 1 },
+        { id: 'ice', name: '冰霜塔', emoji: '❄️', level: 1 },
+        { id: 'thunder', name: '雷霆塔', emoji: '⚡', level: 1 }
+      ],
+      hero: [
+        { id: 'warrior', name: '战士', emoji: '⚔️', power: 100 },
+        { id: 'mage', name: '法师', emoji: '🧙', power: 80 },
+        { id: 'archer', name: '弓箭手', emoji: '🏹', power: 90 },
+        { id: 'tank', name: '坦克', emoji: '🛡️', power: 120 },
+        { id: 'healer', name: '治疗师', emoji: '💚', power: 110 },
+        { id: 'assassin', name: '刺客', emoji: '🗡️', power: 130 }
+      ],
+      chapter: [
+        { id: 'chapter1', name: '第一章', emoji: '1️⃣', reward: 50 },
+        { id: 'chapter2', name: '第二章', emoji: '2️⃣', reward: 100 },
+        { id: 'chapter3', name: '第三章', emoji: '3️⃣', reward: 150 },
+        { id: 'chapter4', name: '第四章', emoji: '4️⃣', reward: 200 },
+        { id: 'chapter5', name: '第五章', emoji: '5️⃣', reward: 250 },
+        { id: 'chapter6', name: '第六章', emoji: '6️⃣', reward: 300 }
+      ],
+      difficulty: [
+        { id: 'easy', name: '简单', emoji: '😊', cost: 50 },
+        { id: 'normal', name: '普通', emoji: '😐', cost: 100 },
+        { id: 'hard', name: '困难', emoji: '😰', cost: 150 },
+        { id: 'expert', name: '专家', emoji: '😱', cost: 200 },
+        { id: 'master', name: '大师', emoji: '🤯', cost: 250 },
+        { id: 'legend', name: '传奇', emoji: '👑', cost: 300 }
+      ],
+      formation: [
+        { id: 'balanced', name: '平衡阵容', emoji: '⚖️', cost: 100 },
+        { id: 'attack', name: '攻击阵容', emoji: '⚔️', cost: 150 },
+        { id: 'defense', name: '防御阵容', emoji: '🛡️', cost: 200 },
+        { id: 'magic', name: '魔法阵容', emoji: '🔮', cost: 250 },
+        { id: 'speed', name: '速度阵容', emoji: '💨', cost: 300 },
+        { id: 'ultimate', name: '终极阵容', emoji: '🌟', cost: 350 }
+      ]
+    };
+
+    // 游戏状态
+    let gold = 0;
+    let chapter = 1;
+    let heroes = 0;
+    let ownedTowers = [];
+    let ownedHeroes = [];
+    let ownedChapters = [];
+    let ownedDifficulties = [];
+    let ownedFormations = [];
+    let gameLoop = null;
+
+    // DOM 元素
+    const goldEl = document.getElementById('gold');
+    const chapterEl = document.getElementById('chapter');
+    const heroesEl = document.getElementById('heroes');
+    const towerEl = document.getElementById('tower');
+    const heroEl = document.getElementById('hero');
+    const chapterEl = document.getElementById('chapter');
+    const difficultyEl = document.getElementById('difficulty');
+    const formationEl = document.getElementById('formation');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      gold = 0;
+      chapter = 1;
+      heroes = 0;
+      ownedTowers = [];
+      ownedHeroes = [];
+      ownedChapters = [];
+      ownedDifficulties = [];
+      ownedFormations = [];
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateTower();
+      updateHero();
+      updateChapter();
+      updateDifficulty();
+      updateFormation();
+
+      // 开始游戏循环
+      startGameLoop();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('yi-bu-liang-bu');
+      if (saved) {
+        const data = JSON.parse(saved);
+        gold = data.gold || 0;
+        chapter = data.chapter || 1;
+        heroes = data.heroes || 0;
+        ownedTowers = data.ownedTowers || [];
+        ownedHeroes = data.ownedHeroes || [];
+        ownedChapters = data.ownedChapters || [];
+        ownedDifficulties = data.ownedDifficulties || [];
+        ownedFormations = data.ownedFormations || [];
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        gold,
+        chapter,
+        heroes,
+        ownedTowers,
+        ownedHeroes,
+        ownedChapters,
+        ownedDifficulties,
+        ownedFormations
+      };
+      localStorage.setItem('yi-bu-liang-bu', JSON.stringify(data));
+    }
+
+    // 开始游戏循环
+    function startGameLoop() {
+      if (gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => {
+        // 自动收集资源
+        collectResources();
+        updateStats();
+        saveGame();
+      }, 1000);
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      goldEl.textContent = gold;
+      chapterEl.textContent = chapter;
+      heroesEl.textContent = heroes;
+    }
+
+    // 更新塔防显示
+    function updateTower() {
+      towerEl.innerHTML = '';
+      config.tower.forEach(tower => {
+        const owned = ownedTowers.some(t => t.id === tower.id);
+        const canAfford = gold >= 50;
+
+        const towerEl = document.createElement('div');
+        towerEl.className = 'tower-item';
+        towerEl.innerHTML = `
+          <div class="emoji">${tower.emoji}</div>
+          <div class="name">${tower.name}</div>
+          <div class="level">Lv.${tower.level}</div>
+        `;
+        if (!owned && canAfford) {
+          towerEl.addEventListener('click', () => buyTower(tower));
+        } else {
+          towerEl.disabled = true;
+        }
+        towerEl.appendChild(towerEl);
+      });
+    }
+
+    // 更新英雄显示
+    function updateHero() {
+      heroEl.innerHTML = '';
+      config.hero.forEach(hero => {
+        const owned = ownedHeroes.some(h => h.id === hero.id);
+        const canAfford = gold >= 100;
+
+        const heroEl = document.createElement('div');
+        heroEl.className = 'hero-item';
+        heroEl.innerHTML = `
+          <div class="emoji">${hero.emoji}</div>
+          <div class="name">${hero.name}</div>
+          <div class="power">${hero.power}</div>
+        `;
+        if (!owned && canAfford) {
+          heroEl.addEventListener('click', () => buyHero(hero));
+        } else {
+          heroEl.disabled = true;
+        }
+        heroEl.appendChild(heroEl);
+      });
+    }
+
+    // 更新章节显示
+    function updateChapter() {
+      chapterEl.innerHTML = '';
+      config.chapter.forEach(chapter => {
+        const owned = ownedChapters.some(c => c.id === chapter.id);
+        const canAfford = gold >= chapter.reward;
+
+        const chapterEl = document.createElement('div');
+        chapterEl.className = 'chapter-item';
+        chapterEl.innerHTML = `
+          <div class="emoji">${chapter.emoji}</div>
+          <div class="name">${chapter.name}</div>
+          <div class="reward">+${chapter.reward}</div>
+        `;
+        if (!owned && canAfford) {
+          chapterEl.addEventListener('click', () => buyChapter(chapter));
+        } else {
+          chapterEl.disabled = true;
+        }
+        chapterEl.appendChild(chapterEl);
+      });
+    }
+
+    // 更新难度显示
+    function updateDifficulty() {
+      difficultyEl.innerHTML = '';
+      config.difficulty.forEach(difficulty => {
+        const owned = ownedDifficulties.some(d => d.id === difficulty.id);
+        const canAfford = gold >= difficulty.cost;
+
+        const difficultyEl = document.createElement('div');
+        difficultyEl.className = 'difficulty-item';
+        difficultyEl.innerHTML = `
+          <div class="emoji">${difficulty.emoji}</div>
+          <div class="name">${difficulty.name}</div>
+          <div class="cost">${difficulty.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          difficultyEl.addEventListener('click', () => buyDifficulty(difficulty));
+        } else {
+          difficultyEl.disabled = true;
+        }
+        difficultyEl.appendChild(difficultyEl);
+      });
+    }
+
+    // 更新阵容显示
+    function updateFormation() {
+      formationEl.innerHTML = '';
+      config.formation.forEach(formation => {
+        const owned = ownedFormations.some(f => f.id === formation.id);
+        const canAfford = gold >= formation.cost;
+
+        const formationEl = document.createElement('div');
+        formationEl.className = 'formation-item';
+        formationEl.innerHTML = `
+          <div class="emoji">${formation.emoji}</div>
+          <div class="name">${formation.name}</div>
+          <div class="cost">${formation.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          formationEl.addEventListener('click', () => buyFormation(formation));
+        } else {
+          formationEl.disabled = true;
+        }
+        formationEl.appendChild(formationEl);
+      });
+    }
+
+    // 购买塔防
+    function buyTower(tower) {
+      if (gold >= 50) {
+        gold -= 50;
+        ownedTowers.push(tower);
+        updateStats();
+        updateTower();
+        saveGame();
+        alert(`购买成功！获得 ${tower.name}`);
+      }
+    }
+
+    // 购买英雄
+    function buyHero(hero) {
+      if (gold >= 100) {
+        gold -= 100;
+        ownedHeroes.push(hero);
+        heroes++;
+        updateStats();
+        updateHero();
+        updateChapter();
+        saveGame();
+        alert(`购买成功！获得 ${hero.name}`);
+      }
+    }
+
+    // 购买章节
+    function buyChapter(chapter) {
+      if (gold >= chapter.reward) {
+        gold -= chapter.reward;
+        ownedChapters.push(chapter);
+        chapter++;
+        updateStats();
+        updateChapter();
+        saveGame();
+        alert(`挑战成功！进入 ${chapter.name}，章节 +1`);
+      }
+    }
+
+    // 购买难度
+    function buyDifficulty(difficulty) {
+      if (gold >= difficulty.cost) {
+        gold -= difficulty.cost;
+        ownedDifficulties.push(difficulty);
+        updateStats();
+        updateDifficulty();
+        saveGame();
+        alert(`购买成功！获得 ${difficulty.name}`);
+      }
+    }
+
+    // 购买阵容
+    function buyFormation(formation) {
+      if (gold >= formation.cost) {
+        gold -= formation.cost;
+        ownedFormations.push(formation);
+        updateStats();
+        updateFormation();
+        saveGame();
+        alert(`购买成功！获得 ${formation.name}`);
+      }
+    }
+
+    // 收集资源
+    function collectResources() {
+      // 塔防加成
+      ownedTowers.forEach(tower => {
+        gold += 1;
+      });
+
+      // 英雄加成
+      ownedHeroes.forEach(hero => {
+        gold += 2;
+      });
+
+      // 阵容加成
+      ownedFormations.forEach(formation => {
+        gold += 3;
+      });
+
+      // 章节加成
+      gold += chapter * 5;
+    }
+
+    // 开始防御
+    function startDefense() {
+      // 随机添加英雄
+      const randomHero = Math.floor(Math.random() * 3) + 1;
+      for (let i = 0; i < randomHero; i++) {
+        const hero = config.hero[Math.floor(Math.random() * config.hero.length)];
+        if (!ownedHeroes.some(h => h.id === hero.id)) {
+          ownedHeroes.push(hero);
+          heroes++;
+        }
+      }
+      updateStats();
+      updateHero();
+      updateChapter();
+      saveGame();
+      alert(`防御开始！添加了 ${randomHero} 个英雄`);
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('yi-bu-liang-bu');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    startBtn.addEventListener('click', startDefense);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
