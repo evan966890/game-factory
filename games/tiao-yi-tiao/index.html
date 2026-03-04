@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>跳一跳</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #ffd700;
+      --silver: #c0c0c0;
+      --bronze: #cd7f32;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin: 0 0 16px;
+      text-align: center;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: var(--bg);
+      border-radius: var(--radius);
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--primary);
+    }
+
+    .combo {
+      color: var(--gold);
+    }
+
+    .game-area {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      background: linear-gradient(180deg, #87CEEB 0%, #E0F7FA 100%);
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .block {
+      position: absolute;
+      bottom: 50px;
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: bold;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transition: left 0.3s ease;
+    }
+
+    .block.current {
+      left: 50px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .block.next {
+      left: 200px;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .player {
+      position: absolute;
+      bottom: 130px;
+      left: 90px;
+      width: 40px;
+      height: 40px;
+      background: #333;
+      border-radius: 50%;
+      transition: left 0.1s ease, bottom 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .player::after {
+      content: '';
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      width: 24px;
+      height: 24px;
+      background: white;
+      border-radius: 50%;
+    }
+
+    .power-bar {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 20px;
+      background: var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .power-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--ok), var(--primary));
+      border-radius: 10px;
+      transition: width 0.1s ease;
+    }
+
+    .feedback {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      font-weight: bold;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .feedback.show {
+      opacity: 1;
+    }
+
+    .feedback.center {
+      color: var(--gold);
+    }
+
+    .feedback.edge {
+      color: var(--silver);
+    }
+
+    .feedback.miss {
+      color: var(--bad);
+    }
+
+    .instructions {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      max-width: 90%;
+      width: 400px;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      margin: 0 0 16px;
+    }
+
+    .modal-score {
+      font-size: 3rem;
+      font-weight: bold;
+      color: var(--primary);
+      margin: 16px 0;
+    }
+
+    .modal-high {
+      font-size: 1.2rem;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .modal-btn {
+      padding: 12px 32px;
+      font-size: 1rem;
+      font-weight: 500;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .modal-btn:hover {
+      background: var(--primary-dark);
+    }
+
+    @media (max-width: 480px) {
+      .app {
+        padding: 12px;
+      }
+
+      h1 {
+        font-size: 1.2rem;
+      }
+
+      .game-area {
+        height: 350px;
+      }
+
+      .block {
+        width: 70px;
+        height: 70px;
+      }
+
+      .player {
+        width: 35px;
+        height: 35px;
+      }
+
+      .player::after {
+        width: 19px;
+        height: 19px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>跳一跳</h1>
+    <p class="subtitle">按压屏幕控制跳跃距离，精准落点得分更高！</p>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">分数</div>
+        <div class="stat-value" id="score">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">连击</div>
+        <div class="stat-value combo" id="combo">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">最高分</div>
+        <div class="stat-value" id="high-score">0</div>
+      </div>
+    </div>
+
+    <div class="game-area" id="game-area">
+      <div class="block current" id="current-block">1</div>
+      <div class="block next" id="next-block">2</div>
+      <div class="player" id="player"></div>
+      <div class="power-bar">
+        <div class="power-fill" id="power-fill"></div>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <p class="instructions">按住屏幕蓄力，松开跳跃。落点越精准，得分越高！</p>
+
+    <button class="btn" id="start-btn">开始游戏</button>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h2 class="modal-title">游戏结束</h2>
+      <div class="modal-score" id="final-score">0</div>
+      <div class="modal-high">最高分: <span id="final-high">0</span></div>
+      <button class="modal-btn" id="restart-btn">再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏状态
+    const state = {
+      score: 0,
+      combo: 0,
+      highScore: parseInt(localStorage.getItem('tiao-yi-tiao-high') || '0'),
+      isPlaying: false,
+      isCharging: false,
+      chargeStart: 0,
+      currentBlockX: 50,
+      nextBlockX: 200,
+      playerX: 90,
+      playerY: 130,
+      blockNumber: 1
+    };
+
+    // DOM 元素
+    const elements = {
+      score: document.getElementById('score'),
+      combo: document.getElementById('combo'),
+      highScore: document.getElementById('high-score'),
+      gameArea: document.getElementById('game-area'),
+      currentBlock: document.getElementById('current-block'),
+      nextBlock: document.getElementById('next-block'),
+      player: document.getElementById('player'),
+      powerFill: document.getElementById('power-fill'),
+      feedback: document.getElementById('feedback'),
+      startBtn: document.getElementById('start-btn'),
+      modal: document.getElementById('modal'),
+      finalScore: document.getElementById('final-score'),
+      finalHigh: document.getElementById('final-high'),
+      restartBtn: document.getElementById('restart-btn')
+    };
+
+    // 初始化
+    function init() {
+      elements.highScore.textContent = state.highScore;
+      elements.startBtn.addEventListener('click', startGame);
+      elements.restartBtn.addEventListener('click', restartGame);
+      elements.gameArea.addEventListener('mousedown', startCharge);
+      elements.gameArea.addEventListener('touchstart', startCharge);
+      elements.gameArea.addEventListener('mouseup', jump);
+      elements.gameArea.addEventListener('touchend', jump);
+      elements.gameArea.addEventListener('mouseleave', cancelCharge);
+      elements.gameArea.addEventListener('touchcancel', cancelCharge);
+    }
+
+    // 开始游戏
+    function startGame() {
+      state.isPlaying = true;
+      state.score = 0;
+      state.combo = 0;
+      state.blockNumber = 1;
+      state.currentBlockX = 50;
+      state.nextBlockX = 200;
+      state.playerX = 90;
+      state.playerY = 130;
+      updateUI();
+      elements.startBtn.disabled = true;
+      elements.startBtn.textContent = '游戏中...';
+      resetBlocks();
+    }
+
+    // 重置方块
+    function resetBlocks() {
+      elements.currentBlock.style.left = state.currentBlockX + 'px';
+      elements.nextBlock.style.left = state.nextBlockX + 'px';
+      elements.currentBlock.textContent = state.blockNumber;
+      elements.nextBlock.textContent = state.blockNumber + 1;
+      elements.player.style.left = state.playerX + 'px';
+      elements.player.style.bottom = state.playerY + 'px';
+    }
+
+    // 开始蓄力
+    function startCharge(e) {
+      if (!state.isPlaying || state.isCharging) return;
+      e.preventDefault();
+      state.isCharging = true;
+      state.chargeStart = Date.now();
+      requestAnimationFrame(updatePower);
+    }
+
+    // 更新蓄力条
+    function updatePower() {
+      if (!state.isCharging) return;
+      const elapsed = Date.now() - state.chargeStart;
+      const power = Math.min(elapsed / 1000, 1); // 最大1秒
+      elements.powerFill.style.width = (power * 100) + '%';
+      requestAnimationFrame(updatePower);
+    }
+
+    // 取消蓄力
+    function cancelCharge() {
+      if (!state.isCharging) return;
+      state.isCharging = false;
+      elements.powerFill.style.width = '0%';
+    }
+
+    // 跳跃
+    function jump(e) {
+      if (!state.isPlaying || !state.isCharging) return;
+      e.preventDefault();
+      state.isCharging = false;
+      
+      const elapsed = Date.now() - state.chargeStart;
+      const power = Math.min(elapsed / 1000, 1);
+      const jumpDistance = 100 + power * 200; // 100-300px
+      
+      // 计算目标位置
+      const targetX = state.playerX + jumpDistance;
+      const blockWidth = 80;
+      const blockLeft = state.nextBlockX;
+      const blockRight = blockLeft + blockWidth;
+      const blockCenter = blockLeft + blockWidth / 2;
+      
+      // 判断落点
+      let feedbackType = '';
+      let points = 0;
+      
+      if (targetX >= blockLeft && targetX <= blockRight) {
+        // 落在方块上
+        const distanceFromCenter = Math.abs(targetX - blockCenter);
+        let landingX;
+        if (distanceFromCenter < 20) {
+          // 中心
+          feedbackType = 'center';
+          points = 100 + state.combo * 10;
+          state.combo++;
+          landingX = blockCenter;
+        } else {
+          // 边缘
+          feedbackType = 'edge';
+          points = 50;
+          state.combo = 0;
+          // 确保落在方块范围内
+          landingX = Math.max(blockLeft + 10, Math.min(targetX, blockRight - 10));
+        }
+        
+        // 更新状态
+        state.score += points;
+        state.playerX = landingX;
+        state.currentBlockX = state.nextBlockX;
+        state.nextBlockX = state.currentBlockX + 100 + Math.random() * 100; // 随机间距
+        state.blockNumber++;
+        
+        // 显示反馈
+        showFeedback(feedbackType, points);
+        
+        // 更新UI
+        updateUI();
+        
+        // 移动方块
+        setTimeout(() => {
+          elements.currentBlock.style.left = state.currentBlockX + 'px';
+          elements.nextBlock.style.left = state.nextBlockX + 'px';
+          elements.currentBlock.textContent = state.blockNumber;
+          elements.nextBlock.textContent = state.blockNumber + 1;
+          elements.player.style.left = state.playerX + 'px';
+        }, 100);
+        
+      } else {
+        // 掉落
+        feedbackType = 'miss';
+        showFeedback(feedbackType, 0);
+        endGame();
+      }
+      
+      elements.powerFill.style.width = '0%';
+    }
+
+    // 显示反馈
+    function showFeedback(type, points) {
+      const messages = {
+        center: '精准! +' + points,
+        edge: '边缘! +' + points,
+        miss: '掉落!'
+      };
+      
+      elements.feedback.textContent = messages[type];
+      elements.feedback.className = 'feedback show ' + type;
+      
+      setTimeout(() => {
+        elements.feedback.className = 'feedback';
+      }, 1000);
+    }
+
+    // 更新UI
+    function updateUI() {
+      elements.score.textContent = state.score;
+      elements.combo.textContent = state.combo;
+      elements.highScore.textContent = state.highScore;
+    }
+
+    // 结束游戏
+    function endGame() {
+      state.isPlaying = false;
+      elements.startBtn.disabled = false;
+      elements.startBtn.textContent = '开始游戏';
+      
+      // 更新最高分
+      if (state.score > state.highScore) {
+        state.highScore = state.score;
+        localStorage.setItem('tiao-yi-tiao-high', state.highScore);
+      }
+      
+      // 显示结束弹窗
+      elements.finalScore.textContent = state.score;
+      elements.finalHigh.textContent = state.highScore;
+      elements.modal.classList.add('show');
+    }
+
+    // 重新开始
+    function restartGame() {
+      elements.modal.classList.remove('show');
+      startGame();
+    }
+
+    // 启动
+    init();
+  </script>
+</body>
+</html>
