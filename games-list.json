@@ -1032,5 +1032,11 @@
     "path": "games/zhua-da-e/index.html",
     "category": "三消",
     "createdAt": "2026-03-04T01:29:18Z"
+  },
+  {
+    "name": "灵画师",
+    "path": "games/ling-hua-shi/index.html",
+    "category": "开箱RPG",
+    "createdAt": "2026-03-04T01:32:22Z"
   }
 ]

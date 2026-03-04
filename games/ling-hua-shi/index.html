@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>灵画师</title>
+  <style>
+    :root {
+      --bg1:#f5f5f5;--bg2:#e8e8e8;--card:#ffffff;--text:#333333;--muted:#666666;
+      --line:#cccccc;--brand:#8b4513;--brand2:#a0522d;--good:#228b22;--bad:#b22222;
+      --common:#808080;--uncommon:#228b22;--rare:#4169e1;--epic:#9932cc;--legendary:#ffd700;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+      background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--text);padding:14px}
+    .app{max-width:760px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 10px 24px rgba(139,69,19,.12)}
+    h1{margin:0;font-size:24px;color:var(--brand)}
+    .sub{margin:6px 0 12px;color:var(--muted);font-size:13px}
+    .hud{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+    .k{border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center;background:#fafafa}
+    .k b{display:block;font-size:17px}
+    .k span{font-size:12px;color:var(--muted)}
+    .tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+    .btn{border:none;border-radius:12px;padding:10px 8px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn.alt{background:#64748b}
+    .btn.good{background:var(--good)}
+    .stage{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fafafa}
+    .section{margin-bottom:16px}
+    .section-title{font-weight:700;margin-bottom:8px;color:var(--brand)}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .item{border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center;background:#fff;cursor:pointer;transition:all 0.2s}
+    .item:hover{background:#f5f5f5}
+    .item:disabled{opacity:.5;cursor:not-allowed}
+    .item .emoji{font-size:1.2rem;margin-bottom:4px}
+    .item .name{font-size:0.8rem;color:var(--muted)}
+    .item .value{font-size:0.7rem;font-weight:700}
+    .item.common{border-color:var(--common)}
+    .item.uncommon{border-color:var(--uncommon)}
+    .item.rare{border-color:var(--rare)}
+    .item.epic{border-color:var(--epic)}
+    .item.legendary{border-color:var(--legendary)}
+    .msg{margin-top:10px;padding:9px 10px;border-radius:10px;font-size:13px;background:#fafafa;border:1px solid var(--line)}
+    .bad{color:var(--bad)} .goodtxt{color:var(--good)}
+    .ctrl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    @media (max-width:520px){.hud{grid-template-columns:repeat(2,1fr)} .grid{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>灵画师</h1>
+    <p class="sub">消耗包子打怪获得装备，提升战斗力，修仙养成！</p>
+
+    <div class="hud">
+      <div class="k"><span>等级</span><b id="level">1</b></div>
+      <div class="k"><span>战斗力</span><b id="power">100</b></div>
+      <div class="k"><span>包子</span><b id="baozi">10</b></div>
+      <div class="k"><span>金币</span><b id="gold">0</b></div>
+    </div>
+
+    <div class="tools">
+      <button class="btn" id="openBtn">🎁 开箱 (消耗1包子)</button>
+      <button class="btn" id="feedBtn">🍖 喂养灵兽</button>
+      <button class="btn" id="upgradeBtn">⬆️ 升级</button>
+    </div>
+
+    <div class="stage">
+      <div class="section">
+        <div class="section-title">装备</div>
+        <div class="grid" id="equipment"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">灵兽</div>
+        <div class="grid" id="pet"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">法宝</div>
+        <div class="grid" id="artifact"></div>
+      </div>
+
+      <div class="msg" id="msg">欢迎来到灵画师！消耗包子开箱获得装备，提升战斗力！</div>
+    </div>
+
+    <div class="ctrl">
+      <button class="btn good" id="saveBtn">保存进度</button>
+      <button class="btn alt" id="resetBtn">重置游戏</button>
+    </div>
+  </div>
+
+  <script>
+    const KEY = 'ling-hua-shi-save-v1';
+    const EQUIPMENT_TYPES = [
+      {id:'sword',name:'剑',emoji:'⚔️'},
+      {id:'shield',name:'盾',emoji:'🛡️'},
+      {id:'armor',name:'甲',emoji:'👕'},
+      {id:'helmet',name:'盔',emoji:'⛑️'},
+      {id:'boots',name:'靴',emoji:'👢'},
+      {id:'ring',name:'戒',emoji:'💍'}
+    ];
+    const PET_TYPES = [
+      {id:'dragon',name:'龙',emoji:'🐉'},
+      {id:'phoenix',name:'凤',emoji:'🦅'},
+      {id:'tiger',name:'虎',emoji:'🐯'},
+      {id:'turtle',name:'龟',emoji:'🐢'},
+      {id:'fox',name:'狐',emoji:'🦊'},
+      {id:'rabbit',name:'兔',emoji:'🐰'}
+    ];
+    const ARTIFACT_TYPES = [
+      {id:'mirror',name:'镜',emoji:'🪞'},
+      {id:'lamp',name:'灯',emoji:'🏮'},
+      {id:'fan',name:'扇',emoji:'🪭'},
+      {id:'bell',name:'铃',emoji:'🔔'},
+      {id:'scroll',name:'卷',emoji:'📜'},
+      {id:'gem',name:'玉',emoji:'💎'}
+    ];
+    const QUALITIES = ['common','uncommon','rare','epic','legendary'];
+    const QUALITY_NAMES = {common:'普通',uncommon:'优秀',rare:'稀有',epic:'史诗',legendary:'传说'};
+    const QUALITY_COLORS = {common:'#808080',uncommon:'#228b22',rare:'#4169e1',epic:'#9932cc',legendary:'#ffd700'};
+
+    const $ = (id) => document.getElementById(id);
+    const levelEl=$('level'),powerEl=$('power'),baoziEl=$('baozi'),goldEl=$('gold'),msgEl=$('msg');
+    const equipmentEl=$('equipment'),petEl=$('pet'),artifactEl=$('artifact');
+    const openBtn=$('openBtn'),feedBtn=$('feedBtn'),upgradeBtn=$('upgradeBtn');
+
+    let state = null;
+
+    function loadGame(){
+      try{
+        const raw = localStorage.getItem(KEY);
+        if(!raw) return null;
+        return JSON.parse(raw);
+      }catch{return null}
+    }
+
+    function saveGame(){
+      localStorage.setItem(KEY, JSON.stringify(state));
+      setMsg('游戏进度已保存！', true);
+    }
+
+    function newGame(){
+      state = {
+        level:1,
+        power:100,
+        baozi:10,
+        gold:0,
+        equipment:[],
+        pets:[],
+        artifacts:[],
+        startAt:Date.now()
+      };
+      renderAll();
+      setMsg('欢迎来到灵画师！消耗包子开箱获得装备，提升战斗力！');
+    }
+
+    function openBox(){
+      if(state.baozi<=0){setMsg('包子不足！等待恢复或购买。',false,true);return;}
+      state.baozi--;
+
+      // 随机品质
+      const rand = Math.random();
+      let quality;
+      if(rand<0.5) quality='common';
+      else if(rand<0.8) quality='uncommon';
+      else if(rand<0.95) quality='rare';
+      else if(rand<0.99) quality='epic';
+      else quality='legendary';
+
+      // 随机装备类型
+      const type = EQUIPMENT_TYPES[Math.floor(Math.random()*EQUIPMENT_TYPES.length)];
+      const power = Math.floor(10 + state.level*5 + (QUALITIES.indexOf(quality)+1)*20);
+
+      const equipment = {
+        id:Date.now(),
+        type:type.id,
+        name:type.name,
+        emoji:type.emoji,
+        quality:quality,
+        power:power
+      };
+
+      state.equipment.push(equipment);
+      state.power += power;
+
+      // 随机获得金币
+      const gold = Math.floor(5 + state.level*2 + (QUALITIES.indexOf(quality)+1)*10);
+      state.gold += gold;
+
+      setMsg(`开箱成功！获得${QUALITY_NAMES[quality]}${type.name}，战斗力+${power}，金币+${gold}`, true);
+      renderAll();
+    }
+
+    function feedPet(){
+      if(state.gold<50){setMsg('金币不足！需要50金币。',false,true);return;}
+      state.gold-=50;
+
+      // 随机灵兽类型
+      const type = PET_TYPES[Math.floor(Math.random()*PET_TYPES.length)];
+      const level = Math.floor(1 + Math.random()*3);
+
+      const pet = {
+        id:Date.now(),
+        type:type.id,
+        name:type.name,
+        emoji:type.emoji,
+        level:level,
+        bonus:level*10
+      };
+
+      state.pets.push(pet);
+      state.power += pet.bonus;
+
+      setMsg(`喂养成功！获得${type.name}灵兽，等级${level}，战斗力+${pet.bonus}`, true);
+      renderAll();
+    }
+
+    function upgrade(){
+      const cost = state.level*100;
+      if(state.gold<cost){setMsg(`金币不足！需要${cost}金币。`,false,true);return;}
+      state.gold-=cost;
+      state.level++;
+      state.power += state.level*50;
+
+      // 随机获得法宝
+      if(Math.random()<0.3){
+        const type = ARTIFACT_TYPES[Math.floor(Math.random()*ARTIFACT_TYPES.length)];
+        const artifact = {
+          id:Date.now(),
+          type:type.id,
+          name:type.name,
+          emoji:type.emoji,
+          effect:state.level*20
+        };
+        state.artifacts.push(artifact);
+        state.power += artifact.effect;
+        setMsg(`升级成功！等级提升至${state.level}，战斗力+${state.level*50}，获得${type.name}法宝，战斗力+${artifact.effect}`, true);
+      } else {
+        setMsg(`升级成功！等级提升至${state.level}，战斗力+${state.level*50}`, true);
+      }
+      renderAll();
+    }
+
+    function renderEquipment(){
+      equipmentEl.innerHTML='';
+      const items = state.equipment.slice(-6);
+      items.forEach(item=>{
+        const div = document.createElement('div');
+        div.className = `item ${item.quality}`;
+        div.innerHTML = `
+          <div class="emoji">${item.emoji}</div>
+          <div class="name">${QUALITY_NAMES[item.quality]}${item.name}</div>
+          <div class="value" style="color:${QUALITY_COLORS[item.quality]}">+${item.power}</div>
+        `;
+        equipmentEl.appendChild(div);
+      });
+      for(let i=items.length;i<6;i++){
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = '<div class="emoji">📦</div><div class="name">空</div>';
+        equipmentEl.appendChild(div);
+      }
+    }
+
+    function renderPet(){
+      petEl.innerHTML='';
+      const items = state.pets.slice(-3);
+      items.forEach(item=>{
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <div class="emoji">${item.emoji}</div>
+          <div class="name">${item.name}</div>
+          <div class="value">Lv.${item.level} +${item.bonus}</div>
+        `;
+        petEl.appendChild(div);
+      });
+      for(let i=items.length;i<3;i++){
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = '<div class="emoji">🐾</div><div class="name">空</div>';
+        petEl.appendChild(div);
+      }
+    }
+
+    function renderArtifact(){
+      artifactEl.innerHTML='';
+      const items = state.artifacts.slice(-3);
+      items.forEach(item=>{
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <div class="emoji">${item.emoji}</div>
+          <div class="name">${item.name}</div>
+          <div class="value">+${item.effect}</div>
+        `;
+        artifactEl.appendChild(div);
+      });
+      for(let i=items.length;i<3;i++){
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = '<div class="emoji">🔮</div><div class="name">空</div>';
+        artifactEl.appendChild(div);
+      }
+    }
+
+    function renderHUD(){
+      levelEl.textContent = state.level;
+      powerEl.textContent = state.power;
+      baoziEl.textContent = state.baozi;
+      goldEl.textContent = state.gold;
+    }
+
+    function renderAll(){
+      renderHUD();
+      renderEquipment();
+      renderPet();
+      renderArtifact();
+    }
+
+    function setMsg(text, good=false, bad=false){
+      msgEl.textContent = text;
+      msgEl.className = 'msg' + (good ? ' goodtxt':'') + (bad ? ' bad':'');
+    }
+
+    openBtn.addEventListener('click',openBox);
+    feedBtn.addEventListener('click',feedPet);
+    upgradeBtn.addEventListener('click',upgrade);
+    $('saveBtn').addEventListener('click',saveGame);
+    $('resetBtn').addEventListener('click',()=>{if(confirm('确定要重置游戏吗？所有进度将丢失。')){localStorage.removeItem(KEY);newGame();}});
+
+    // 自动恢复包子
+    setInterval(()=>{
+      if(state && state.baozi<100){
+        state.baozi++;
+        renderHUD();
+      }
+    },10000);
+
+    // 初始化
+    const saved = loadGame();
+    if(saved){
+      state = saved;
+      renderAll();
+      setMsg('欢迎回来！游戏进度已加载。');
+    } else {
+      newGame();
+    }
+  </script>
+</body>
+</html>
