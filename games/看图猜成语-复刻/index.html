@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>看图猜成语 - 复刻版</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>看图猜成语</h1>
+            <div class="stats">
+                <div class="stat">
+                    <span class="label">得分</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">连击</span>
+                    <span id="combo">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">时间</span>
+                    <span id="timer">30</span>
+                </div>
+            </div>
+        </header>
+
+        <main id="game-area">
+            <div id="start-screen" class="screen">
+                <h2>看图猜成语</h2>
+                <p>根据图片提示猜出正确的成语</p>
+                <button id="start-btn" class="btn">开始游戏</button>
+            </div>
+
+            <div id="game-screen" class="screen hidden">
+                <div id="hint-area">
+                    <div id="emoji-hint"></div>
+                </div>
+                <div id="options-area">
+                    <div class="option" data-index="0"></div>
+                    <div class="option" data-index="1"></div>
+                    <div class="option" data-index="2"></div>
+                    <div class="option" data-index="3"></div>
+                </div>
+                <div id="feedback-area" class="hidden">
+                    <div id="feedback-text"></div>
+                    <div id="explanation"></div>
+                    <button id="next-btn" class="btn">下一题</button>
+                </div>
+            </div>
+
+            <div id="end-screen" class="screen hidden">
+                <h2>游戏结束</h2>
+                <div id="final-score">最终得分: <span>0</span></div>
+                <div id="high-score">最高分: <span>0</span></div>
+                <button id="restart-btn" class="btn">再来一局</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>灵感来源：微信小游戏《看图猜成语》</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
