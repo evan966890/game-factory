@@ -1,30 +1,8 @@
 🎮 本轮新增 1 个游戏
 
 《看图猜成语》
-灵感来源：微信小游戏看图猜成语
-根据 emoji 图片提示猜成语，答对加分连击，30秒限时挑战
+灵感来源：微信小游戏看图猜成语 + 成语填字
+根据emoji组合图片提示猜成语，30秒倒计时，连击系统额外加分，答对显示成语释义和出处
 ▶️ 试玩：https://evan966890.github.io/game-factory/games/kan-tu-cai-cheng-yu/
 
-📊 游戏工厂累计：188 个游戏
-
----
-send.sh 输出：
-Config warnings:
-- plugins.entries.zhipu-vision: plugin disabled (not in allowlist) but config is present
-
-◇  Config warnings ────────────────────────────────────────────────────────╮
-│                                                                          │
-│  - plugins.entries.zhipu-vision: plugin disabled (not in allowlist) but  │
-│    config is present                                                     │
-│                                                                          │
-├──────────────────────────────────────────────────────────────────────────╯
-Config warnings:
-- plugins.entries.zhipu-vision: plugin disabled (not in allowlist) but config is present
-[plugins] feishu_doc: Registered feishu_doc, feishu_app_scopes
-[plugins] feishu_wiki: Registered feishu_wiki tool
-[plugins] feishu_drive: Registered feishu_drive tool
-[plugins] feishu_bitable: Registered bitable tools
-Config warnings:
-- plugins.entries.zhipu-vision: plugin disabled (not in allowlist) but config is present
-[info]: [ 'client ready' ]
-✅ Sent via Feishu. Message ID: om_x100b55b7dccd64a0c3e6e321b7ac47f (chat ou_9d9a523c28e69a78bea45df93bdfa734)
+📊 游戏工厂累计：189 个游戏
