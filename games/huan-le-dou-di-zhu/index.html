@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>欢乐斗地主</title>
+  <style>
+    :root {
+      --bg:#1a1a2e;--bg2:#16213e;--card:#0f3460;--line:#e94560;--text:#eaeaea;--muted:#888;
+      --brand:#e94560;--brand2:#ff6b6b;--ok:#4ecca3;--bad:#ff4757;
+      --spade:#1a1a2e;--heart:#e94560;--club:#1a1a2e;--diamond:#e94560;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+      background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);padding:14px}
+    .app{max-width:760px;margin:0 auto;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 10px 24px rgba(0,0,0,.3)}
+    h1{margin:0;font-size:24px;text-align:center}
+    .sub{margin:6px 0 12px;color:var(--muted);font-size:13px;text-align:center}
+    .game-area{margin:10px 0}
+    .player-area{margin-bottom:15px}
+    .player-name{font-weight:700;margin-bottom:8px;color:var(--brand2)}
+    .cards{display:flex;flex-wrap:wrap;gap:4px;min-height:60px}
+    .card{width:45px;height:65px;border:1px solid var(--line);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:18px;font-weight:700;cursor:pointer;transition:all 0.2s;background:var(--card)}
+    .card:hover{transform:translateY(-5px)}
+    .card.selected{border-color:var(--ok);box-shadow:0 0 10px var(--ok)}
+    .card .suit{font-size:12px}
+    .card .value{font-size:16px}
+    .card.red{color:var(--heart)}
+    .card.black{color:var(--spade)}
+    .landlord-cards{display:flex;gap:4px;justify-content:center;margin:10px 0}
+    .landlord-cards .card{width:40px;height:58px;font-size:14px}
+    .play-area{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;margin:10px 0;min-height:80px}
+    .play-area-title{font-weight:700;margin-bottom:8px;color:var(--brand2)}
+    .played-cards{display:flex;flex-wrap:wrap;gap:4px;min-height:50px}
+    .controls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+    .btn{border:none;border-radius:10px;padding:10px 8px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn.alt{background:#64748b}
+    .btn.good{background:var(--ok)}
+    .btn.warn{background:#f59e0b}
+    .msg{margin-top:10px;padding:9px 10px;border-radius:10px;font-size:13px;background:var(--card);border:1px solid var(--line);text-align:center}
+    .bad{color:var(--bad)} .goodtxt{color:var(--ok)}
+    .ctrl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .status{display:flex;justify-content:space-around;margin:10px 0;padding:8px;background:var(--card);border-radius:10px}
+    .status-item{text-align:center}
+    .status-item span{display:block;font-size:11px;color:var(--muted)}
+    .status-item b{font-size:16px}
+    @media (max-width:520px){.card{width:35px;height:50px;font-size:14px} .landlord-cards .card{width:32px;height:46px;font-size:12px}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>欢乐斗地主</h1>
+    <p class="sub">经典扑克牌对战，叫地主、出牌、赢比赛！</p>
+
+    <div class="status">
+      <div class="status-item"><span>游戏状态</span><b id="gameStatus">准备中</b></div>
+      <div class="status-item"><span>当前回合</span><b id="currentTurn">-</b></div>
+      <div class="status-item"><span>地主</span><b id="landlord">-</b></div>
+    </div>
+
+    <div class="game-area">
+      <div class="player-area">
+        <div class="player-name">🤖 电脑1 (上家)</div>
+        <div class="cards" id="computer1Cards"></div>
+      </div>
+
+      <div class="landlord-cards" id="landlordCards"></div>
+
+      <div class="play-area">
+        <div class="play-area-title">出牌区</div>
+        <div class="played-cards" id="playedCards"></div>
+      </div>
+
+      <div class="player-area">
+        <div class="player-name">👤 玩家 (你)</div>
+        <div class="cards" id="playerCards"></div>
+      </div>
+
+      <div class="player-area">
+        <div class="player-name">🤖 电脑2 (下家)</div>
+        <div class="cards" id="computer2Cards"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="dealBtn">发牌</button>
+      <button class="btn good" id="callBtn">叫地主</button>
+      <button class="btn warn" id="passBtn">不叫</button>
+      <button class="btn" id="playBtn">出牌</button>
+      <button class="btn alt" id="passPlayBtn">不出</button>
+      <button class="btn alt" id="newGameBtn">新游戏</button>
+    </div>
+
+    <div class="msg" id="msg">点击"发牌"开始游戏！</div>
+
+    <div class="ctrl">
+      <button class="btn good" id="saveBtn">保存进度</button>
+      <button class="btn alt" id="resetBtn">重置游戏</button>
+    </div>
+  </div>
+
+  <script>
+    const KEY = 'huan-le-dou-di-zhu-save-v1';
+    const SUITS = ['♠', '♥', '♣', '♦'];
+    const VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'];
+    const JOKERS = ['小王', '大王'];
+
+    const $ = (id) => document.getElementById(id);
+    const gameStatusEl=$('gameStatus'),currentTurnEl=$('currentTurn'),landlordEl=$('landlord');
+    const playerCardsEl=$('playerCards'),computer1CardsEl=$('computer1Cards'),computer2CardsEl=$('computer2Cards');
+    const landlordCardsEl=$('landlordCards'),playedCardsEl=$('playedCards'),msgEl=$('msg');
+    const dealBtn=$('dealBtn'),callBtn=$('callBtn'),passBtn=$('passBtn'),playBtn=$('playBtn'),passPlayBtn=$('passPlayBtn'),newGameBtn=$('newGameBtn');
+
+    let state = null;
+    let selectedCards = [];
+
+    function loadGame(){
+      try{
+        const raw = localStorage.getItem(KEY);
+        if(!raw) return null;
+        return JSON.parse(raw);
+      }catch{return null}
+    }
+
+    function saveGame(){
+      localStorage.setItem(KEY, JSON.stringify(state));
+      setMsg('游戏进度已保存！', true);
+    }
+
+    function newGame(){
+      state = {
+        deck: [],
+        player: [],
+        computer1: [],
+        computer2: [],
+        landlordCards: [],
+        landlord: null,
+        currentTurn: 'player',
+        lastPlay: [],
+        lastPlayer: null,
+        gameOver: false,
+        winner: null,
+        phase: 'deal', // deal, call, play
+        callCount: 0,
+        startAt: Date.now()
+      };
+      selectedCards = [];
+      renderAll();
+      setMsg('点击"发牌"开始游戏！');
+    }
+
+    function createDeck(){
+      const deck = [];
+      for(const suit of SUITS){
+        for(const value of VALUES){
+          deck.push({suit, value, color: (suit==='♥'||suit==='♦')?'red':'black'});
+        }
+      }
+      deck.push({suit:'', value:'小王', color:'black'});
+      deck.push({suit:'', value:'大王', color:'red'});
+      return deck;
+    }
+
+    function shuffleDeck(deck){
+      for(let i=deck.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [deck[i],deck[j]] = [deck[j],deck[i]];
+      }
+      return deck;
+    }
+
+    function dealCards(){
+      state.deck = shuffleDeck(createDeck());
+      state.player = [];
+      state.computer1 = [];
+      state.computer2 = [];
+      state.landlordCards = [];
+
+      // 发牌
+      for(let i=0;i<51;i++){
+        const card = state.deck.pop();
+        if(i%3===0) state.player.push(card);
+        else if(i%3===1) state.computer1.push(card);
+        else state.computer2.push(card);
+      }
+
+      // 底牌
+      state.landlordCards = state.deck.splice(0,3);
+
+      // 排序
+      sortCards(state.player);
+      sortCards(state.computer1);
+      sortCards(state.computer2);
+
+      state.phase = 'call';
+      state.callCount = 0;
+      state.currentTurn = 'player';
+
+      renderAll();
+      setMsg('发牌完成！请叫地主或不叫。');
+    }
+
+    function sortCards(cards){
+      const order = {'3':0,'4':1,'5':2,'6':3,'7':4,'8':5,'9':6,'10':7,'J':8,'Q':9,'K':10,'A':11,'2':12,'小王':13,'大王':14};
+      cards.sort((a,b)=>order[a.value]-order[b.value]);
+    }
+
+    function callLandlord(){
+      if(state.phase!=='call'||state.currentTurn!=='player') return;
+      state.landlord = 'player';
+      state.player.push(...state.landlordCards);
+      sortCards(state.player);
+      state.phase = 'play';
+      state.currentTurn = 'player';
+      state.lastPlay = [];
+      state.lastPlayer = null;
+      renderAll();
+      setMsg('你成为地主！请出牌。', true);
+    }
+
+    function passCall(){
+      if(state.phase!=='call'||state.currentTurn!=='player') return;
+      state.callCount++;
+      if(state.callCount>=3){
+        // 重新发牌
+        setMsg('无人叫地主，重新发牌！');
+        setTimeout(dealCards,1000);
+        return;
+      }
+      // 电脑叫地主
+      if(Math.random()<0.5){
+        state.landlord = 'computer1';
+        state.computer1.push(...state.landlordCards);
+        sortCards(state.computer1);
+        state.phase = 'play';
+        state.currentTurn = 'computer1';
+        state.lastPlay = [];
+        state.lastPlayer = null;
+        renderAll();
+        setMsg('电脑1成为地主！电脑1出牌。');
+        setTimeout(computerPlay,1000);
+      } else {
+        state.landlord = 'computer2';
+        state.computer2.push(...state.landlordCards);
+        sortCards(state.computer2);
+        state.phase = 'play';
+        state.currentTurn = 'computer2';
+        state.lastPlay = [];
+        state.lastPlayer = null;
+        renderAll();
+        setMsg('电脑2成为地主！电脑2出牌。');
+        setTimeout(computerPlay,1000);
+      }
+    }
+
+    function toggleCard(index){
+      if(state.phase!=='play'||state.currentTurn!=='player') return;
+      const cardIndex = selectedCards.indexOf(index);
+      if(cardIndex>-1){
+        selectedCards.splice(cardIndex,1);
+      } else {
+        selectedCards.push(index);
+      }
+      renderPlayerCards();
+    }
+
+    function playCards(){
+      if(state.phase!=='play'||state.currentTurn!=='player'||selectedCards.length===0) return;
+      const cards = selectedCards.map(i=>state.player[i]);
+      const type = getCardType(cards);
+      if(!type){
+        setMsg('无效的牌型！',false,true);
+        return;
+      }
+      // 检查是否能出
+      if(state.lastPlay.length>0&&!canBeat(cards,state.lastPlay)){
+        setMsg('你的牌打不过上家！',false,true);
+        return;
+      }
+      // 出牌
+      selectedCards.sort((a,b)=>b-a);
+      for(const i of selectedCards){
+        state.player.splice(i,1);
+      }
+      state.lastPlay = cards;
+      state.lastPlayer = 'player';
+      selectedCards = [];
+      renderAll();
+      setMsg(`你出了${type.name}！`, true);
+      // 检查胜负
+      if(state.player.length===0){
+        state.gameOver = true;
+        state.winner = 'player';
+        setMsg('恭喜你获胜！', true);
+        return;
+      }
+      // 下家
+      state.currentTurn = 'computer1';
+      setTimeout(computerPlay,1000);
+    }
+
+    function passPlay(){
+      if(state.phase!=='play'||state.currentTurn!=='player') return;
+      if(state.lastPlayer==='player'||state.lastPlayer===null){
+        setMsg('你必须出牌！',false,true);
+        return;
+      }
+      selectedCards = [];
+      state.currentTurn = 'computer1';
+      renderAll();
+      setMsg('你选择不出。');
+      setTimeout(computerPlay,1000);
+    }
+
+    function computerPlay(){
+      if(state.gameOver) return;
+      const computer = state.currentTurn;
+      const cards = state[computer];
+      // 简单AI：尝试出牌
+      let played = false;
+      if(state.lastPlayer===computer||state.lastPlayer===null){
+        // 必须出牌
+        const type = findPlayable(cards,null);
+        if(type){
+          playComputerCards(computer,type.cards);
+          played = true;
+        }
+      } else {
+        // 可以不出
+        if(Math.random()<0.3){
+          // 不出
+          setMsg(`${computer==='computer1'?'电脑1':'电脑2'}选择不出。`);
+          nextTurn();
+          return;
+        }
+        const type = findPlayable(cards,state.lastPlay);
+        if(type){
+          playComputerCards(computer,type.cards);
+          played = true;
+        }
+      }
+      if(!played){
+        setMsg(`${computer==='computer1'?'电脑1':'电脑2'}选择不出。`);
+        nextTurn();
+      }
+    }
+
+    function playComputerCards(computer,cards){
+      const hand = state[computer];
+      for(const card of cards){
+        const index = hand.findIndex(c=>c.suit===card.suit&&c.value===card.value);
+        if(index>-1) hand.splice(index,1);
+      }
+      state.lastPlay = cards;
+      state.lastPlayer = computer;
+      renderAll();
+      setMsg(`${computer==='computer1'?'电脑1':'电脑2'}出了${cards.length}张牌！`);
+      // 检查胜负
+      if(hand.length===0){
+        state.gameOver = true;
+        state.winner = computer;
+        setMsg(`${computer==='computer1'?'电脑1':'电脑2'}获胜！`,false,true);
+        return;
+      }
+      nextTurn();
+    }
+
+    function nextTurn(){
+      if(state.currentTurn==='player') state.currentTurn='computer1';
+      else if(state.currentTurn==='computer1') state.currentTurn='computer2';
+      else state.currentTurn='player';
+      renderAll();
+      if(state.currentTurn!=='player'){
+        setTimeout(computerPlay,1000);
+      } else {
+        setMsg('轮到你出牌！');
+      }
+    }
+
+    function findPlayable(cards,lastPlay){
+      // 简单AI：尝试出单张、对子、三张
+      const groups = {};
+      for(const card of cards){
+        if(!groups[card.value]) groups[card.value]=[];
+        groups[card.value].push(card);
+      }
+      // 尝试出单张
+      for(const value in groups){
+        if(groups[value].length>=1){
+          const card = groups[value][0];
+          if(!lastPlay||canBeat([card],lastPlay)){
+            return {type:'single',cards:[card]};
+          }
+        }
+      }
+      // 尝试出对子
+      for(const value in groups){
+        if(groups[value].length>=2){
+          const cards = groups[value].slice(0,2);
+          if(!lastPlay||canBeat(cards,lastPlay)){
+            return {type:'pair',cards};
+          }
+        }
+      }
+      // 尝试出三张
+      for(const value in groups){
+        if(groups[value].length>=3){
+          const cards = groups[value].slice(0,3);
+          if(!lastPlay||canBeat(cards,lastPlay)){
+            return {type:'triple',cards};
+          }
+        }
+      }
+      return null;
+    }
+
+    function getCardType(cards){
+      if(cards.length===1){
+        return {name:'单张',value:getValue(cards[0])};
+      }
+      if(cards.length===2){
+        if(cards[0].value===cards[1].value){
+          return {name:'对子',value:getValue(cards[0])};
+        }
+        if((cards[0].value==='小王'&&cards[1].value==='大王')||(cards[0].value==='大王'&&cards[1].value==='小王')){
+          return {name:'王炸',value:999};
+        }
+      }
+      if(cards.length===3&&cards[0].value===cards[1].value&&cards[1].value===cards[2].value){
+        return {name:'三张',value:getValue(cards[0])};
+      }
+      if(cards.length===4){
+        if(cards[0].value===cards[1].value&&cards[1].value===cards[2].value&&cards[2].value===cards[3].value){
+          return {name:'炸弹',value:getValue(cards[0])+100};
+        }
+      }
+      return null;
+    }
+
+    function getValue(card){
+      const order = {'3':0,'4':1,'5':2,'6':3,'7':4,'8':5,'9':6,'10':7,'J':8,'Q':9,'K':10,'A':11,'2':12,'小王':13,'大王':14};
+      return order[card.value];
+    }
+
+    function canBeat(cards,lastPlay){
+      const type1 = getCardType(cards);
+      const type2 = getCardType(lastPlay);
+      if(!type1||!type2) return false;
+      if(type1.name==='王炸') return true;
+      if(type2.name==='王炸') return false;
+      if(type1.name==='炸弹'&&type2.name!=='炸弹') return true;
+      if(type1.name===type2.name&&type1.value>type2.value) return true;
+      return false;
+    }
+
+    function renderPlayerCards(){
+      playerCardsEl.innerHTML='';
+      state.player.forEach((card,i)=>{
+        const div = document.createElement('div');
+        div.className = `card ${card.color}${selectedCards.includes(i)?' selected':''}`;
+        div.innerHTML = `<span class="value">${card.value}</span><span class="suit">${card.suit}</span>`;
+        div.addEventListener('click',()=>toggleCard(i));
+        playerCardsEl.appendChild(div);
+      });
+    }
+
+    function renderComputerCards(){
+      computer1CardsEl.innerHTML='';
+      state.computer1.forEach(()=>{
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = '<span class="value">?</span>';
+        computer1CardsEl.appendChild(div);
+      });
+      computer2CardsEl.innerHTML='';
+      state.computer2.forEach(()=>{
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = '<span class="value">?</span>';
+        computer2CardsEl.appendChild(div);
+      });
+    }
+
+    function renderLandlordCards(){
+      landlordCardsEl.innerHTML='';
+      if(state.phase==='call'||state.landlord){
+        state.landlordCards.forEach(card=>{
+          const div = document.createElement('div');
+          div.className = `card ${card.color}`;
+          div.innerHTML = `<span class="value">${card.value}</span><span class="suit">${card.suit}</span>`;
+          landlordCardsEl.appendChild(div);
+        });
+      }
+    }
+
+    function renderPlayedCards(){
+      playedCardsEl.innerHTML='';
+      state.lastPlay.forEach(card=>{
+        const div = document.createElement('div');
+        div.className = `card ${card.color}`;
+        div.innerHTML = `<span class="value">${card.value}</span><span class="suit">${card.suit}</span>`;
+        playedCardsEl.appendChild(div);
+      });
+    }
+
+    function renderStatus(){
+      gameStatusEl.textContent = state.gameOver?'游戏结束':state.phase==='deal'?'准备中':state.phase==='call'?'叫地主':'出牌中';
+      currentTurnEl.textContent = state.currentTurn==='player'?'你':state.currentTurn==='computer1'?'电脑1':'电脑2';
+      landlordEl.textContent = state.landlord==='player'?'你':state.landlord==='computer1'?'电脑1':state.landlord==='computer2'?'电脑2':'未定';
+    }
+
+    function renderAll(){
+      renderPlayerCards();
+      renderComputerCards();
+      renderLandlordCards();
+      renderPlayedCards();
+      renderStatus();
+      // 更新按钮状态
+      dealBtn.disabled = state.phase!=='deal';
+      callBtn.disabled = state.phase!=='call'||state.currentTurn!=='player';
+      passBtn.disabled = state.phase!=='call'||state.currentTurn!=='player';
+      playBtn.disabled = state.phase!=='play'||state.currentTurn!=='player'||selectedCards.length===0;
+      passPlayBtn.disabled = state.phase!=='play'||state.currentTurn!=='player'||state.lastPlayer==='player'||state.lastPlayer===null;
+    }
+
+    function setMsg(text, good=false, bad=false){
+      msgEl.textContent = text;
+      msgEl.className = 'msg' + (good ? ' goodtxt':'') + (bad ? ' bad':'');
+    }
+
+    dealBtn.addEventListener('click',dealCards);
+    callBtn.addEventListener('click',callLandlord);
+    passBtn.addEventListener('click',passCall);
+    playBtn.addEventListener('click',playCards);
+    passPlayBtn.addEventListener('click',passPlay);
+    newGameBtn.addEventListener('click',newGame);
+    $('saveBtn').addEventListener('click',saveGame);
+    $('resetBtn').addEventListener('click',()=>{if(confirm('确定要重置游戏吗？所有进度将丢失。')){localStorage.removeItem(KEY);newGame();}});
+
+    // 初始化
+    const saved = loadGame();
+    if(saved){
+      state = saved;
+      renderAll();
+      setMsg('欢迎回来！游戏进度已加载。');
+    } else {
+      newGame();
+    }
+  </script>
+</body>
+</html>
