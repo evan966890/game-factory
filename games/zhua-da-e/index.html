@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>抓大鹅</title>
+  <style>
+    :root {
+      --bg1:#fff7ed;--bg2:#fffbeb;--card:#ffffff;--text:#3f2b1d;--muted:#8a6f58;
+      --line:#f2d7bd;--brand:#f97316;--brand2:#fb923c;--good:#16a34a;--bad:#dc2626;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+      background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--text);padding:14px}
+    .app{max-width:760px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 10px 24px rgba(249,115,22,.12)}
+    h1{margin:0;font-size:24px}
+    .sub{margin:6px 0 12px;color:var(--muted);font-size:13px}
+    .hud{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+    .k{border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center;background:#fffaf5}
+    .k b{display:block;font-size:17px}
+    .k span{font-size:12px;color:var(--muted)}
+    .tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+    .btn{border:none;border-radius:12px;padding:10px 8px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn.alt{background:#64748b}
+    .btn.good{background:var(--good)}
+    .stage{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fffcf8}
+    .board{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+    .slot{border:1px dashed #f0caa8;border-radius:10px;min-height:74px;padding:6px;background:#fff}
+    .slot small{display:block;color:var(--muted);font-size:11px;margin-top:4px;text-align:center}
+    .tile{width:100%;border:1px solid #f0caa8;border-radius:10px;background:#fff7ed;padding:8px 2px;font-size:22px;cursor:pointer}
+    .tile.lock{opacity:.4;cursor:not-allowed;position:relative}
+    .tile.lock::after{content:"🔒";position:absolute;right:5px;top:3px;font-size:14px}
+    .tray-wrap{margin-top:10px}
+    .tray{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+    .cell{height:44px;border:1px solid #f2d7bd;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:22px}
+    .cell.fill{background:#fff0e1}
+    .msg{margin-top:10px;padding:9px 10px;border-radius:10px;font-size:13px;background:#fff7ed;border:1px solid #f2d7bd}
+    .bad{color:var(--bad)} .goodtxt{color:var(--good)}
+    .ctrl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    @media (max-width:520px){.hud{grid-template-columns:repeat(2,1fr)} .board{grid-template-columns:repeat(3,1fr)}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>抓大鹅</h1>
+    <p class="sub">点顶层物件进槽，凑齐 3 个消除。槽位满 7 格就翻车！</p>
+
+    <div class="hud">
+      <div class="k"><span>关卡</span><b id="level">1</b></div>
+      <div class="k"><span>分数</span><b id="score">0</b></div>
+      <div class="k"><span>剩余</span><b id="left">0</b></div>
+      <div class="k"><span>最佳</span><b id="best">0</b></div>
+    </div>
+
+    <div class="tools">
+      <button class="btn" id="undoBtn">↩️ 撤回(3)</button>
+      <button class="btn" id="shuffleBtn">🔀 洗牌(2)</button>
+      <button class="btn" id="clearBtn">🧹 移除三件(2)</button>
+    </div>
+
+    <div class="stage">
+      <div class="board" id="board"></div>
+      <div class="tray-wrap">
+        <div class="tray" id="tray"></div>
+      </div>
+      <div class="msg" id="msg">第一关：热身局，先熟悉节奏。</div>
+    </div>
+
+    <div class="ctrl">
+      <button class="btn good" id="restartBtn">重开本关</button>
+      <button class="btn alt" id="newRunBtn">新的一局</button>
+    </div>
+  </div>
+
+  <script>
+    const KEY = 'zhua-da-e-save-v1';
+    const TYPES = ['🐤','🥕','🌽','🍞','🍎','🥚','🧀','🍇','🍉','🥔'];
+
+    const $ = (id) => document.getElementById(id);
+    const levelEl=$('level'),scoreEl=$('score'),leftEl=$('left'),bestEl=$('best'),msgEl=$('msg');
+    const boardEl=$('board'),trayEl=$('tray');
+    const undoBtn=$('undoBtn'),shuffleBtn=$('shuffleBtn'),clearBtn=$('clearBtn');
+
+    let bestScore = 0;
+    let bestTime = 0;
+
+    let state = null;
+    let history = [];
+
+    function loadBest(){
+      try{
+        const raw = localStorage.getItem(KEY);
+        if(!raw) return;
+        const d = JSON.parse(raw);
+        bestScore = d.bestScore || 0;
+        bestTime = d.bestTime || 0;
+      }catch{}
+    }
+
+    function saveBest(){
+      localStorage.setItem(KEY, JSON.stringify({bestScore,bestTime}));
+    }
+
+    function makeLevel(level){
+      const slots = level === 1 ? 8 : 10;
+      const total = level === 1 ? 24 : 36; // 保证3的倍数
+      const typePool = TYPES.slice(0, level === 1 ? 6 : 9);
+
+      const bag = [];
+      for(let i=0;i<total/3;i++){
+        const t = typePool[Math.floor(Math.random()*typePool.length)];
+        bag.push(t,t,t);
+      }
+      shuffle(bag);
+
+      const stacks = Array.from({length:slots},()=>[]);
+      bag.forEach((t,i)=>stacks[i%slots].push(t));
+
+      const items = [];
+      let id=1;
+      for(let s=0;s<slots;s++){
+        for(let d=0;d<stacks[s].length;d++){
+          items.push({id:id++,slot:s,depth:d,type:stacks[s][d],removed:false});
+        }
+      }
+
+      // 仅同槽上层阻挡下层
+      for(const it of items){
+        it.blockedBy = items.filter(x=>x.slot===it.slot && x.depth>it.depth).map(x=>x.id);
+      }
+
+      return {items,slots};
+    }
+
+    function newRun(){
+      state = {
+        level:1,
+        score:0,
+        tray:[],
+        tools:{undo:3,shuffle:2,clear:2},
+        startAt:Date.now(),
+        ...makeLevel(1),
+        status:'playing'
+      };
+      history = [];
+      renderAll();
+      setMsg('第一关：热身局，先熟悉节奏。');
+    }
+
+    function restartLevel(){
+      const lv = state.level;
+      const sc = state.score;
+      const used = {...state.tools};
+      state = {
+        level:lv,
+        score:sc,
+        tray:[],
+        tools:used,
+        startAt:state.startAt,
+        ...makeLevel(lv),
+        status:'playing'
+      };
+      history=[];
+      setMsg('重开成功，继续冲！');
+      renderAll();
+    }
+
+    function topItem(slot){
+      const arr = state.items.filter(i=>i.slot===slot && !i.removed);
+      if(!arr.length) return null;
+      arr.sort((a,b)=>b.depth-a.depth);
+      return arr[0];
+    }
+
+    function isTop(item){
+      return item.blockedBy.every(id=>state.items.find(x=>x.id===id).removed);
+    }
+
+    function snapshot(){
+      history.push(JSON.stringify({
+        tray:[...state.tray],
+        items:state.items.map(i=>({id:i.id,removed:i.removed,type:i.type})),
+        score:state.score,
+        tools:{...state.tools},
+        status:state.status
+      }));
+      if(history.length>30) history.shift();
+    }
+
+    function restoreLast(){
+      if(!history.length || state.status!=='playing') return;
+      const snap = JSON.parse(history.pop());
+      state.tray = snap.tray;
+      state.score = snap.score;
+      state.tools = snap.tools;
+      state.status = snap.status;
+      for(const item of state.items){
+        const old = snap.items.find(x=>x.id===item.id);
+        item.removed = old.removed;
+        item.type = old.type;
+      }
+      renderAll();
+      setMsg('已撤回上一步。');
+    }
+
+    function clickTile(item){
+      if(state.status!=='playing') return;
+      if(!isTop(item)) return;
+      snapshot();
+
+      item.removed = true;
+      state.tray.push(item.type);
+      state.score += 2;
+      resolveMatches();
+      checkState();
+      renderAll();
+    }
+
+    function resolveMatches(){
+      let changed = true;
+      while(changed){
+        changed = false;
+        const map = {};
+        state.tray.forEach((t,idx)=>{
+          if(!map[t]) map[t]=[];
+          map[t].push(idx);
+        });
+        for(const t of Object.keys(map)){
+          if(map[t].length>=3){
+            const rm = map[t].slice(0,3).sort((a,b)=>b-a);
+            rm.forEach(i=>state.tray.splice(i,1));
+            state.score += 30;
+            changed = true;
+            setMsg(`三消成功：${t}${t}${t} +30`, true);
+            break;
+          }
+        }
+      }
+    }
+
+    function checkState(){
+      const left = state.items.filter(i=>!i.removed).length;
+      if(left===0 && state.tray.length===0){
+        if(state.level===1){
+          state.level=2;
+          state.tools.undo += 1;
+          state.tools.shuffle += 1;
+          state.tools.clear += 1;
+          Object.assign(state, makeLevel(2));
+          setMsg('第一关通过！第二关难度暴增，开始抓鹅！', true);
+          history=[];
+          return;
+        }
+        state.status='win';
+        const useMs = Date.now()-state.startAt;
+        if(state.score>bestScore) bestScore = state.score;
+        if(!bestTime || useMs<bestTime) bestTime = useMs;
+        saveBest();
+        setMsg(`通关！总分 ${state.score}，用时 ${fmtTime(useMs)}。再来一局冲更高分！`, true);
+        return;
+      }
+      if(state.tray.length>=7){
+        state.status='lose';
+        setMsg('槽位已满（7/7），翻车了！用道具或重开再冲。', false, true);
+      }
+    }
+
+    function useUndo(){
+      if(state.status!=='playing') return;
+      if(state.tools.undo<=0){ setMsg('撤回次数不足。',false,true); return; }
+      state.tools.undo--;
+      restoreLast();
+      renderAll();
+    }
+
+    function useShuffle(){
+      if(state.status!=='playing') return;
+      if(state.tools.shuffle<=0){ setMsg('洗牌次数不足。',false,true); return; }
+      snapshot();
+      state.tools.shuffle--;
+      const tops = [];
+      for(let s=0;s<state.slots;s++){
+        const t = topItem(s);
+        if(t && isTop(t)) tops.push(t);
+      }
+      const arr = tops.map(t=>t.type);
+      shuffle(arr);
+      tops.forEach((t,i)=>t.type=arr[i]);
+      setMsg('顶层物件已洗牌，重新规划顺序！');
+      renderAll();
+    }
+
+    function useClearThree(){
+      if(state.status!=='playing') return;
+      if(state.tools.clear<=0){ setMsg('移除次数不足。',false,true); return; }
+      snapshot();
+      state.tools.clear--;
+      const tops = [];
+      for(let s=0;s<state.slots;s++){
+        const t = topItem(s);
+        if(t && isTop(t)) tops.push(t);
+      }
+      shuffle(tops);
+      tops.slice(0,3).forEach(t=>{ t.removed=true; state.score += 5; });
+      checkState();
+      setMsg('已移除三件顶层物件，局势缓了一口气！', true);
+      renderAll();
+    }
+
+    function renderBoard(){
+      boardEl.innerHTML='';
+      for(let s=0;s<state.slots;s++){
+        const slot = document.createElement('div');
+        slot.className='slot';
+
+        const remain = state.items.filter(i=>i.slot===s && !i.removed);
+        if(remain.length){
+          remain.sort((a,b)=>b.depth-a.depth);
+          const top = remain[0];
+          const btn = document.createElement('button');
+          btn.className = 'tile' + (isTop(top)?'':' lock');
+          btn.textContent = top.type;
+          if(isTop(top)) btn.onclick = ()=>clickTile(top);
+          slot.appendChild(btn);
+          const small = document.createElement('small');
+          small.textContent = `堆叠剩余 ${remain.length}`;
+          slot.appendChild(small);
+        } else {
+          const empty = document.createElement('small');
+          empty.textContent='空';
+          empty.style.marginTop='22px';
+          slot.appendChild(empty);
+        }
+        boardEl.appendChild(slot);
+      }
+    }
+
+    function renderTray(){
+      trayEl.innerHTML='';
+      for(let i=0;i<7;i++){
+        const cell = document.createElement('div');
+        cell.className='cell' + (state.tray[i] ? ' fill':'');
+        cell.textContent = state.tray[i] || '';
+        trayEl.appendChild(cell);
+      }
+    }
+
+    function renderHUD(){
+      levelEl.textContent = state.level;
+      scoreEl.textContent = state.score;
+      leftEl.textContent = state.items.filter(i=>!i.removed).length;
+      bestEl.textContent = bestScore;
+      undoBtn.textContent = `↩️ 撤回(${state.tools.undo})`;
+      shuffleBtn.textContent = `🔀 洗牌(${state.tools.shuffle})`;
+      clearBtn.textContent = `🧹 移除三件(${state.tools.clear})`;
+    }
+
+    function renderAll(){
+      renderHUD();
+      renderBoard();
+      renderTray();
+      const lock = state.status!=='playing';
+      undoBtn.disabled = lock;
+      shuffleBtn.disabled = lock;
+      clearBtn.disabled = lock;
+    }
+
+    function setMsg(text, good=false, bad=false){
+      msgEl.textContent = text;
+      msgEl.className = 'msg' + (good ? ' goodtxt':'') + (bad ? ' bad':'');
+    }
+
+    function shuffle(arr){
+      for(let i=arr.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [arr[i],arr[j]]=[arr[j],arr[i]];
+      }
+      return arr;
+    }
+
+    function fmtTime(ms){
+      const s = Math.floor(ms/1000);
+      const m = Math.floor(s/60);
+      const ss = String(s%60).padStart(2,'0');
+      return `${m}:${ss}`;
+    }
+
+    undoBtn.addEventListener('click',useUndo);
+    shuffleBtn.addEventListener('click',useShuffle);
+    clearBtn.addEventListener('click',useClearThree);
+    $('restartBtn').addEventListener('click',restartLevel);
+    $('newRunBtn').addEventListener('click',newRun);
+
+    loadBest();
+    newRun();
+  </script>
+</body>
+</html>

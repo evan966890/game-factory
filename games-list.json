@@ -1026,5 +1026,11 @@
     "path": "games/xiao-ji-jian-dui-chu-ji/index.html",
     "category": "塔防+Roguelike",
     "createdAt": "2026-03-04T01:23:38Z"
+  },
+  {
+    "name": "抓大鹅",
+    "path": "games/zhua-da-e/index.html",
+    "category": "三消",
+    "createdAt": "2026-03-04T01:29:18Z"
   }
 ]
