@@ -1044,5 +1044,11 @@
     "path": "games/bu-fu-lai-tong-guan/index.html",
     "category": "Roguelike射击",
     "createdAt": "2026-03-04T01:35:08Z"
+  },
+  {
+    "name": "百炼英雄",
+    "path": "games/bai-lian-ying-xiong/index.html",
+    "category": "自动战斗",
+    "createdAt": "2026-03-04T01:37:55Z"
   }
 ]

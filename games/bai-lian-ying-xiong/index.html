@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>百炼英雄</title>
+  <style>
+    :root{
+      --bg:#0f172a;--bg2:#111827;--card:#1f2937;--line:#334155;--text:#e5e7eb;--muted:#94a3b8;
+      --brand:#f59e0b;--brand2:#d97706;--ok:#22c55e;--bad:#ef4444;
+      --n:#9ca3af;--r:#3b82f6;--sr:#a855f7;--ssr:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);
+      font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;padding:14px}
+    .app{max-width:640px;margin:0 auto;background:rgba(31,41,55,.95);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 12px 26px rgba(0,0,0,.35)}
+    h1{margin:0;font-size:24px}
+    .sub{margin:6px 0 12px;color:var(--muted);font-size:13px}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+    .stat{background:#0b1220;border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center}
+    .stat small{display:block;color:var(--muted);font-size:11px}
+    .stat b{font-size:16px}
+    .card{background:#0b1220;border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+    .title{font-weight:700;margin-bottom:8px;color:#f8fafc}
+    .team{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+    .hero{border:1px solid var(--line);border-radius:10px;padding:6px;text-align:center;background:#111827;min-height:72px}
+    .hero .emoji{font-size:20px;display:block}
+    .hero .name{font-size:11px;color:var(--muted)}
+    .hero .pow{font-size:11px}
+    .n{border-color:var(--n)} .r{border-color:var(--r)} .sr{border-color:var(--sr)} .ssr{border-color:var(--ssr)}
+    .actions{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    .btn{border:none;border-radius:10px;padding:11px 8px;font-weight:700;cursor:pointer;background:var(--brand);color:#111}
+    .btn:hover{background:var(--brand2);color:#fff}
+    .btn.alt{background:#475569;color:#fff}
+    .btn.good{background:var(--ok);color:#052e16}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+    .log{height:150px;overflow:auto;background:#030712;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:12px;line-height:1.45}
+    .log p{margin:0 0 4px}
+    .ok{color:#86efac}.bad{color:#fca5a5}.tip{color:#93c5fd}
+    @media (max-width:520px){
+      .stats{grid-template-columns:repeat(2,1fr)}
+      .team{grid-template-columns:repeat(3,1fr)}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>百炼英雄</h1>
+    <p class="sub">自动战斗 + 地图探索 + 抽卡养成，5人小队一路闯关。</p>
+
+    <div class="stats">
+      <div class="stat"><small>关卡</small><b id="stage">1</b></div>
+      <div class="stat"><small>战力</small><b id="power">0</b></div>
+      <div class="stat"><small>金币</small><b id="gold">0</b></div>
+      <div class="stat"><small>钻石</small><b id="gem">0</b></div>
+    </div>
+
+    <div class="card">
+      <div class="title">上阵队伍（最多5人）</div>
+      <div class="team" id="team"></div>
+    </div>
+
+    <div class="card">
+      <div class="title">操作</div>
+      <div class="actions">
+        <button class="btn" id="recruitBtn">招募英雄（120金）</button>
+        <button class="btn good" id="battleBtn">开始战斗</button>
+        <button class="btn" id="exploreBtn">地图探索</button>
+        <button class="btn alt" id="upgradeBtn">全队强化（200金）</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="title">战报</div>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+
+  <script>
+    const KEY='bai-lian-ying-xiong-save-v1';
+    const HERO_POOL=[
+      {name:'剑士',emoji:'⚔️',rarity:'n',base:26},{name:'盾卫',emoji:'🛡️',rarity:'n',base:24},{name:'猎手',emoji:'🏹',rarity:'n',base:27},
+      {name:'祭司',emoji:'✨',rarity:'r',base:38},{name:'冰法',emoji:'❄️',rarity:'r',base:40},{name:'狂战',emoji:'🔥',rarity:'r',base:42},
+      {name:'雷皇',emoji:'⚡',rarity:'sr',base:58},{name:'影刃',emoji:'🗡️',rarity:'sr',base:62},
+      {name:'龙骑',emoji:'🐉',rarity:'ssr',base:88},{name:'天启',emoji:'👑',rarity:'ssr',base:95}
+    ];
+    const RARITY_RATE=[{r:'ssr',p:0.04},{r:'sr',p:0.16},{r:'r',p:0.35},{r:'n',p:0.45}];
+
+    const $=id=>document.getElementById(id);
+    const stageEl=$('stage'),powerEl=$('power'),goldEl=$('gold'),gemEl=$('gem'),teamEl=$('team'),logEl=$('log');
+    const recruitBtn=$('recruitBtn'),battleBtn=$('battleBtn'),exploreBtn=$('exploreBtn'),upgradeBtn=$('upgradeBtn');
+
+    let state={
+      stage:1,gold:500,gem:20,team:[],forgeLv:0,lastSeen:Date.now()
+    };
+
+    function save(){
+      state.lastSeen=Date.now();
+      localStorage.setItem(KEY,JSON.stringify(state));
+    }
+
+    function load(){
+      try{
+        const raw=localStorage.getItem(KEY);
+        if(!raw) return;
+        const s=JSON.parse(raw);
+        Object.assign(state,s);
+        const off=Math.floor((Date.now()-(s.lastSeen||Date.now()))/1000);
+        if(off>30){
+          const gain=Math.min(7200,off)*Math.max(1,Math.floor(totalPower()/22));
+          state.gold+=gain;
+          pushLog(`离线收益 +${gain} 金币（${Math.floor(off/60)}分钟）`,'tip');
+        }
+      }catch{}
+    }
+
+    function totalPower(){
+      const teamPow=state.team.reduce((a,h)=>a+h.power,0);
+      return Math.floor(teamPow*(1+state.forgeLv*0.08));
+    }
+
+    function rollRarity(){
+      let x=Math.random();
+      for(const i of RARITY_RATE){ if(x<i.p) return i.r; x-=i.p; }
+      return 'n';
+    }
+
+    function recruit(){
+      if(state.gold<120){pushLog('金币不足，无法招募。','bad');return;}
+      state.gold-=120;
+      const rarity=rollRarity();
+      const pool=HERO_POOL.filter(h=>h.rarity===rarity);
+      const tpl=pool[Math.floor(Math.random()*pool.length)];
+      const hero={
+        name:tpl.name,emoji:tpl.emoji,rarity:tpl.rarity,
+        level:1,power:tpl.base+Math.floor(Math.random()*8)
+      };
+      if(state.team.length<5){
+        state.team.push(hero);
+        pushLog(`招募成功：${hero.emoji}${hero.name}（${rarity.toUpperCase()}）`,'ok');
+      }else{
+        const gain=rarity==='ssr'?80:rarity==='sr'?40:rarity==='r'?20:10;
+        state.gold+=gain;
+        pushLog(`队伍已满，${hero.name}转化为 ${gain} 金币。`,'tip');
+      }
+      sync();
+    }
+
+    function battle(){
+      if(state.team.length===0){pushLog('先招募至少1名英雄再开战。','bad');return;}
+      const p=totalPower();
+      const enemy=Math.floor(120+state.stage*46+Math.random()*70);
+      const ratio=(p*(0.85+Math.random()*0.35))/enemy;
+      if(ratio>=1){
+        const g=Math.floor(85+state.stage*38+Math.random()*45);
+        const d=Math.random()<0.25?1:0;
+        state.gold+=g; state.gem+=d; state.stage+=1;
+        pushLog(`第${state.stage-1}关胜利！奖励 +${g}金${d?` +${d}钻`:''}`,'ok');
+      }else{
+        const g=Math.floor(28+state.stage*10);
+        state.gold+=g;
+        pushLog(`挑战失败，获得安慰奖励 +${g}金。先强化再来。`,'bad');
+      }
+      sync();
+    }
+
+    function explore(){
+      const r=Math.random();
+      if(r<0.45){
+        const g=Math.floor(60+Math.random()*120);
+        state.gold+=g;
+        pushLog(`探索发现遗迹宝箱，获得 ${g} 金币。`,'tip');
+      }else if(r<0.75){
+        const d=1+Math.floor(Math.random()*2);
+        state.gem+=d;
+        pushLog(`探索发现灵脉，获得 ${d} 钻石。`,'tip');
+      }else{
+        if(state.team.length){
+          const i=Math.floor(Math.random()*state.team.length);
+          const up=5+Math.floor(Math.random()*12);
+          state.team[i].power+=up;
+          pushLog(`${state.team[i].name}顿悟，战力 +${up}。`,'ok');
+        }else{
+          state.gold+=30;
+          pushLog('没有英雄可悟道，捡到 30 金币。','tip');
+        }
+      }
+      sync();
+    }
+
+    function upgrade(){
+      const cost=200+state.forgeLv*120;
+      if(state.gold<cost){pushLog(`金币不足，强化需要 ${cost}。`,'bad');return;}
+      state.gold-=cost;
+      state.forgeLv+=1;
+      pushLog(`全队强化成功！当前强化等级 Lv.${state.forgeLv}`,'ok');
+      sync();
+    }
+
+    function pushLog(t,cls=''){
+      const p=document.createElement('p');
+      p.className=cls;
+      p.textContent=`[${new Date().toLocaleTimeString('zh-CN',{hour12:false})}] ${t}`;
+      logEl.prepend(p);
+      while(logEl.children.length>45) logEl.removeChild(logEl.lastChild);
+    }
+
+    function renderTeam(){
+      teamEl.innerHTML='';
+      for(let i=0;i<5;i++){
+        const h=state.team[i];
+        const div=document.createElement('div');
+        div.className='hero '+(h?h.rarity:'');
+        if(h){
+          div.innerHTML=`<span class="emoji">${h.emoji}</span><div class="name">${h.name} Lv.${h.level}</div><div class="pow">⚔ ${Math.floor(h.power*(1+state.forgeLv*0.08))}</div>`;
+        }else{
+          div.innerHTML='<span class="emoji">➕</span><div class="name">空位</div><div class="pow">-</div>';
+        }
+        teamEl.appendChild(div);
+      }
+    }
+
+    function sync(){
+      stageEl.textContent=state.stage;
+      powerEl.textContent=totalPower();
+      goldEl.textContent=state.gold;
+      gemEl.textContent=state.gem;
+      renderTeam();
+      save();
+    }
+
+    recruitBtn.addEventListener('click',recruit);
+    battleBtn.addEventListener('click',battle);
+    exploreBtn.addEventListener('click',explore);
+    upgradeBtn.addEventListener('click',upgrade);
+
+    load();
+    if(state.team.length===0){
+      pushLog('初始赠送 500 金币，先招募英雄组建队伍。','tip');
+    }
+    sync();
+  </script>
+</body>
+</html>
