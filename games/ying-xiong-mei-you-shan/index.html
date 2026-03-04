@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>英雄没有闪</title>
+  <style>
+    :root{--bg:#0f1223;--bg2:#1a1f3a;--card:#222949;--line:#3a4576;--text:#eef1ff;--muted:#9fa9d4;--brand:#7c5cff;--ok:#41d88a;--warn:#ffc857;--bad:#ff6b6b}
+    *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;padding:12px}
+    .app{max-width:760px;margin:0 auto;background:rgba(34,41,73,.95);border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:0 10px 28px rgba(0,0,0,.35)}
+    h1{margin:0;font-size:24px}.sub{margin:5px 0 10px;color:var(--muted);font-size:13px}
+    .hud{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.k{background:#151b35;border:1px solid var(--line);border-radius:10px;padding:6px;text-align:center}.k small{display:block;color:var(--muted);font-size:11px}.k b{font-size:15px}
+    .panel{margin-top:8px;background:#151b35;border:1px solid var(--line);border-radius:12px;padding:10px}
+    .battle{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .unit{background:#121830;border:1px solid var(--line);border-radius:10px;padding:8px}
+    .name{font-weight:700;margin-bottom:6px}.hpbar{height:10px;background:#2b335f;border-radius:8px;overflow:hidden}.hp{height:100%;background:linear-gradient(90deg,var(--ok),#6cf0a8)}
+    .hp.enemy{background:linear-gradient(90deg,#ff7b7b,var(--bad))}
+    .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    button{border:none;border-radius:10px;padding:9px 12px;font-weight:800;cursor:pointer;background:var(--brand);color:#fff}
+    button.alt{background:#5d6b9d}button.ok{background:var(--ok);color:#052113}button.warn{background:var(--warn);color:#332300}
+    .equip,.skills{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+    .slot{background:#121830;border:1px solid var(--line);border-radius:10px;padding:6px;min-height:76px}
+    .slot .t{font-size:11px;color:var(--muted)} .slot .n{font-size:12px} .slot .v{font-size:11px}
+    .rar-n{color:#b8c1e2}.rar-r{color:#62a6ff}.rar-sr{color:#d184ff}.rar-ssr{color:#ffc14a}
+    .log{height:130px;overflow:auto;background:#0c1228;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:12px}
+    .log p{margin:0 0 4px}
+    @media(max-width:600px){.hud{grid-template-columns:repeat(3,1fr)}.battle{grid-template-columns:1fr}.equip,.skills{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <h1>英雄没有闪</h1>
+  <p class="sub">放置战斗刷宝开箱，装备成型后一刀一屏。</p>
+
+  <div class="hud">
+    <div class="k"><small>关卡</small><b id="stage">1</b></div>
+    <div class="k"><small>金币</small><b id="gold">0</b></div>
+    <div class="k"><small>宝箱</small><b id="chest">0</b></div>
+    <div class="k"><small>战力</small><b id="power">0</b></div>
+    <div class="k"><small>秒伤</small><b id="dps">0</b></div>
+  </div>
+
+  <div class="panel battle">
+    <div class="unit">
+      <div class="name">🧙 你</div>
+      <div class="hpbar"><div class="hp" id="heroHp"></div></div>
+      <div style="font-size:12px;color:#9fa9d4;margin-top:5px" id="heroHpText">100/100</div>
+    </div>
+    <div class="unit">
+      <div class="name" id="enemyName">👾 史莱姆</div>
+      <div class="hpbar"><div class="hp enemy" id="enemyHp"></div></div>
+      <div style="font-size:12px;color:#9fa9d4;margin-top:5px" id="enemyHpText">80/80</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="btns">
+      <button id="skillBtn" class="warn">🔥 释放核心技能</button>
+      <button id="openBtn" class="ok">🎁 开宝箱</button>
+      <button id="autoEquipBtn">⚙️ 一键换装</button>
+      <button id="runeBtn" class="alt">💠 升级符文（100金）</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div style="font-weight:700;margin-bottom:6px">装备栏</div>
+    <div class="equip" id="equip"></div>
+  </div>
+
+  <div class="panel">
+    <div style="font-weight:700;margin-bottom:6px">技能与符文</div>
+    <div class="skills" id="skills"></div>
+  </div>
+
+  <div class="panel">
+    <div style="font-weight:700;margin-bottom:6px">战报</div>
+    <div class="log" id="log"></div>
+  </div>
+</div>
+
+<script>
+const KEY='ying-xiong-mei-you-shan-save-v1';
+const SLOTS=['weapon','armor','ring'];
+const SLOT_NAME={weapon:'武器',armor:'护甲',ring:'饰品'};
+const RARS=[['ssr',0.03],['sr',0.15],['r',0.36],['n',0.46]];
+const ENEMIES=['史莱姆','骷髅兵','地狱犬','影子武士','深渊巨像'];
+const BASE_SKILLS=[
+  {id:'core',name:'裂空斩',desc:'立即造成 220% 攻击伤害',cd:8,last:0},
+  {id:'blood',name:'嗜血',desc:'每次普攻回复 1 点生命',passive:true},
+  {id:'crit',name:'暴击专精',desc:'+10% 暴击率',passive:true}
+];
+const $=id=>document.getElementById(id);
+const el={stage:$('stage'),gold:$('gold'),chest:$('chest'),power:$('power'),dps:$('dps'),heroHp:$('heroHp'),enemyHp:$('enemyHp'),heroHpText:$('heroHpText'),enemyHpText:$('enemyHpText'),enemyName:$('enemyName'),equip:$('equip'),skills:$('skills'),log:$('log')};
+
+let s={
+  stage:1,gold:120,chest:0,
+  hero:{hp:120,maxHp:120,atk:18,def:6,crit:0.08},
+  enemy:{name:'史莱姆',hp:90,maxHp:90,atk:8,def:2},
+  equip:{weapon:null,armor:null,ring:null},
+  bag:[],
+  runeLv:1,
+  skills:JSON.parse(JSON.stringify(BASE_SKILLS)),
+  lastSeen:Date.now()
+};
+
+function log(t){const p=document.createElement('p');p.textContent=`[${new Date().toLocaleTimeString('zh-CN',{hour12:false})}] ${t}`;el.log.prepend(p);while(el.log.children.length>55)el.log.removeChild(el.log.lastChild)}
+function save(){s.lastSeen=Date.now();localStorage.setItem(KEY,JSON.stringify(s));}
+function load(){
+  try{const raw=localStorage.getItem(KEY);if(!raw)return;const x=JSON.parse(raw);Object.assign(s,x);
+    const sec=Math.floor((Date.now()-(x.lastSeen||Date.now()))/1000);
+    if(sec>20){const bonus=Math.min(7200,sec)*(2+s.stage);const chest=Math.floor(sec/45);s.gold+=bonus;s.chest+=chest;log(`离线收益 金币+${bonus}${chest?` 宝箱+${chest}`:''}`)}
+  }catch{}
+}
+
+function rarPick(){let x=Math.random();for(const [r,p] of RARS){if(x<p)return r;x-=p}return 'n'}
+function rarMul(r){return r==='ssr'?1.7:r==='sr'?1.38:r==='r'?1.2:1}
+function genEquip(){
+  const slot=SLOTS[Math.floor(Math.random()*SLOTS.length)];
+  const rar=rarPick();
+  const base=8+s.stage*2;
+  const val=Math.floor(base*rarMul(rar));
+  const name=(slot==='weapon'?'破军':'armor'===slot?'玄甲':'命轮')+['·尘','·锋','·辉','·曜'][Math.floor(Math.random()*4)];
+  return {id:Date.now()+Math.random(),slot,rar,name,atk:slot==='weapon'?val:0,def:slot==='armor'?Math.floor(val*0.65):0,hp:slot==='ring'?Math.floor(val*2.8):0,score:val};
+}
+
+function heroAtk(){
+  let atk=s.hero.atk+s.runeLv*2,def=s.hero.def,hp=s.hero.maxHp,crit=s.hero.crit+s.runeLv*0.01;
+  SLOTS.forEach(k=>{const e=s.equip[k];if(e){atk+=e.atk;def+=e.def;hp+=e.hp;}});
+  return {atk,def,hp,crit};
+}
+
+function calcPower(){const st=heroAtk();return Math.floor(st.atk*8+st.def*6+st.hp*0.8)}
+function calcDps(){const st=heroAtk();return Math.floor(st.atk*(1+st.crit*0.7))}
+function syncHero(){const st=heroAtk();if(s.hero.maxHp!==st.hp){s.hero.maxHp=st.hp;s.hero.hp=Math.min(s.hero.hp,st.hp)}s.hero.atk=st.atk;s.hero.def=st.def;s.hero.crit=st.crit}
+
+function spawnEnemy(){
+  const n=ENEMIES[(s.stage-1)%ENEMIES.length];
+  const hp=Math.floor(70+s.stage*35*(0.9+Math.random()*0.2));
+  const atk=Math.floor(6+s.stage*4);
+  const def=Math.floor(2+s.stage*1.7);
+  s.enemy={name:n,hp,maxHp:hp,atk,def};
+}
+
+function hit(){
+  if(s.hero.hp<=0||s.enemy.hp<=0)return;
+  const crit=Math.random()<s.hero.crit;const dmg=Math.max(1,Math.floor((s.hero.atk-s.enemy.def)*(crit?1.8:1)));
+  s.enemy.hp-=dmg;
+  if(s.skills.find(x=>x.id==='blood')) s.hero.hp=Math.min(s.hero.maxHp,s.hero.hp+1);
+  if(s.enemy.hp<=0){
+    const g=Math.floor(20+s.stage*6);s.gold+=g;if(Math.random()<0.55)s.chest++;
+    log(`击败 ${s.enemy.name}，金币+${g}${Math.random()<0.001?'':' '}`);
+    s.stage++;spawnEnemy();
+  }else{
+    const ed=Math.max(1,Math.floor(s.enemy.atk-s.hero.def*0.55));
+    s.hero.hp-=ed;
+    if(s.hero.hp<=0){
+      const safe=Math.floor(40+s.stage*4);s.gold+=safe;s.hero.hp=s.hero.maxHp;log(`战败，获得保底金币+${safe}，原地复活`);
+    }
+  }
+}
+
+function useCore(){
+  const sk=s.skills[0];const now=Date.now();if(now-sk.last<sk.cd*1000){log(`技能冷却中 ${(sk.cd-(now-sk.last)/1000).toFixed(1)}s`);return}
+  sk.last=now;const dmg=Math.floor(s.hero.atk*2.2);s.enemy.hp-=dmg;log(`释放${sk.name}，造成 ${dmg} 伤害！`);
+  if(s.enemy.hp<=0){const g=Math.floor(20+s.stage*6);s.gold+=g;s.chest++;log(`技能斩杀！金币+${g} 宝箱+1`);s.stage++;spawnEnemy()}
+  render();
+}
+
+function openChest(){
+  if(s.chest<=0){log('没有宝箱可开');return}
+  s.chest--;const e=genEquip();s.bag.push(e);
+  log(`开出 ${SLOT_NAME[e.slot]} ${e.name}（${e.rar.toUpperCase()}）`);
+  render();
+}
+
+function autoEquip(){
+  let changed=0;
+  for(const slot of SLOTS){
+    const cand=s.bag.filter(x=>x.slot===slot).sort((a,b)=>b.score-a.score)[0];
+    if(!cand) continue;
+    const cur=s.equip[slot];
+    if(!cur||cand.score>cur.score){s.equip[slot]=cand;s.bag=s.bag.filter(x=>x.id!==cand.id);if(cur)s.bag.push(cur);changed++}
+  }
+  syncHero();
+  log(changed?`一键换装完成，替换 ${changed} 件装备`:'没有更强装备可替换');
+  render();
+}
+
+function upRune(){
+  const cost=100+s.runeLv*80;
+  if(s.gold<cost){log(`金币不足，符文升级需 ${cost}`);return}
+  s.gold-=cost;s.runeLv++;syncHero();log(`符文升到 Lv.${s.runeLv}，全属性提升`);render();
+}
+
+function renderEquip(){
+  el.equip.innerHTML='';
+  for(const k of SLOTS){
+    const e=s.equip[k];
+    const div=document.createElement('div');div.className='slot';
+    if(!e)div.innerHTML=`<div class='t'>${SLOT_NAME[k]}</div><div class='n'>空</div><div class='v'>-</div>`;
+    else div.innerHTML=`<div class='t'>${SLOT_NAME[k]}</div><div class='n rar-${e.rar}'>${e.name}</div><div class='v'>⚔${e.atk} 🛡${e.def} ❤️${e.hp}</div>`;
+    el.equip.appendChild(div);
+  }
+}
+
+function renderSkills(){
+  el.skills.innerHTML='';
+  const st=[
+    {t:'核心技能',n:s.skills[0].name,v:`冷却 ${s.skills[0].cd}s`},
+    {t:'被动技能',n:'嗜血',v:'普攻吸血 +1'},
+    {t:'符文等级',n:`Lv.${s.runeLv}`,v:`总战力 +${s.runeLv*4}%`}
+  ];
+  st.forEach(i=>{const d=document.createElement('div');d.className='slot';d.innerHTML=`<div class='t'>${i.t}</div><div class='n'>${i.n}</div><div class='v'>${i.v}</div>`;el.skills.appendChild(d)});
+}
+
+function render(){
+  syncHero();
+  el.stage.textContent=s.stage;el.gold.textContent=s.gold;el.chest.textContent=s.chest;el.power.textContent=calcPower();el.dps.textContent=calcDps();
+  el.enemyName.textContent=`👾 ${s.enemy.name}`;
+  const hpP=Math.max(0,s.hero.hp/s.hero.maxHp*100),ehpP=Math.max(0,s.enemy.hp/s.enemy.maxHp*100);
+  el.heroHp.style.width=hpP+'%';el.enemyHp.style.width=ehpP+'%';
+  el.heroHpText.textContent=`${Math.max(0,Math.floor(s.hero.hp))}/${s.hero.maxHp}`;
+  el.enemyHpText.textContent=`${Math.max(0,Math.floor(s.enemy.hp))}/${s.enemy.maxHp}`;
+  renderEquip();renderSkills();save();
+}
+
+$('skillBtn').onclick=useCore;
+$('openBtn').onclick=openChest;
+$('autoEquipBtn').onclick=autoEquip;
+$('runeBtn').onclick=upRune;
+
+load();spawnEnemy();log('战斗开始，角色会自动攻击。');render();
+setInterval(()=>{hit();render();},900);
+setInterval(()=>{s.gold+=Math.floor(2+s.stage*0.4);if(Math.random()<0.04)s.chest++;render();},6000);
+</script>
+</body>
+</html>
