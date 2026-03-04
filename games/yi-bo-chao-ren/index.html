@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>一波超人</title>
+  <style>
+    :root {
+      --bg: #081226;
+      --panel: #111f3b;
+      --panel-2: #172949;
+      --text: #e9f2ff;
+      --muted: #9db4d8;
+      --accent: #3dd2ff;
+      --accent-2: #8bffcf;
+      --danger: #ff5b7e;
+      --warn: #ffd166;
+      --ok: #52e39f;
+      --border: #27406f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(1200px 700px at 50% -100px, #1b3b70 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100dvh;
+      padding: 14px;
+    }
+
+    .app {
+      width: min(760px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 12px;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+    }
+
+    .title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      margin: 0;
+      letter-spacing: .5px;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .top-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .stat {
+      background: rgba(0, 0, 0, .2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 1rem;
+    }
+
+    .stat small {
+      color: var(--muted);
+      font-size: .74rem;
+    }
+
+    .arena {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .fighter {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(0, 0, 0, .15);
+      min-height: 130px;
+    }
+
+    .fighter h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tag {
+      font-size: .72rem;
+      color: var(--bg);
+      background: var(--accent-2);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
+    }
+
+    .hp-wrap {
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #334f7f;
+      border: 1px solid #43629a;
+    }
+
+    .hp-bar {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--ok), #7dffbf);
+      transition: width .25s;
+    }
+
+    .hp-bar.enemy {
+      background: linear-gradient(90deg, #ff9d9d, var(--danger));
+    }
+
+    .fighter .meta {
+      margin-top: 7px;
+      font-size: .82rem;
+      color: var(--muted);
+      display: grid;
+      gap: 4px;
+    }
+
+    .flash {
+      animation: flash .25s ease;
+    }
+
+    @keyframes flash {
+      from { filter: brightness(1.7); transform: scale(1.01); }
+      to { filter: brightness(1); transform: scale(1); }
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    button {
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 11px 8px;
+      font-weight: 700;
+      color: #05243c;
+      background: var(--accent);
+      cursor: pointer;
+      transition: .15s;
+    }
+
+    button:active { transform: translateY(1px); }
+
+    button.secondary { background: var(--warn); }
+    button.ghost {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .upgrades {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .up-btn {
+      background: #17345f;
+      border-color: #2a5697;
+      color: #d7ebff;
+      font-size: .82rem;
+      padding: 10px 6px;
+      line-height: 1.25;
+    }
+
+    .log {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 6px;
+      max-height: 175px;
+      overflow: auto;
+    }
+
+    .log li {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: .83rem;
+      color: #d3e4ff;
+      background: rgba(0, 0, 0, .2);
+    }
+
+    .danger { color: #ff98aa; }
+    .good { color: #8bffd0; }
+    .crit { color: #ffd166; font-weight: 700; }
+
+    @media (max-width: 640px) {
+      .top-stats { grid-template-columns: repeat(2, 1fr); }
+      .arena { grid-template-columns: 1fr; }
+      .actions, .upgrades { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="panel">
+      <h1 class="title">⚡ 一波超人</h1>
+      <p class="subtitle">普攻、技能、防御三选一，打穿更多波敌人！</p>
+      <div class="top-stats">
+        <div class="stat"><b id="wave">1</b><small>当前波次</small></div>
+        <div class="stat"><b id="bestWave">1</b><small>最高波次</small></div>
+        <div class="stat"><b id="coins">0</b><small>金币</small></div>
+        <div class="stat"><b id="skillCd">0</b><small>技能冷却</small></div>
+      </div>
+    </section>
+
+    <section class="panel arena">
+      <div class="fighter" id="playerCard">
+        <h3>🦸 你 <span class="tag">超人</span></h3>
+        <div class="hp-wrap"><div class="hp-bar" id="playerHpBar"></div></div>
+        <div class="meta">
+          <span id="playerHpText">HP 100/100</span>
+          <span id="playerAtk">攻击 12</span>
+          <span id="playerCrit">暴击 10%</span>
+        </div>
+      </div>
+      <div class="fighter" id="enemyCard">
+        <h3>🤖 敌人 <span class="tag" id="enemyName">机械杂兵</span></h3>
+        <div class="hp-wrap"><div class="hp-bar enemy" id="enemyHpBar"></div></div>
+        <div class="meta">
+          <span id="enemyHpText">HP 80/80</span>
+          <span id="enemyAtk">攻击 8</span>
+          <span id="enemyHint">下一击蓄势中...</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="actions">
+        <button id="attackBtn">普攻</button>
+        <button id="skillBtn" class="secondary">技能爆发</button>
+        <button id="guardBtn" class="ghost">防御</button>
+      </div>
+      <div class="upgrades">
+        <button class="up-btn" id="upHpBtn">升级生命<br><small id="upHpCost">40 金币</small></button>
+        <button class="up-btn" id="upAtkBtn">升级攻击<br><small id="upAtkCost">45 金币</small></button>
+        <button class="up-btn" id="upCritBtn">升级暴击<br><small id="upCritCost">55 金币</small></button>
+      </div>
+      <div style="margin-top:8px;display:grid;grid-template-columns:1fr;gap:8px;">
+        <button id="restartBtn" class="ghost">再来一局</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <ul class="log" id="log"></ul>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'yi-bo-chao-ren-best-wave';
+
+    const els = {
+      wave: document.getElementById('wave'),
+      bestWave: document.getElementById('bestWave'),
+      coins: document.getElementById('coins'),
+      skillCd: document.getElementById('skillCd'),
+
+      playerCard: document.getElementById('playerCard'),
+      enemyCard: document.getElementById('enemyCard'),
+      playerHpBar: document.getElementById('playerHpBar'),
+      enemyHpBar: document.getElementById('enemyHpBar'),
+      playerHpText: document.getElementById('playerHpText'),
+      enemyHpText: document.getElementById('enemyHpText'),
+      playerAtk: document.getElementById('playerAtk'),
+      playerCrit: document.getElementById('playerCrit'),
+      enemyAtk: document.getElementById('enemyAtk'),
+      enemyName: document.getElementById('enemyName'),
+      enemyHint: document.getElementById('enemyHint'),
+
+      attackBtn: document.getElementById('attackBtn'),
+      skillBtn: document.getElementById('skillBtn'),
+      guardBtn: document.getElementById('guardBtn'),
+      restartBtn: document.getElementById('restartBtn'),
+
+      upHpBtn: document.getElementById('upHpBtn'),
+      upAtkBtn: document.getElementById('upAtkBtn'),
+      upCritBtn: document.getElementById('upCritBtn'),
+      upHpCost: document.getElementById('upHpCost'),
+      upAtkCost: document.getElementById('upAtkCost'),
+      upCritCost: document.getElementById('upCritCost'),
+
+      log: document.getElementById('log')
+    };
+
+    const state = {
+      wave: 1,
+      bestWave: Math.max(1, Number(localStorage.getItem(STORAGE_KEY) || 1)),
+      coins: 0,
+      skillCd: 0,
+      guard: false,
+      gameOver: false,
+      upgradeLv: { hp: 1, atk: 1, crit: 1 },
+      player: {
+        maxHp: 100,
+        hp: 100,
+        atk: 12,
+        critRate: 0.10,
+        critMul: 1.85
+      },
+      enemy: null
+    };
+
+    const enemyNames = ['机械杂兵', '钢拳战士', '电刃突袭者', '重装机甲', '毁灭者'];
+
+    function rand(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function spawnEnemy() {
+      const hp = 72 + state.wave * 22 + rand(-6, 10);
+      const atk = 7 + Math.floor(state.wave * 1.65) + rand(0, 2);
+      state.enemy = {
+        name: enemyNames[(state.wave - 1) % enemyNames.length],
+        maxHp: hp,
+        hp,
+        atk
+      };
+      addLog(`第 ${state.wave} 波来袭：${state.enemy.name} 出现！`);
+    }
+
+    function damageRoll(base) {
+      return Math.max(1, Math.round(base * (0.85 + Math.random() * 0.3)));
+    }
+
+    function playerAttack() {
+      if (state.gameOver) return;
+      let dmg = damageRoll(state.player.atk);
+      const crit = Math.random() < state.player.critRate;
+      if (crit) dmg = Math.round(dmg * state.player.critMul);
+      state.enemy.hp = Math.max(0, state.enemy.hp - dmg);
+      flash(els.enemyCard);
+      addLog(`你使用普攻造成 <span class="${crit ? 'crit' : 'good'}">${dmg}</span> 点伤害${crit ? '（暴击）' : ''}。`);
+      afterPlayerAction();
+    }
+
+    function playerSkill() {
+      if (state.gameOver || state.skillCd > 0) return;
+      const dmg = Math.round(damageRoll(state.player.atk * 2.3));
+      state.enemy.hp = Math.max(0, state.enemy.hp - dmg);
+      state.skillCd = 3;
+      flash(els.enemyCard);
+      addLog(`技能爆发命中！造成 <span class="crit">${dmg}</span> 点重击。`);
+      afterPlayerAction();
+    }
+
+    function playerGuard() {
+      if (state.gameOver) return;
+      state.guard = true;
+      addLog('你进入防御姿态，本回合受伤降低。');
+      afterPlayerAction();
+    }
+
+    function enemyTurn() {
+      if (state.enemy.hp <= 0 || state.gameOver) return;
+      let dmg = damageRoll(state.enemy.atk);
+      if (state.guard) {
+        dmg = Math.max(1, Math.round(dmg * 0.4));
+        state.guard = false;
+        addLog('防御生效，成功格挡大部分伤害。');
+      }
+
+      state.player.hp = Math.max(0, state.player.hp - dmg);
+      flash(els.playerCard);
+      addLog(`敌人反击，造成 <span class="danger">${dmg}</span> 点伤害。`);
+
+      if (state.player.hp <= 0) {
+        state.gameOver = true;
+        addLog('<span class="danger">你被击倒了！点击“再来一局”重开。</span>');
+      }
+    }
+
+    function clearWave() {
+      const reward = 20 + state.wave * 8 + rand(0, 10);
+      state.coins += reward;
+      addLog(`成功清场！获得 <span class="good">${reward}</span> 金币。`);
+      state.wave += 1;
+      if (state.wave > state.bestWave) {
+        state.bestWave = state.wave;
+        localStorage.setItem(STORAGE_KEY, String(state.bestWave));
+        addLog('<span class="crit">刷新最高波次！</span>');
+      }
+      spawnEnemy();
+    }
+
+    function afterPlayerAction() {
+      if (state.skillCd > 0) state.skillCd -= 1;
+
+      if (state.enemy.hp <= 0) {
+        clearWave();
+      } else {
+        enemyTurn();
+      }
+      render();
+    }
+
+    function cost(type) {
+      if (type === 'hp') return 30 + state.upgradeLv.hp * 12;
+      if (type === 'atk') return 35 + state.upgradeLv.atk * 14;
+      return 45 + state.upgradeLv.crit * 16;
+    }
+
+    function upgrade(type) {
+      if (state.gameOver) return;
+      const c = cost(type);
+      if (state.coins < c) {
+        addLog('金币不足，先继续闯关。');
+        render();
+        return;
+      }
+      state.coins -= c;
+
+      if (type === 'hp') {
+        state.upgradeLv.hp += 1;
+        state.player.maxHp += 18;
+        state.player.hp += 18;
+        addLog('生命升级：最大生命 +18。');
+      } else if (type === 'atk') {
+        state.upgradeLv.atk += 1;
+        state.player.atk += 3;
+        addLog('攻击升级：攻击 +3。');
+      } else {
+        state.upgradeLv.crit += 1;
+        state.player.critRate = Math.min(0.45, state.player.critRate + 0.03);
+        addLog('暴击升级：暴击率 +3%。');
+      }
+
+      render();
+    }
+
+    function restart() {
+      state.wave = 1;
+      state.coins = 0;
+      state.skillCd = 0;
+      state.guard = false;
+      state.gameOver = false;
+      state.upgradeLv = { hp: 1, atk: 1, crit: 1 };
+      state.player.maxHp = 100;
+      state.player.hp = 100;
+      state.player.atk = 12;
+      state.player.critRate = 0.10;
+      state.player.critMul = 1.85;
+      els.log.innerHTML = '';
+      spawnEnemy();
+      addLog('新的挑战开始，冲更高波次！');
+      render();
+    }
+
+    function addLog(text) {
+      const li = document.createElement('li');
+      li.innerHTML = text;
+      els.log.prepend(li);
+      while (els.log.children.length > 10) {
+        els.log.removeChild(els.log.lastChild);
+      }
+    }
+
+    function flash(el) {
+      el.classList.remove('flash');
+      void el.offsetWidth;
+      el.classList.add('flash');
+    }
+
+    function render() {
+      const p = state.player;
+      const e = state.enemy;
+
+      els.wave.textContent = state.wave;
+      els.bestWave.textContent = state.bestWave;
+      els.coins.textContent = state.coins;
+      els.skillCd.textContent = state.skillCd;
+
+      els.playerHpText.textContent = `HP ${p.hp}/${p.maxHp}`;
+      els.playerAtk.textContent = `攻击 ${p.atk}`;
+      els.playerCrit.textContent = `暴击 ${Math.round(p.critRate * 100)}%`;
+      els.playerHpBar.style.width = `${Math.max(0, (p.hp / p.maxHp) * 100)}%`;
+
+      els.enemyName.textContent = e.name;
+      els.enemyHpText.textContent = `HP ${e.hp}/${e.maxHp}`;
+      els.enemyAtk.textContent = `攻击 ${e.atk}`;
+      els.enemyHint.textContent = state.guard ? '你正在防御姿态' : '下一击蓄势中...';
+      els.enemyHpBar.style.width = `${Math.max(0, (e.hp / e.maxHp) * 100)}%`;
+
+      els.skillBtn.disabled = state.gameOver || state.skillCd > 0;
+      els.attackBtn.disabled = state.gameOver;
+      els.guardBtn.disabled = state.gameOver;
+
+      els.upHpCost.textContent = `${cost('hp')} 金币`;
+      els.upAtkCost.textContent = `${cost('atk')} 金币`;
+      els.upCritCost.textContent = `${cost('crit')} 金币`;
+
+      els.upHpBtn.disabled = state.gameOver || state.coins < cost('hp');
+      els.upAtkBtn.disabled = state.gameOver || state.coins < cost('atk');
+      els.upCritBtn.disabled = state.gameOver || state.coins < cost('crit');
+    }
+
+    els.attackBtn.addEventListener('click', playerAttack);
+    els.skillBtn.addEventListener('click', playerSkill);
+    els.guardBtn.addEventListener('click', playerGuard);
+    els.upHpBtn.addEventListener('click', () => upgrade('hp'));
+    els.upAtkBtn.addEventListener('click', () => upgrade('atk'));
+    els.upCritBtn.addEventListener('click', () => upgrade('crit'));
+    els.restartBtn.addEventListener('click', restart);
+
+    spawnEnemy();
+    addLog('战斗开始！合理利用技能与防御。');
+    render();
+  </script>
+</body>
+</html>
