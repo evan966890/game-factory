@@ -1,504 +1,866 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>看图猜成语</title>
-  <style>
-    :root{
-      --bg:#f8fafc;--bg2:#e2e8f0;--card:#ffffff;--line:#cbd5e1;--text:#1e293b;--muted:#64748b;
-      --brand:#3b82f6;--brand2:#2563eb;--ok:#22c55e;--bad:#ef4444;
-      --warning:#f59e0b;--info:#06b6d4;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);
-      font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;padding:14px;min-height:100vh}
-    .app{max-width:640px;margin:0 auto;background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 12px 26px rgba(0,0,0,.15)}
-    h1{margin:0;font-size:24px;text-align:center;color:#1e293b}
-    .sub{margin:6px 0 12px;color:var(--muted);font-size:13px;text-align:center}
-    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
-    .stat{background:#f1f5f9;border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center}
-    .stat small{display:block;color:var(--muted);font-size:11px}
-    .stat b{font-size:16px}
-    .card{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
-    .title{font-weight:700;margin-bottom:8px;color:#334155}
-    .emoji-hint{font-size:48px;text-align:center;margin:20px 0;min-height:60px;display:flex;align-items:center;justify-content:center;gap:8px}
-    .options{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:16px 0}
-    .option{border:2px solid var(--line);border-radius:12px;padding:12px;text-align:center;background:#fff;cursor:pointer;font-size:16px;font-weight:600;transition:all 0.2s}
-    .option:hover{border-color:var(--brand);background:#eff6ff}
-    .option.correct{border-color:var(--ok);background:#dcfce7;color:#166534}
-    .option.wrong{border-color:var(--bad);background:#fee2e2;color:#991b1b}
-    .option.disabled{opacity:0.6;cursor:not-allowed}
-    .timer-bar{height:8px;background:#e2e8f0;border-radius:4px;margin:12px 0;overflow:hidden}
-    .timer-fill{height:100%;background:linear-gradient(90deg,var(--ok),var(--warning),var(--bad));border-radius:4px;transition:width 0.1s linear}
-    .combo{font-size:24px;font-weight:700;text-align:center;margin:8px 0;color:var(--brand)}
-    .combo.hidden{opacity:0}
-    .explanation{background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:12px;margin:12px 0;display:none}
-    .explanation.show{display:block}
-    .explanation h3{margin:0 0 8px;color:#0369a1;font-size:16px}
-    .explanation p{margin:4px 0;color:#0c4a6e;font-size:14px}
-    .actions{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-    .btn{border:none;border-radius:10px;padding:11px 8px;font-weight:700;cursor:pointer;background:var(--brand);color:#fff;font-size:14px}
-    .btn:hover{background:var(--brand2)}
-    .btn.alt{background:#64748b}
-    .btn.good{background:var(--ok)}
-    .btn:disabled{opacity:.45;cursor:not-allowed}
-    .screen{display:none}
-    .screen.active{display:block}
-    .start-screen{text-align:center;padding:40px 20px}
-    .start-screen h2{margin:0 0 20px;color:#1e293b}
-    .start-screen p{color:var(--muted);margin:10px 0}
-    .end-screen{text-align:center;padding:40px 20px}
-    .end-screen h2{margin:0 0 20px;color:#1e293b}
-    .final-score{font-size:48px;font-weight:700;color:var(--brand);margin:20px 0}
-    .high-score{font-size:18px;color:var(--muted);margin:10px 0}
-    .progress{font-size:14px;color:var(--muted);text-align:center;margin:8px 0}
-    @media (max-width:520px){
-      .stats{grid-template-columns:repeat(2,1fr)}
-      .options{grid-template-columns:1fr}
-      .emoji-hint{font-size:36px}
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>看图猜成语 - 成语学习游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .game-area {
+            padding: 30px 20px;
+        }
+
+        .question-number {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .image-hint {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 25px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            border: 3px dashed #dee2e6;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .option:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .option.correct {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .option.wrong {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .option.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .feedback {
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 80px;
+        }
+
+        .feedback-text {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .feedback-text.correct {
+            color: #28a745;
+        }
+
+        .feedback-text.wrong {
+            color: #dc3545;
+        }
+
+        .idiom-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 14px;
+            color: #666;
+            text-align: left;
+        }
+
+        .idiom-info p {
+            margin-bottom: 8px;
+        }
+
+        .idiom-info strong {
+            color: #333;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .timer-bar {
+            height: 5px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+            transition: width 0.1s linear;
+        }
+
+        .game-over {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .game-over h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .final-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .high-score {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .summary {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .summary h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .summary-item span:first-child {
+            color: #666;
+        }
+
+        .summary-item span:last-child {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .combo-display {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 193, 7, 0.9);
+            color: #333;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .start-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .start-screen h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .start-screen p {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .rules {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .rules h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .rules ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .rules li {
+            margin-bottom: 10px;
+            padding-left: 25px;
+            position: relative;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .rules li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        @media (max-width: 400px) {
+            .game-container {
+                border-radius: 15px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .image-hint {
+                font-size: 36px;
+                padding: 20px;
+            }
+
+            .option {
+                padding: 12px 8px;
+                font-size: 14px;
+            }
+
+            .btn {
+                padding: 10px 25px;
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="app">
-    <h1>看图猜成语</h1>
-    <p class="sub">观察图片提示，选择正确的成语</p>
-
-    <!-- 开始界面 -->
-    <div class="screen active" id="startScreen">
-      <div class="start-screen">
-        <h2>🎮 看图猜成语</h2>
-        <p>观察 emoji 图片提示，从四个选项中选择正确的成语</p>
-        <p>每题 30 秒，连续答对有连击加分！</p>
-        <div class="actions" style="margin-top:30px">
-          <button class="btn" id="startBtn">开始游戏</button>
-          <button class="btn alt" id="howToPlayBtn">玩法说明</button>
+    <div class="game-container">
+        <div class="header">
+            <h1>看图猜成语</h1>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-label">得分</div>
+                    <div class="stat-value" id="score">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">连击</div>
+                    <div class="stat-value" id="combo">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">最高分</div>
+                    <div class="stat-value" id="high-score">0</div>
+                </div>
+            </div>
         </div>
-      </div>
+
+        <div class="game-area" id="game-area">
+            <!-- Start Screen -->
+            <div class="start-screen" id="start-screen">
+                <h2>🎮 欢迎来到看图猜成语</h2>
+                <p>通过图片提示猜出正确的成语，学习成语知识，挑战你的成语储备！</p>
+                <div class="rules">
+                    <h3>游戏规则</h3>
+                    <ul>
+                        <li>每题显示一个图片提示（emoji组合）</li>
+                        <li>从四个选项中选择正确的成语</li>
+                        <li>每题限时30秒</li>
+                        <li>连续答对有连击加成</li>
+                        <li>共10题，看看你能得多少分</li>
+                    </ul>
+                </div>
+                <button class="btn" id="start-btn">开始游戏</button>
+            </div>
+
+            <!-- Game Screen -->
+            <div id="game-screen" style="display: none;">
+                <div class="question-number" id="question-number">第 1 / 10 题</div>
+                <div class="timer-bar">
+                    <div class="timer-fill" id="timer-fill"></div>
+                </div>
+                <div class="image-hint" id="image-hint"></div>
+                <div class="options" id="options"></div>
+                <div class="feedback" id="feedback"></div>
+                <div class="controls">
+                    <button class="btn" id="next-btn" style="display: none;">下一题</button>
+                </div>
+            </div>
+
+            <!-- Game Over Screen -->
+            <div class="game-over" id="game-over" style="display: none;">
+                <h2>🎉 游戏结束</h2>
+                <div class="final-score" id="final-score">0</div>
+                <div class="high-score" id="final-high-score">最高分: 0</div>
+                <div class="summary" id="summary"></div>
+                <button class="btn" id="restart-btn">再来一局</button>
+            </div>
+        </div>
     </div>
 
-    <!-- 游戏界面 -->
-    <div class="screen" id="gameScreen">
-      <div class="stats">
-        <div class="stat"><small>分数</small><b id="score">0</b></div>
-        <div class="stat"><small>连击</small><b id="combo">0</b></div>
-        <div class="stat"><small>最高分</small><b id="highScore">0</b></div>
-      </div>
+    <script>
+        // 成语数据
+        const idioms = [
+            {
+                idiom: "一箭双雕",
+                meaning: "一支箭射中两只雕，比喻做一件事达到两个目的。",
+                origin: "《北史·长孙晟传》",
+                hint: "🏹🦅🦅"
+            },
+            {
+                idiom: "画蛇添足",
+                meaning: "画蛇时给蛇添上脚，比喻做了多余的事，反而不恰当。",
+                origin: "《战国策·齐策二》",
+                hint: "🐍🎨🦶"
+            },
+            {
+                idiom: "守株待兔",
+                meaning: "守在树桩旁等待兔子撞死，比喻不主动努力，而心存侥幸。",
+                origin: "《韩非子·五蠹》",
+                hint: "🌳🐇⏳"
+            },
+            {
+                idiom: "井底之蛙",
+                meaning: "井底的青蛙只能看到井口那么大的天，比喻见识短浅的人。",
+                origin: "《庄子·秋水》",
+                hint: "🕳️🐸👀"
+            },
+            {
+                idiom: "对牛弹琴",
+                meaning: "对着牛弹琴，比喻对不懂道理的人讲道理。",
+                origin: "《庄子·齐物论》",
+                hint: "🐂🎹😤"
+            },
+            {
+                idiom: "狐假虎威",
+                meaning: "狐狸借老虎的威势，比喻倚仗别人的势力欺压人。",
+                origin: "《战国策·楚策一》",
+                hint: "🦊🐯👑"
+            },
+            {
+                idiom: "亡羊补牢",
+                meaning: "羊丢了才修补羊圈，比喻出了问题以后想办法补救。",
+                origin: "《战国策·楚策四》",
+                hint: "🐑🔧🏠"
+            },
+            {
+                idiom: "掩耳盗铃",
+                meaning: "捂住耳朵去偷铃铛，比喻自己欺骗自己。",
+                origin: "《吕氏春秋·自知》",
+                hint: "👂🔕🙈"
+            },
+            {
+                idiom: "拔苗助长",
+                meaning: "把苗拔起来帮助其生长，比喻违反事物发展的客观规律。",
+                origin: "《孟子·公孙丑上》",
+                hint: "🌱⬆️😓"
+            },
+            {
+                idiom: "刻舟求剑",
+                meaning: "在船上刻记号找剑，比喻拘泥成法，不知变通。",
+                origin: "《吕氏春秋·察今》",
+                hint: "🚢🗡️📍"
+            },
+            {
+                idiom: "杯弓蛇影",
+                meaning: "将映在酒杯里的弓影误认为蛇，比喻因疑神疑鬼而引起恐惧。",
+                origin: "《风俗通义·怪神》",
+                hint: "🍷🐍😱"
+            },
+            {
+                idiom: "叶公好龙",
+                meaning: "叶公喜欢龙，比喻表面上爱好某事物，实际上并不真爱好。",
+                origin: "《新序·杂事》",
+                hint: "🌿👨🐉❤️"
+            },
+            {
+                idiom: "自相矛盾",
+                meaning: "自己的矛和盾，比喻言行前后抵触。",
+                origin: "《韩非子·难一》",
+                hint: "⚔️🛡️🔄"
+            },
+            {
+                idiom: "杞人忧天",
+                meaning: "杞国人担心天塌下来，比喻不必要的或缺乏根据的忧虑。",
+                origin: "《列子·天瑞》",
+                hint: "😨☁️🌍"
+            },
+            {
+                idiom: "滥竽充数",
+                meaning: "不会吹竽的人混在乐队里充数，比喻没有真才实学的人混在行家里面充数。",
+                origin: "《韩非子·内储说上》",
+                hint: "🎵👥🎭"
+            },
+            {
+                idiom: "买椟还珠",
+                meaning: "买下木匣，退还了珍珠，比喻没有眼力，取舍不当。",
+                origin: "《韩非子·外储说左上》",
+                hint: "📦💎🔙"
+            },
+            {
+                idiom: "邯郸学步",
+                meaning: "到邯郸学走路，比喻模仿别人不成，反而丧失了原有的技能。",
+                origin: "《庄子·秋水》",
+                hint: "🚶‍♂️🏙️🔄"
+            },
+            {
+                idiom: "东施效颦",
+                meaning: "东施模仿西施皱眉，比喻模仿别人，不但模仿不好，反而出丑。",
+                origin: "《庄子·天运》",
+                hint: "👩‍🦰😬👎"
+            },
+            {
+                idiom: "朝三暮四",
+                meaning: "早上三个，晚上四个，比喻常常变卦，反复无常。",
+                origin: "《庄子·齐物论》",
+                hint: "🌅3️⃣🌙4️⃣"
+            },
+            {
+                idiom: "鹬蚌相争",
+                meaning: "鹬和蚌互相争持，比喻双方相争，让第三者得利。",
+                origin: "《战国策·燕策二》",
+                hint: "🐦🐚⚔️"
+            }
+        ];
 
-      <div class="card">
-        <div class="title">图片提示</div>
-        <div class="emoji-hint" id="emojiHint"></div>
-        <div class="timer-bar">
-          <div class="timer-fill" id="timerFill"></div>
-        </div>
-        <div class="progress" id="progress">第 1 题 / 共 10 题</div>
-      </div>
+        // 游戏状态
+        let gameState = {
+            score: 0,
+            combo: 0,
+            maxCombo: 0,
+            currentQuestion: 0,
+            totalQuestions: 10,
+            timeLeft: 30,
+            timer: null,
+            currentIdiom: null,
+            correctAnswers: 0,
+            wrongAnswers: 0,
+            usedIdioms: [],
+            highScore: parseInt(localStorage.getItem('idiomGameHighScore')) || 0
+        };
 
-      <div class="combo hidden" id="comboDisplay">连击 x0</div>
+        // DOM 元素
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const gameOverScreen = document.getElementById('game-over');
+        const startBtn = document.getElementById('start-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const scoreEl = document.getElementById('score');
+        const comboEl = document.getElementById('combo');
+        const highScoreEl = document.getElementById('high-score');
+        const questionNumberEl = document.getElementById('question-number');
+        const timerFillEl = document.getElementById('timer-fill');
+        const imageHintEl = document.getElementById('image-hint');
+        const optionsEl = document.getElementById('options');
+        const feedbackEl = document.getElementById('feedback');
+        const finalScoreEl = document.getElementById('final-score');
+        const finalHighScoreEl = document.getElementById('final-high-score');
+        const summaryEl = document.getElementById('summary');
 
-      <div class="options" id="options"></div>
-
-      <div class="explanation" id="explanation">
-        <h3 id="correctAnswer"></h3>
-        <p id="meaning"></p>
-        <p id="origin"></p>
-      </div>
-
-      <div class="actions">
-        <button class="btn" id="nextBtn" style="display:none">下一题</button>
-        <button class="btn alt" id="quitBtn">退出游戏</button>
-      </div>
-    </div>
-
-    <!-- 结束界面 -->
-    <div class="screen" id="endScreen">
-      <div class="end-screen">
-        <h2>🎉 游戏结束</h2>
-        <div class="final-score" id="finalScore">0</div>
-        <div class="high-score" id="finalHighScore">最高分：0</div>
-        <div class="actions" style="margin-top:30px">
-          <button class="btn" id="restartBtn">再来一局</button>
-          <button class="btn alt" id="backBtn">返回主页</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const KEY='kan-tu-cai-cheng-yu-save-v1';
-    
-    // 成语数据
-    const IDIOMS=[
-      {
-        idiom:'一箭双雕',
-        emoji:['🏹','🦅','🦅'],
-        meaning:'一箭射中两只雕。比喻做一件事达到两个目的。',
-        origin:'《北史·长孙晟传》'
-      },
-      {
-        idiom:'画蛇添足',
-        emoji:['🐍','🎨','🦶'],
-        meaning:'画蛇时给蛇添上脚。比喻做了多余的事，反而不恰当。',
-        origin:'《战国策·齐策二》'
-      },
-      {
-        idiom:'守株待兔',
-        emoji:['🌳','🐇','⏳'],
-        meaning:'守在树桩旁等待兔子。比喻不主动努力，而存万一的侥幸心理。',
-        origin:'《韩非子·五蠹》'
-      },
-      {
-        idiom:'井底之蛙',
-        emoji:['🕳️','🐸','👀'],
-        meaning:'井底的青蛙。比喻见识短浅的人。',
-        origin:'《庄子·秋水》'
-      },
-      {
-        idiom:'对牛弹琴',
-        emoji:['🐂','🎹','🎵'],
-        meaning:'对着牛弹琴。比喻对不懂道理的人讲道理。',
-        origin:'《庄子·齐物论》'
-      },
-      {
-        idiom:'狐假虎威',
-        emoji:['🦊','🐯','👑'],
-        meaning:'狐狸借老虎的威势。比喻倚仗别人的势力欺压人。',
-        origin:'《战国策·楚策一》'
-      },
-      {
-        idiom:'掩耳盗铃',
-        emoji:['👂','🚫','🔔'],
-        meaning:'捂住耳朵偷铃铛。比喻自己欺骗自己。',
-        origin:'《吕氏春秋·自知》'
-      },
-      {
-        idiom:'拔苗助长',
-        emoji:['🌱','⬆️','🌾'],
-        meaning:'拔起禾苗帮助它生长。比喻违反事物发展的客观规律，急于求成。',
-        origin:'《孟子·公孙丑上》'
-      },
-      {
-        idiom:'亡羊补牢',
-        emoji:['🐑','❌','🔧'],
-        meaning:'羊丢了才修补羊圈。比喻出了问题以后想办法补救，可以防止继续受损失。',
-        origin:'《战国策·楚策四》'
-      },
-      {
-        idiom:'刻舟求剑',
-        emoji:['🚣','⚔️','🔍'],
-        meaning:'在船上刻记号找剑。比喻拘泥成法，不知变通。',
-        origin:'《吕氏春秋·察今》'
-      },
-      {
-        idiom:'杯弓蛇影',
-        emoji:['🍷','🐍','👻'],
-        meaning:'将映在酒杯里的弓影误认为蛇。比喻因疑神疑鬼而引起恐惧。',
-        origin:'《晋书·乐广传》'
-      },
-      {
-        idiom:'叶公好龙',
-        emoji:['🍃','🐉','❤️'],
-        meaning:'叶公喜欢龙。比喻表面上爱好某事物，实际上并不真爱好。',
-        origin:'《新序·杂事五》'
-      },
-      {
-        idiom:'自相矛盾',
-        emoji:['⚔️','🛡️','❓'],
-        meaning:'自己的矛和盾。比喻言行前后不一致。',
-        origin:'《韩非子·难一》'
-      },
-      {
-        idiom:'滥竽充数',
-        emoji:['🎵','🎺','🤥'],
-        meaning:'不会吹竽的人混在乐队里充数。比喻没有真才实学的人混在行家里面充数。',
-        origin:'《韩非子·内储说上》'
-      },
-      {
-        idiom:'买椟还珠',
-        emoji:['📦','💎','↩️'],
-        meaning:'买了盒子退还珍珠。比喻没有眼光，取舍不当。',
-        origin:'《韩非子·外储说左上》'
-      },
-      {
-        idiom:'郑人买履',
-        emoji:['👞','📏','🚶'],
-        meaning:'郑国人买鞋。比喻只相信教条，不顾客观实际。',
-        origin:'《韩非子·外储说左上》'
-      },
-      {
-        idiom:'邯郸学步',
-        emoji:['🚶','👣','🔄'],
-        meaning:'到邯郸学走路。比喻模仿别人不成，反而丧失了原有的技能。',
-        origin:'《庄子·秋水》'
-      },
-      {
-        idiom:'东施效颦',
-        emoji:['👩','😬','👯'],
-        meaning:'东施模仿西施皱眉。比喻模仿别人，不但模仿不好，反而出丑。',
-        origin:'《庄子·天运》'
-      },
-      {
-        idiom:'杞人忧天',
-        emoji:['😰','☁️','🌍'],
-        meaning:'杞国人担心天塌下来。比喻不必要的或缺乏根据的忧虑。',
-        origin:'《列子·天瑞》'
-      },
-      {
-        idiom:'愚公移山',
-        emoji:['👴','⛰️','🔨'],
-        meaning:'愚公移走大山。比喻做事有毅力，有恒心，不怕困难。',
-        origin:'《列子·汤问》'
-      }
-    ];
-
-    const $=id=>document.getElementById(id);
-    const startScreen=$('startScreen'),gameScreen=$('gameScreen'),endScreen=$('endScreen');
-    const startBtn=$('startBtn'),howToPlayBtn=$('howToPlayBtn'),nextBtn=$('nextBtn'),quitBtn=$('quitBtn'),restartBtn=$('restartBtn'),backBtn=$('backBtn');
-    const scoreEl=$('score'),comboEl=$('combo'),highScoreEl=$('highScore'),comboDisplay=$('comboDisplay');
-    const emojiHint=$('emojiHint'),timerFill=$('timerFill'),progressEl=$('progress'),optionsEl=$('options');
-    const explanation=$('explanation'),correctAnswer=$('correctAnswer'),meaning=$('meaning'),origin=$('origin');
-    const finalScore=$('finalScore'),finalHighScore=$('finalHighScore');
-
-    let state={
-      score:0,
-      combo:0,
-      highScore:0,
-      currentQuestion:0,
-      totalQuestions:10,
-      timeLeft:30,
-      timerInterval:null,
-      currentIdiom:null,
-      usedIdioms:[],
-      isAnswered:false
-    };
-
-    function save(){
-      localStorage.setItem(KEY,JSON.stringify({highScore:state.highScore}));
-    }
-
-    function load(){
-      const saved=localStorage.getItem(KEY);
-      if(saved){
-        const data=JSON.parse(saved);
-        state.highScore=data.highScore||0;
-      }
-      highScoreEl.textContent=state.highScore;
-    }
-
-    function showScreen(screen){
-      startScreen.classList.remove('active');
-      gameScreen.classList.remove('active');
-      endScreen.classList.remove('active');
-      screen.classList.add('active');
-    }
-
-    function startGame(){
-      state.score=0;
-      state.combo=0;
-      state.currentQuestion=0;
-      state.usedIdioms=[];
-      state.isAnswered=false;
-      updateStats();
-      showScreen(gameScreen);
-      nextQuestion();
-    }
-
-    function nextQuestion(){
-      if(state.currentQuestion>=state.totalQuestions){
-        endGame();
-        return;
-      }
-
-      state.currentQuestion++;
-      state.timeLeft=30;
-      state.isAnswered=false;
-      
-      // 选择未使用的成语
-      let availableIdioms=IDIOMS.filter(idiom=>!state.usedIdioms.includes(idiom.idiom));
-      if(availableIdioms.length===0){
-        state.usedIdioms=[];
-        availableIdioms=[...IDIOMS];
-      }
-      
-      const randomIndex=Math.floor(Math.random()*availableIdioms.length);
-      state.currentIdiom=availableIdioms[randomIndex];
-      state.usedIdioms.push(state.currentIdiom.idiom);
-
-      // 显示 emoji 提示
-      emojiHint.innerHTML=state.currentIdiom.emoji.map(e=>`<span>${e}</span>`).join('');
-
-      // 生成选项
-      generateOptions();
-
-      // 更新进度
-      progressEl.textContent=`第 ${state.currentQuestion} 题 / 共 ${state.totalQuestions} 题`;
-
-      // 隐藏解释和下一题按钮
-      explanation.classList.remove('show');
-      nextBtn.style.display='none';
-
-      // 开始计时
-      startTimer();
-    }
-
-    function generateOptions(){
-      const correctAnswer=state.currentIdiom.idiom;
-      const options=[correctAnswer];
-      
-      // 添加三个错误选项
-      while(options.length<4){
-        const randomIdiom=IDIOMS[Math.floor(Math.random()*IDIOMS.length)].idiom;
-        if(!options.includes(randomIdiom)){
-          options.push(randomIdiom);
+        // 初始化
+        function init() {
+            highScoreEl.textContent = gameState.highScore;
+            startBtn.addEventListener('click', startGame);
+            nextBtn.addEventListener('click', nextQuestion);
+            restartBtn.addEventListener('click', restartGame);
         }
-      }
 
-      // 随机排序
-      options.sort(()=>Math.random()-0.5);
+        // 开始游戏
+        function startGame() {
+            gameState = {
+                score: 0,
+                combo: 0,
+                maxCombo: 0,
+                currentQuestion: 0,
+                totalQuestions: 10,
+                timeLeft: 30,
+                timer: null,
+                currentIdiom: null,
+                correctAnswers: 0,
+                wrongAnswers: 0,
+                usedIdioms: [],
+                highScore: gameState.highScore
+            };
 
-      // 显示选项
-      optionsEl.innerHTML=options.map(option=>`
-        <div class="option" data-answer="${option}">${option}</div>
-      `).join('');
+            updateStats();
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
 
-      // 添加点击事件
-      document.querySelectorAll('.option').forEach(optionEl=>{
-        optionEl.addEventListener('click',()=>selectAnswer(optionEl));
-      });
-    }
-
-    function selectAnswer(optionEl){
-      if(state.isAnswered) return;
-      
-      state.isAnswered=true;
-      clearInterval(state.timerInterval);
-      
-      const selectedAnswer=optionEl.dataset.answer;
-      const isCorrect=selectedAnswer===state.currentIdiom.idiom;
-
-      // 禁用所有选项
-      document.querySelectorAll('.option').forEach(el=>{
-        el.classList.add('disabled');
-        if(el.dataset.answer===state.currentIdiom.idiom){
-          el.classList.add('correct');
-        }else if(el===optionEl && !isCorrect){
-          el.classList.add('wrong');
+            nextQuestion();
         }
-      });
 
-      if(isCorrect){
-        // 答对
-        state.combo++;
-        const comboBonus=Math.min(state.combo-1,5);
-        const points=10+comboBonus*2;
-        state.score+=points;
-        
-        // 显示连击
-        if(state.combo>1){
-          comboDisplay.textContent=`连击 x${state.combo}`;
-          comboDisplay.classList.remove('hidden');
+        // 下一题
+        function nextQuestion() {
+            if (gameState.currentQuestion >= gameState.totalQuestions) {
+                endGame();
+                return;
+            }
+
+            gameState.currentQuestion++;
+            gameState.timeLeft = 30;
+            nextBtn.style.display = 'none';
+            feedbackEl.innerHTML = '';
+
+            // 选择成语
+            let availableIdioms = idioms.filter(idiom => !gameState.usedIdioms.includes(idiom.idiom));
+            if (availableIdioms.length === 0) {
+                gameState.usedIdioms = [];
+                availableIdioms = [...idioms];
+            }
+
+            const randomIndex = Math.floor(Math.random() * availableIdioms.length);
+            gameState.currentIdiom = availableIdioms[randomIndex];
+            gameState.usedIdioms.push(gameState.currentIdiom.idiom);
+
+            // 显示题目
+            questionNumberEl.textContent = `第 ${gameState.currentQuestion} / ${gameState.totalQuestions} 题`;
+            imageHintEl.textContent = gameState.currentIdiom.hint;
+
+            // 生成选项
+            generateOptions();
+
+            // 开始计时
+            startTimer();
         }
-        
-        // 显示解释
-        correctAnswer.textContent=state.currentIdiom.idiom;
-        meaning.textContent=`释义：${state.currentIdiom.meaning}`;
-        origin.textContent=`出处：${state.currentIdiom.origin}`;
-        explanation.classList.add('show');
-      }else{
-        // 答错
-        state.combo=0;
-        comboDisplay.classList.add('hidden');
-      }
 
-      updateStats();
-      
-      // 显示下一题按钮
-      nextBtn.style.display='block';
-      nextBtn.textContent=state.currentQuestion>=state.totalQuestions?'查看结果':'下一题';
-    }
+        // 生成选项
+        function generateOptions() {
+            const correctIdiom = gameState.currentIdiom.idiom;
+            let options = [correctIdiom];
 
-    function startTimer(){
-      clearInterval(state.timerInterval);
-      timerFill.style.width='100%';
-      
-      state.timerInterval=setInterval(()=>{
-        state.timeLeft--;
-        timerFill.style.width=`${(state.timeLeft/30)*100}%`;
-        
-        if(state.timeLeft<=0){
-          clearInterval(state.timerInterval);
-          timeOut();
+            // 添加错误选项
+            const otherIdioms = idioms.filter(idiom => idiom.idiom !== correctIdiom);
+            while (options.length < 4 && otherIdioms.length > 0) {
+                const randomIndex = Math.floor(Math.random() * otherIdioms.length);
+                const wrongIdiom = otherIdioms[randomIndex].idiom;
+                if (!options.includes(wrongIdiom)) {
+                    options.push(wrongIdiom);
+                }
+                otherIdioms.splice(randomIndex, 1);
+            }
+
+            // 随机排序
+            options = shuffleArray(options);
+
+            // 渲染选项
+            optionsEl.innerHTML = '';
+            options.forEach((option, index) => {
+                const optionEl = document.createElement('div');
+                optionEl.className = 'option';
+                optionEl.textContent = option;
+                optionEl.addEventListener('click', () => selectAnswer(option, optionEl));
+                optionsEl.appendChild(optionEl);
+            });
         }
-      },100);
-    }
 
-    function timeOut(){
-      if(state.isAnswered) return;
-      
-      state.isAnswered=true;
-      state.combo=0;
-      comboDisplay.classList.add('hidden');
-      
-      // 显示正确答案
-      document.querySelectorAll('.option').forEach(el=>{
-        el.classList.add('disabled');
-        if(el.dataset.answer===state.currentIdiom.idiom){
-          el.classList.add('correct');
+        // 选择答案
+        function selectAnswer(answer, optionEl) {
+            clearInterval(gameState.timer);
+
+            const options = optionsEl.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.add('disabled'));
+
+            const isCorrect = answer === gameState.currentIdiom.idiom;
+
+            if (isCorrect) {
+                optionEl.classList.add('correct');
+                gameState.combo++;
+                gameState.correctAnswers++;
+                if (gameState.combo > gameState.maxCombo) {
+                    gameState.maxCombo = gameState.combo;
+                }
+
+                // 计算得分：基础分100 + 连击加成（最高5倍）
+                const comboMultiplier = Math.min(gameState.combo, 5);
+                const points = 100 * comboMultiplier;
+                gameState.score += points;
+
+                showFeedback(true, points);
+            } else {
+                optionEl.classList.add('wrong');
+                gameState.combo = 0;
+                gameState.wrongAnswers++;
+
+                // 显示正确答案
+                options.forEach(opt => {
+                    if (opt.textContent === gameState.currentIdiom.idiom) {
+                        opt.classList.add('correct');
+                    }
+                });
+
+                showFeedback(false, 0);
+            }
+
+            updateStats();
+            nextBtn.style.display = 'block';
         }
-      });
 
-      // 显示解释
-      correctAnswer.textContent=state.currentIdiom.idiom;
-      meaning.textContent=`释义：${state.currentIdiom.meaning}`;
-      origin.textContent=`出处：${state.currentIdiom.origin}`;
-      explanation.classList.add('show');
+        // 显示反馈
+        function showFeedback(isCorrect, points) {
+            const idiom = gameState.currentIdiom;
+            let html = '';
 
-      updateStats();
-      
-      // 显示下一题按钮
-      nextBtn.style.display='block';
-      nextBtn.textContent=state.currentQuestion>=state.totalQuestions?'查看结果':'下一题';
-    }
+            if (isCorrect) {
+                html = `
+                    <div class="feedback-text correct">✅ 回答正确！+${points}分</div>
+                    <div class="idiom-info">
+                        <p><strong>${idiom.idiom}</strong></p>
+                        <p><strong>释义：</strong>${idiom.meaning}</p>
+                        <p><strong>出处：</strong>${idiom.origin}</p>
+                    </div>
+                `;
+            } else {
+                html = `
+                    <div class="feedback-text wrong">❌ 回答错误</div>
+                    <div class="idiom-info">
+                        <p><strong>正确答案：${idiom.idiom}</strong></p>
+                        <p><strong>释义：</strong>${idiom.meaning}</p>
+                        <p><strong>出处：</strong>${idiom.origin}</p>
+                    </div>
+                `;
+            }
 
-    function updateStats(){
-      scoreEl.textContent=state.score;
-      comboEl.textContent=state.combo;
-      highScoreEl.textContent=state.highScore;
-    }
+            feedbackEl.innerHTML = html;
+        }
 
-    function endGame(){
-      clearInterval(state.timerInterval);
-      
-      // 更新最高分
-      if(state.score>state.highScore){
-        state.highScore=state.score;
-        save();
-      }
+        // 开始计时
+        function startTimer() {
+            updateTimerDisplay();
+            gameState.timer = setInterval(() => {
+                gameState.timeLeft--;
+                updateTimerDisplay();
 
-      finalScore.textContent=state.score;
-      finalHighScore.textContent=`最高分：${state.highScore}`;
-      
-      showScreen(endScreen);
-    }
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(gameState.timer);
+                    timeUp();
+                }
+            }, 1000);
+        }
 
-    function quitGame(){
-      clearInterval(state.timerInterval);
-      showScreen(startScreen);
-    }
+        // 更新计时器显示
+        function updateTimerDisplay() {
+            const percentage = (gameState.timeLeft / 30) * 100;
+            timerFillEl.style.width = `${percentage}%`;
+        }
 
-    // 事件监听
-    startBtn.addEventListener('click',startGame);
-    howToPlayBtn.addEventListener('click',()=>{
-      alert('游戏玩法：\n\n1. 观察上方的 emoji 图片提示\n2. 从四个选项中选择正确的成语\n3. 每题有 30 秒时间\n4. 连续答对有连击加分\n5. 答对后会显示成语释义和出处\n\n祝你玩得开心！');
-    });
-    nextBtn.addEventListener('click',nextQuestion);
-    quitBtn.addEventListener('click',quitGame);
-    restartBtn.addEventListener('click',startGame);
-    backBtn.addEventListener('click',()=>showScreen(startScreen));
+        // 时间到
+        function timeUp() {
+            const options = optionsEl.querySelectorAll('.option');
+            options.forEach(opt => {
+                opt.classList.add('disabled');
+                if (opt.textContent === gameState.currentIdiom.idiom) {
+                    opt.classList.add('correct');
+                }
+            });
 
-    // 初始化
-    load();
-  </script>
+            gameState.combo = 0;
+            gameState.wrongAnswers++;
+
+            feedbackEl.innerHTML = `
+                <div class="feedback-text wrong">⏰ 时间到！</div>
+                <div class="idiom-info">
+                    <p><strong>正确答案：${gameState.currentIdiom.idiom}</strong></p>
+                    <p><strong>释义：</strong>${gameState.currentIdiom.meaning}</p>
+                    <p><strong>出处：</strong>${gameState.currentIdiom.origin}</p>
+                </div>
+            `;
+
+            updateStats();
+            nextBtn.style.display = 'block';
+        }
+
+        // 更新统计
+        function updateStats() {
+            scoreEl.textContent = gameState.score;
+            comboEl.textContent = gameState.combo;
+            highScoreEl.textContent = gameState.highScore;
+        }
+
+        // 结束游戏
+        function endGame() {
+            clearInterval(gameState.timer);
+
+            // 更新最高分
+            if (gameState.score > gameState.highScore) {
+                gameState.highScore = gameState.score;
+                localStorage.setItem('idiomGameHighScore', gameState.highScore);
+            }
+
+            gameScreen.style.display = 'none';
+            gameOverScreen.style.display = 'block';
+
+            finalScoreEl.textContent = gameState.score;
+            finalHighScoreEl.textContent = `最高分: ${gameState.highScore}`;
+
+            // 显示总结
+            const accuracy = Math.round((gameState.correctAnswers / gameState.totalQuestions) * 100);
+            summaryEl.innerHTML = `
+                <h3>📊 游戏总结</h3>
+                <div class="summary-item">
+                    <span>答对题数</span>
+                    <span>${gameState.correctAnswers} / ${gameState.totalQuestions}</span>
+                </div>
+                <div class="summary-item">
+                    <span>答错题数</span>
+                    <span>${gameState.wrongAnswers}</span>
+                </div>
+                <div class="summary-item">
+                    <span>正确率</span>
+                    <span>${accuracy}%</span>
+                </div>
+                <div class="summary-item">
+                    <span>最高连击</span>
+                    <span>${gameState.maxCombo} 连击</span>
+                </div>
+                <div class="summary-item">
+                    <span>最终得分</span>
+                    <span>${gameState.score} 分</span>
+                </div>
+            `;
+        }
+
+        // 重新开始
+        function restartGame() {
+            startGame();
+        }
+
+        // 数组随机排序
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        // 启动游戏
+        init();
+    </script>
 </body>
 </html>
