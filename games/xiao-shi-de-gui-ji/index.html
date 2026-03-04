@@ -1,0 +1,875 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>消失的轨迹</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --star: #fef3c7;
+      --star-dark: #f59e0b;
+      --clothes: #dbeafe;
+      --clothes-dark: #3b82f6;
+      --show: #d1fae5;
+      --show-dark: #10b981;
+      --fans: #fce7f3;
+      --fans-dark: #ec4899;
+      --dream: #e0e7ff;
+      --dream-dark: #6366f1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .star {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--star);
+      margin-bottom: 16px;
+    }
+
+    .star-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .star-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .star-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .star-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .star-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .star-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .star-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .star-item .level {
+      font-size: 0.7rem;
+      color: var(--star-dark);
+      font-weight: 700;
+    }
+
+    .clothes {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--clothes);
+      margin-bottom: 16px;
+    }
+
+    .clothes-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .clothes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .clothes-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .clothes-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .clothes-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .clothes-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .clothes-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .clothes-item .cost {
+      font-size: 0.7rem;
+      color: var(--clothes-dark);
+      font-weight: 700;
+    }
+
+    .show {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--show);
+      margin-bottom: 16px;
+    }
+
+    .show-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .show-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .show-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .show-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .show-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .show-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .show-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .show-item .reward {
+      font-size: 0.7rem;
+      color: var(--show-dark);
+      font-weight: 700;
+    }
+
+    .fans {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--fans);
+      margin-bottom: 16px;
+    }
+
+    .fans-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .fans-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .fans-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .fans-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .fans-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .fans-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .fans-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .fans-item .cost {
+      font-size: 0.7rem;
+      color: var(--fans-dark);
+      font-weight: 700;
+    }
+
+    .dream {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--dream);
+      margin-bottom: 16px;
+    }
+
+    .dream-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .dream-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .dream-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .dream-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .dream-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .dream-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .dream-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .dream-item .cost {
+      font-size: 0.7rem;
+      color: var(--dream-dark);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--star-dark);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>消失的轨迹</h1>
+    <p class="subtitle">培养出一位明星出来，搭配服装，通过表演获得高的声誉和多的粉丝！</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="gold">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">声誉</span>
+        <span class="value green" id="reputation">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">粉丝</span>
+        <span class="value blue" id="fans">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="star">
+          <div class="star-title">明星</div>
+          <div class="star-grid" id="star"></div>
+        </div>
+
+        <div class="clothes">
+          <div class="clothes-title">服装</div>
+          <div class="clothes-grid" id="clothes"></div>
+        </div>
+
+        <div class="show">
+          <div class="show-title">表演</div>
+          <div class="show-grid" id="show"></div>
+        </div>
+
+        <div class="fans">
+          <div class="fans-title">粉丝</div>
+          <div class="fans-grid" id="fans"></div>
+        </div>
+
+        <div class="dream">
+          <div class="dream-title">梦想</div>
+          <div class="dream-grid" id="dream"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="startBtn">开始培养</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      star: [
+        { id: 'trainee', name: '练习生', emoji: '🎤', level: 1 },
+        { id: 'idol', name: '偶像', emoji: '🌟', level: 1 },
+        { id: 'singer', name: '歌手', emoji: '🎵', level: 1 },
+        { id: 'actor', name: '演员', emoji: '🎬', level: 1 },
+        { id: 'star', name: '明星', emoji: '⭐', level: 1 },
+        { id: 'superstar', name: '超级明星', emoji: '👑', level: 1 }
+      ],
+      clothes: [
+        { id: 'casual', name: '休闲装', emoji: '👕', cost: 100 },
+        { id: 'formal', name: '正装', emoji: '👔', cost: 200 },
+        { id: 'stage', name: '舞台装', emoji: '👗', cost: 300 },
+        { id: 'red', name: '红毯装', emoji: '👠', cost: 400 },
+        { id: 'designer', name: '设计师', emoji: '👒', cost: 500 },
+        { id: 'luxury', name: '奢侈品', emoji: '💎', cost: 600 }
+      ],
+      show: [
+        { id: 'street', name: '街头表演', emoji: '🎤', reward: 50 },
+        { id: 'club', name: '俱乐部', emoji: '🎪', reward: 100 },
+        { id: 'theater', name: '剧院', emoji: '🎭', reward: 150 },
+        { id: 'tv', name: '电视节目', emoji: '📺', reward: 200 },
+        { id: 'concert', name: '演唱会', emoji: '🏟️', reward: 250 },
+        { id: 'award', name: '颁奖典礼', emoji: '🏆', reward: 300 }
+      ],
+      fans: [
+        { id: 'local', name: '本地粉丝', emoji: '👥', cost: 50 },
+        { id: 'regional', name: '区域粉丝', emoji: '🏙️', cost: 100 },
+        { id: 'national', name: '全国粉丝', emoji: '🇨🇳', cost: 150 },
+        { id: 'international', name: '国际粉丝', emoji: '🌍', cost: 200 },
+        { id: 'global', name: '全球粉丝', emoji: '🌎', cost: 250 },
+        { id: 'legendary', name: '传奇粉丝', emoji: '🌟', cost: 300 }
+      ],
+      dream: [
+        { id: 'debut', name: '出道', emoji: '🎉', cost: 100 },
+        { id: 'hit', name: '热门单曲', emoji: '💿', cost: 200 },
+        { id: 'album', name: '专辑', emoji: '📀', cost: 300 },
+        { id: 'movie', name: '电影', emoji: '🎥', cost: 400 },
+        { id: 'award', name: '奖项', emoji: '🏅', cost: 500 },
+        { id: 'legend', name: '传奇', emoji: '👑', cost: 600 }
+      ]
+    };
+
+    // 游戏状态
+    let gold = 0;
+    let reputation = 0;
+    let fans = 0;
+    let ownedStars = [];
+    let ownedClothes = [];
+    let ownedShows = [];
+    let ownedFans = [];
+    let ownedDreams = [];
+    let gameLoop = null;
+
+    // DOM 元素
+    const goldEl = document.getElementById('gold');
+    const reputationEl = document.getElementById('reputation');
+    const fansEl = document.getElementById('fans');
+    const starEl = document.getElementById('star');
+    const clothesEl = document.getElementById('clothes');
+    const showEl = document.getElementById('show');
+    const fansEl = document.getElementById('fans');
+    const dreamEl = document.getElementById('dream');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      gold = 0;
+      reputation = 0;
+      fans = 0;
+      ownedStars = [];
+      ownedClothes = [];
+      ownedShows = [];
+      ownedFans = [];
+      ownedDreams = [];
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateStar();
+      updateClothes();
+      updateShow();
+      updateFans();
+      updateDream();
+
+      // 开始游戏循环
+      startGameLoop();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('xiao-shi-de-gui-ji');
+      if (saved) {
+        const data = JSON.parse(saved);
+        gold = data.gold || 0;
+        reputation = data.reputation || 0;
+        fans = data.fans || 0;
+        ownedStars = data.ownedStars || [];
+        ownedClothes = data.ownedClothes || [];
+        ownedShows = data.ownedShows || [];
+        ownedFans = data.ownedFans || [];
+        ownedDreams = data.ownedDreams || [];
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        gold,
+        reputation,
+        fans,
+        ownedStars,
+        ownedClothes,
+        ownedShows,
+        ownedFans,
+        ownedDreams
+      };
+      localStorage.setItem('xiao-shi-de-gui-ji', JSON.stringify(data));
+    }
+
+    // 开始游戏循环
+    function startGameLoop() {
+      if (gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => {
+        // 自动收集资源
+        collectResources();
+        updateStats();
+        saveGame();
+      }, 1000);
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      goldEl.textContent = gold;
+      reputationEl.textContent = reputation;
+      fansEl.textContent = fans;
+    }
+
+    // 更新明星显示
+    function updateStar() {
+      starEl.innerHTML = '';
+      config.star.forEach(star => {
+        const owned = ownedStars.some(s => s.id === star.id);
+        const canAfford = gold >= 50;
+
+        const starEl = document.createElement('div');
+        starEl.className = 'star-item';
+        starEl.innerHTML = `
+          <div class="emoji">${star.emoji}</div>
+          <div class="name">${star.name}</div>
+          <div class="level">Lv.${star.level}</div>
+        `;
+        if (!owned && canAfford) {
+          starEl.addEventListener('click', () => buyStar(star));
+        } else {
+          starEl.disabled = true;
+        }
+        starEl.appendChild(starEl);
+      });
+    }
+
+    // 更新服装显示
+    function updateClothes() {
+      clothesEl.innerHTML = '';
+      config.clothes.forEach(clothes => {
+        const owned = ownedClothes.some(c => c.id === clothes.id);
+        const canAfford = gold >= clothes.cost;
+
+        const clothesEl = document.createElement('div');
+        clothesEl.className = 'clothes-item';
+        clothesEl.innerHTML = `
+          <div class="emoji">${clothes.emoji}</div>
+          <div class="name">${clothes.name}</div>
+          <div class="cost">${clothes.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          clothesEl.addEventListener('click', () => buyClothes(clothes));
+        } else {
+          clothesEl.disabled = true;
+        }
+        clothesEl.appendChild(clothesEl);
+      });
+    }
+
+    // 更新表演显示
+    function updateShow() {
+      showEl.innerHTML = '';
+      config.show.forEach(show => {
+        const canPlay = ownedStars.length > 0;
+
+        const showEl = document.createElement('div');
+        showEl.className = 'show-item';
+        showEl.innerHTML = `
+          <div class="emoji">${show.emoji}</div>
+          <div class="name">${show.name}</div>
+          <div class="reward">+${show.reward}</div>
+        `;
+        if (canPlay) {
+          showEl.addEventListener('click', () => doShow(show));
+        } else {
+          showEl.disabled = true;
+        }
+        showEl.appendChild(showEl);
+      });
+    }
+
+    // 更新粉丝显示
+    function updateFans() {
+      fansEl.innerHTML = '';
+      config.fans.forEach(fan => {
+        const owned = ownedFans.some(f => f.id === fan.id);
+        const canAfford = gold >= fan.cost;
+
+        const fanEl = document.createElement('div');
+        fanEl.className = 'fans-item';
+        fanEl.innerHTML = `
+          <div class="emoji">${fan.emoji}</div>
+          <div class="name">${fan.name}</div>
+          <div class="cost">${fan.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          fanEl.addEventListener('click', () => buyFans(fan));
+        } else {
+          fanEl.disabled = true;
+        }
+        fanEl.appendChild(fanEl);
+      });
+    }
+
+    // 更新梦想显示
+    function updateDream() {
+      dreamEl.innerHTML = '';
+      config.dream.forEach(dream => {
+        const owned = ownedDreams.some(d => d.id === dream.id);
+        const canAfford = gold >= dream.cost;
+
+        const dreamEl = document.createElement('div');
+        dreamEl.className = 'dream-item';
+        dreamEl.innerHTML = `
+          <div class="emoji">${dream.emoji}</div>
+          <div class="name">${dream.name}</div>
+          <div class="cost">${dream.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          dreamEl.addEventListener('click', () => buyDream(dream));
+        } else {
+          dreamEl.disabled = true;
+        }
+        dreamEl.appendChild(dreamEl);
+      });
+    }
+
+    // 购买明星
+    function buyStar(star) {
+      if (gold >= 50) {
+        gold -= 50;
+        ownedStars.push(star);
+        updateStats();
+        updateStar();
+        updateShow();
+        saveGame();
+        alert(`购买成功！获得 ${star.name}`);
+      }
+    }
+
+    // 购买服装
+    function buyClothes(clothes) {
+      if (gold >= clothes.cost) {
+        gold -= clothes.cost;
+        ownedClothes.push(clothes);
+        updateStats();
+        updateClothes();
+        saveGame();
+        alert(`购买成功！获得 ${clothes.name}`);
+      }
+    }
+
+    // 进行表演
+    function doShow(show) {
+      if (ownedStars.length > 0) {
+        gold += show.reward;
+        reputation += show.reward / 10;
+        updateStats();
+        saveGame();
+        alert(`表演成功！获得 ${show.reward} 金币，声誉 +${show.reward / 10}`);
+      }
+    }
+
+    // 购买粉丝
+    function buyFans(fan) {
+      if (gold >= fan.cost) {
+        gold -= fan.cost;
+        ownedFans.push(fan);
+        fans += 100;
+        updateStats();
+        updateFans();
+        saveGame();
+        alert(`购买成功！获得 ${fan.name}，粉丝 +100`);
+      }
+    }
+
+    // 购买梦想
+    function buyDream(dream) {
+      if (gold >= dream.cost) {
+        gold -= dream.cost;
+        ownedDreams.push(dream);
+        updateStats();
+        updateDream();
+        saveGame();
+        alert(`购买成功！获得 ${dream.name}`);
+      }
+    }
+
+    // 收集资源
+    function collectResources() {
+      // 明星加成
+      ownedStars.forEach(star => {
+        gold += 1;
+      });
+
+      // 服装加成
+      ownedClothes.forEach(clothes => {
+        gold += 2;
+      });
+
+      // 粉丝加成
+      ownedFans.forEach(fan => {
+        gold += 3;
+      });
+
+      // 梦想加成
+      gold += ownedDreams.length * 5;
+    }
+
+    // 开始培养
+    function startTrain() {
+      // 随机添加明星
+      const randomStar = Math.floor(Math.random() * 3) + 1;
+      for (let i = 0; i < randomStar; i++) {
+        const star = config.star[Math.floor(Math.random() * config.star.length)];
+        if (!ownedStars.some(s => s.id === star.id)) {
+          ownedStars.push(star);
+        }
+      }
+      updateStats();
+      updateStar();
+      updateShow();
+      saveGame();
+      alert(`培养开始！添加了 ${randomStar} 个明星`);
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('xiao-shi-de-gui-ji');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    startBtn.addEventListener('click', startTrain);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
