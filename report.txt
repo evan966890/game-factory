@@ -2,7 +2,7 @@
 
 《看图猜成语》
 灵感来源：微信小游戏《看图猜成语》
-根据 emoji 图片提示猜成语，答对加分连击，30秒限时挑战
-▶️ 试玩：https://evan966890.github.io/game-factory/games/看图猜成语/
+观察emoji图片提示，从四个选项中选择正确的成语，答对显示释义和出处，有连击系统和时间限制
+▶️ 试玩：https://evan966890.github.io/game-factory/games/%E7%9C%8B%E5%9B%BE%E7%8C%9C%E6%88%90%E8%AF%AD/
 
-📊 游戏工厂累计：180 个游戏
+📊 游戏工厂累计：183 个游戏
