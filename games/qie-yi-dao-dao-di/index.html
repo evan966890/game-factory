@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>切一刀到底</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --text: #17324d;
+      --muted: #5b7188;
+      --primary: #0a7d8c;
+      --primary-dark: #075a65;
+      --ok: #137f3f;
+      --bad: #b23232;
+      --border: #d9e6ef;
+      --radius: 16px;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --orange: #f97316;
+      --cut: #fef3c7;
+      --cut-dark: #f59e0b;
+      --knife: #dbeafe;
+      --knife-dark: #3b82f6;
+      --skin: #d1fae5;
+      --skin-dark: #10b981;
+      --relax: #fce7f3;
+      --relax-dark: #ec4899;
+      --level: #e0e7ff;
+      --level-dark: #6366f1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #e9f7ff 0%, var(--bg) 45%, #f3fff6 100%);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(7, 90, 101, 0.12);
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #f8fcff;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .stat .value.gold {
+      color: var(--gold);
+    }
+
+    .stat .value.green {
+      color: var(--green);
+    }
+
+    .stat .value.blue {
+      color: var(--blue);
+    }
+
+    .game-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #fcfeff;
+    }
+
+    .game-area {
+      padding: 16px;
+      min-height: 300px;
+    }
+
+    .cut {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--cut);
+      margin-bottom: 16px;
+    }
+
+    .cut-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .cut-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .cut-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .cut-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .cut-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .cut-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .cut-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .cut-item .reward {
+      font-size: 0.7rem;
+      color: var(--cut-dark);
+      font-weight: 700;
+    }
+
+    .knife {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--knife);
+      margin-bottom: 16px;
+    }
+
+    .knife-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .knife-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .knife-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .knife-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .knife-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .knife-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .knife-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .knife-item .power {
+      font-size: 0.7rem;
+      color: var(--knife-dark);
+      font-weight: 700;
+    }
+
+    .skin {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--skin);
+      margin-bottom: 16px;
+    }
+
+    .skin-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .skin-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .skin-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .skin-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .skin-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .skin-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .skin-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .skin-item .cost {
+      font-size: 0.7rem;
+      color: var(--skin-dark);
+      font-weight: 700;
+    }
+
+    .relax {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--relax);
+      margin-bottom: 16px;
+    }
+
+    .relax-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .relax-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .relax-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .relax-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .relax-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .relax-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .relax-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .relax-item .cost {
+      font-size: 0.7rem;
+      color: var(--relax-dark);
+      font-weight: 700;
+    }
+
+    .level {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--level);
+      margin-bottom: 16px;
+    }
+
+    .level-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .level-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .level-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .level-item:hover {
+      background: #e8f4f8;
+      border-color: var(--primary);
+    }
+
+    .level-item:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .level-item .emoji {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .level-item .name {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .level-item .cost {
+      font-size: 0.7rem;
+      color: var(--level-dark);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: var(--cut-dark);
+    }
+
+    .btn.secondary:hover {
+      background: #d97706;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>切一刀到底</h1>
+    <p class="subtitle">开局一把刀，无限切切切！超魔性休闲解压切割游戏！</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">金币</span>
+        <span class="value gold" id="gold">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span class="value green" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span class="label">刀具</span>
+        <span class="value blue" id="knives">0</span>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-area">
+        <div class="cut">
+          <div class="cut-title">切割</div>
+          <div class="cut-grid" id="cut"></div>
+        </div>
+
+        <div class="knife">
+          <div class="knife-title">刀具</div>
+          <div class="knife-grid" id="knife"></div>
+        </div>
+
+        <div class="skin">
+          <div class="skin-title">皮肤</div>
+          <div class="skin-grid" id="skin"></div>
+        </div>
+
+        <div class="relax">
+          <div class="relax-title">解压</div>
+          <div class="relax-grid" id="relax"></div>
+        </div>
+
+        <div class="level">
+          <div class="level-title">关卡</div>
+          <div class="level-grid" id="level"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="startBtn">开始切割</button>
+      <button class="btn secondary" id="resetBtn">重置</button>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置
+    const config = {
+      cut: [
+        { id: 'fruit', name: '水果', emoji: '🍎', reward: 50 },
+        { id: 'vegetable', name: '蔬菜', emoji: '🥬', reward: 60 },
+        { id: 'meat', name: '肉类', emoji: '🥩', reward: 70 },
+        { id: 'wood', name: '木头', emoji: '🪵', reward: 80 },
+        { id: 'stone', name: '石头', emoji: '🪨', reward: 90 },
+        { id: 'metal', name: '金属', emoji: '🔩', reward: 100 }
+      ],
+      knife: [
+        { id: 'basic', name: '基础刀', emoji: '🔪', power: 10 },
+        { id: 'sharp', name: '锋利刀', emoji: '🗡️', power: 20 },
+        { id: 'magic', name: '魔法刀', emoji: '✨', power: 30 },
+        { id: 'fire', name: '火焰刀', emoji: '🔥', power: 40 },
+        { id: 'ice', name: '冰霜刀', emoji: '❄️', power: 50 },
+        { id: 'thunder', name: '雷霆刀', emoji: '⚡', power: 60 }
+      ],
+      skin: [
+        { id: 'basic', name: '基础皮肤', emoji: '🎨', cost: 100 },
+        { id: 'gold', name: '黄金皮肤', emoji: '🥇', cost: 200 },
+        { id: 'diamond', name: '钻石皮肤', emoji: '💎', cost: 300 },
+        { id: 'rainbow', name: '彩虹皮肤', emoji: '🌈', cost: 400 },
+        { id: 'galaxy', name: '银河皮肤', emoji: '🌌', cost: 500 },
+        { id: 'magic', name: '魔法皮肤', emoji: '🔮', cost: 600 }
+      ],
+      relax: [
+        { id: 'slow', name: '慢速', emoji: '🐢', cost: 50 },
+        { id: 'fast', name: '快速', emoji: '🐇', cost: 100 },
+        { id: 'combo', name: '连击', emoji: '💥', cost: 150 },
+        { id: 'critical', name: '暴击', emoji: '🎯', cost: 200 },
+        { id: 'auto', name: '自动', emoji: '🤖', cost: 250 },
+        { id: 'infinite', name: '无限', emoji: '♾️', cost: 300 }
+      ],
+      level: [
+        { id: 'level1', name: '第一关', emoji: '1️⃣', cost: 50 },
+        { id: 'level2', name: '第二关', emoji: '2️⃣', cost: 100 },
+        { id: 'level3', name: '第三关', emoji: '3️⃣', cost: 150 },
+        { id: 'level4', name: '第四关', emoji: '4️⃣', cost: 200 },
+        { id: 'level5', name: '第五关', emoji: '5️⃣', cost: 250 },
+        { id: 'level6', name: '第六关', emoji: '6️⃣', cost: 300 }
+      ]
+    };
+
+    // 游戏状态
+    let gold = 0;
+    let level = 1;
+    let knives = 0;
+    let ownedCuts = [];
+    let ownedKnives = [];
+    let ownedSkins = [];
+    let ownedRelaxes = [];
+    let ownedLevels = [];
+    let gameLoop = null;
+
+    // DOM 元素
+    const goldEl = document.getElementById('gold');
+    const levelEl = document.getElementById('level');
+    const knivesEl = document.getElementById('knives');
+    const cutEl = document.getElementById('cut');
+    const knifeEl = document.getElementById('knife');
+    const skinEl = document.getElementById('skin');
+    const relaxEl = document.getElementById('relax');
+    const levelEl = document.getElementById('level');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 初始化游戏
+    function initGame() {
+      gold = 0;
+      level = 1;
+      knives = 0;
+      ownedCuts = [];
+      ownedKnives = [];
+      ownedSkins = [];
+      ownedRelaxes = [];
+      ownedLevels = [];
+
+      // 加载保存的游戏
+      loadGame();
+
+      // 更新显示
+      updateStats();
+      updateCut();
+      updateKnife();
+      updateSkin();
+      updateRelax();
+      updateLevel();
+
+      // 开始游戏循环
+      startGameLoop();
+    }
+
+    // 加载游戏
+    function loadGame() {
+      const saved = localStorage.getItem('qie-yi-dao-dao-di');
+      if (saved) {
+        const data = JSON.parse(saved);
+        gold = data.gold || 0;
+        level = data.level || 1;
+        knives = data.knives || 0;
+        ownedCuts = data.ownedCuts || [];
+        ownedKnives = data.ownedKnives || [];
+        ownedSkins = data.ownedSkins || [];
+        ownedRelaxes = data.ownedRelaxes || [];
+        ownedLevels = data.ownedLevels || [];
+      }
+    }
+
+    // 保存游戏
+    function saveGame() {
+      const data = {
+        gold,
+        level,
+        knives,
+        ownedCuts,
+        ownedKnives,
+        ownedSkins,
+        ownedRelaxes,
+        ownedLevels
+      };
+      localStorage.setItem('qie-yi-dao-dao-di', JSON.stringify(data));
+    }
+
+    // 开始游戏循环
+    function startGameLoop() {
+      if (gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => {
+        // 自动收集资源
+        collectResources();
+        updateStats();
+        saveGame();
+      }, 1000);
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      goldEl.textContent = gold;
+      levelEl.textContent = level;
+      knivesEl.textContent = knives;
+    }
+
+    // 更新切割显示
+    function updateCut() {
+      cutEl.innerHTML = '';
+      config.cut.forEach(cut => {
+        const canPlay = ownedKnives.length > 0;
+
+        const cutEl = document.createElement('div');
+        cutEl.className = 'cut-item';
+        cutEl.innerHTML = `
+          <div class="emoji">${cut.emoji}</div>
+          <div class="name">${cut.name}</div>
+          <div class="reward">+${cut.reward}</div>
+        `;
+        if (canPlay) {
+          cutEl.addEventListener('click', () => doCut(cut));
+        } else {
+          cutEl.disabled = true;
+        }
+        cutEl.appendChild(cutEl);
+      });
+    }
+
+    // 更新刀具显示
+    function updateKnife() {
+      knifeEl.innerHTML = '';
+      config.knife.forEach(knife => {
+        const owned = ownedKnives.some(k => k.id === knife.id);
+        const canAfford = gold >= 50;
+
+        const knifeEl = document.createElement('div');
+        knifeEl.className = 'knife-item';
+        knifeEl.innerHTML = `
+          <div class="emoji">${knife.emoji}</div>
+          <div class="name">${knife.name}</div>
+          <div class="power">${knife.power}</div>
+        `;
+        if (!owned && canAfford) {
+          knifeEl.addEventListener('click', () => buyKnife(knife));
+        } else {
+          knifeEl.disabled = true;
+        }
+        knifeEl.appendChild(knifeEl);
+      });
+    }
+
+    // 更新皮肤显示
+    function updateSkin() {
+      skinEl.innerHTML = '';
+      config.skin.forEach(skin => {
+        const owned = ownedSkins.some(s => s.id === skin.id);
+        const canAfford = gold >= skin.cost;
+
+        const skinEl = document.createElement('div');
+        skinEl.className = 'skin-item';
+        skinEl.innerHTML = `
+          <div class="emoji">${skin.emoji}</div>
+          <div class="name">${skin.name}</div>
+          <div class="cost">${skin.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          skinEl.addEventListener('click', () => buySkin(skin));
+        } else {
+          skinEl.disabled = true;
+        }
+        skinEl.appendChild(skinEl);
+      });
+    }
+
+    // 更新解压显示
+    function updateRelax() {
+      relaxEl.innerHTML = '';
+      config.relax.forEach(relax => {
+        const owned = ownedRelaxes.some(r => r.id === relax.id);
+        const canAfford = gold >= relax.cost;
+
+        const relaxEl = document.createElement('div');
+        relaxEl.className = 'relax-item';
+        relaxEl.innerHTML = `
+          <div class="emoji">${relax.emoji}</div>
+          <div class="name">${relax.name}</div>
+          <div class="cost">${relax.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          relaxEl.addEventListener('click', () => buyRelax(relax));
+        } else {
+          relaxEl.disabled = true;
+        }
+        relaxEl.appendChild(relaxEl);
+      });
+    }
+
+    // 更新关卡显示
+    function updateLevel() {
+      levelEl.innerHTML = '';
+      config.level.forEach(level => {
+        const owned = ownedLevels.some(l => l.id === level.id);
+        const canAfford = gold >= level.cost;
+
+        const levelEl = document.createElement('div');
+        levelEl.className = 'level-item';
+        levelEl.innerHTML = `
+          <div class="emoji">${level.emoji}</div>
+          <div class="name">${level.name}</div>
+          <div class="cost">${level.cost}</div>
+        `;
+        if (!owned && canAfford) {
+          levelEl.addEventListener('click', () => buyLevel(level));
+        } else {
+          levelEl.disabled = true;
+        }
+        levelEl.appendChild(levelEl);
+      });
+    }
+
+    // 进行切割
+    function doCut(cut) {
+      if (ownedKnives.length > 0) {
+        gold += cut.reward;
+        updateStats();
+        saveGame();
+        alert(`切割成功！获得 ${cut.reward} 金币`);
+      }
+    }
+
+    // 购买刀具
+    function buyKnife(knife) {
+      if (gold >= 50) {
+        gold -= 50;
+        ownedKnives.push(knife);
+        knives++;
+        updateStats();
+        updateKnife();
+        updateCut();
+        saveGame();
+        alert(`购买成功！获得 ${knife.name}`);
+      }
+    }
+
+    // 购买皮肤
+    function buySkin(skin) {
+      if (gold >= skin.cost) {
+        gold -= skin.cost;
+        ownedSkins.push(skin);
+        updateStats();
+        updateSkin();
+        saveGame();
+        alert(`购买成功！获得 ${skin.name}`);
+      }
+    }
+
+    // 购买解压
+    function buyRelax(relax) {
+      if (gold >= relax.cost) {
+        gold -= relax.cost;
+        ownedRelaxes.push(relax);
+        updateStats();
+        updateRelax();
+        saveGame();
+        alert(`购买成功！获得 ${relax.name}`);
+      }
+    }
+
+    // 购买关卡
+    function buyLevel(level) {
+      if (gold >= level.cost) {
+        gold -= level.cost;
+        ownedLevels.push(level);
+        level++;
+        updateStats();
+        updateLevel();
+        saveGame();
+        alert(`挑战成功！进入 ${level.name}，关卡 +1`);
+      }
+    }
+
+    // 收集资源
+    function collectResources() {
+      // 刀具加成
+      ownedKnives.forEach(knife => {
+        gold += 1;
+      });
+
+      // 皮肤加成
+      ownedSkins.forEach(skin => {
+        gold += 2;
+      });
+
+      // 解压加成
+      ownedRelaxes.forEach(relax => {
+        gold += 3;
+      });
+
+      // 关卡加成
+      gold += level * 5;
+    }
+
+    // 开始切割
+    function startCut() {
+      // 随机添加刀具
+      const randomKnife = Math.floor(Math.random() * 3) + 1;
+      for (let i = 0; i < randomKnife; i++) {
+        const knife = config.knife[Math.floor(Math.random() * config.knife.length)];
+        if (!ownedKnives.some(k => k.id === knife.id)) {
+          ownedKnives.push(knife);
+          knives++;
+        }
+      }
+      updateStats();
+      updateKnife();
+      updateCut();
+      saveGame();
+      alert(`切割开始！添加了 ${randomKnife} 个刀具`);
+    }
+
+    // 重置游戏
+    function resetGame() {
+      if (confirm('确定要重置游戏吗？所有进度将丢失。')) {
+        localStorage.removeItem('qie-yi-dao-dao-di');
+        initGame();
+      }
+    }
+
+    // 事件监听
+    startBtn.addEventListener('click', startCut);
+    resetBtn.addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+  </script>
+</body>
+</html>
